@@ -1,0 +1,35 @@
+# Игнорировать данные Docker
+/db_data/
+
+# Игнорировать чувствительные данные
+.env
+.env.local
+.env.development
+.env.production
+
+# Игнорировать зависимости Node.js
+backend/node_modules/
+frontend/node_modules/
+
+# Игнорировать сборочные артефакты
+backend/dist/
+frontend/.next/
+
+# Игнорировать временные файлы и логи
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Игнорировать файлы кэша и временные файлы редакторов
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Игнорировать Prisma миграции (если не хотите коммитить старые миграции)
+backend/prisma/migrations/
+
+# Игнорировать кэш Docker (если используется buildkit)
+.docker/
