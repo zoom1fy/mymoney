@@ -6,3 +6,120 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id          Int       @id @default(autoincrement()) @map("id") @db.UnsignedInt
+  email       String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.Char(60)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  lastLogin   DateTime? @map("last_login")
+  accounts    Account[] @relation("UserAccounts")
+  categories  Category[] @relation("UserCategories")
+  transactions Transaction[] @relation("UserTransactions")
+
+  @@index([email])
+  @@map("users")
+}
+
+model Currency {
+  code          String    @id @db.Char(3)
+  name          String    @db.VarChar(50)
+  symbol        String    @db.VarChar(5)
+  accounts      Account[] @relation("AccountCurrency")
+  categories    Category[] @relation("CategoryCurrency")
+  defaultCategories DefaultCategory[] @relation("DefaultCategoryCurrency")
+
+  @@map("currencies")
+}
+
+model AccountCategory {
+  id      Int       @id @db.UnsignedTinyInt
+  name    String    @unique @db.VarChar(20)
+  accounts Account[] @relation("AccountCategory")
+
+  @@map("account_categories")
+}
+
+model AccountType {
+  id      Int       @id @db.UnsignedTinyInt
+  name    String    @unique @db.VarChar(20)
+  accounts Account[] @relation("AccountType")
+
+  @@map("account_types")
+}
+
+model Account {
+  id             Int            @id @default(autoincrement()) @db.UnsignedInt
+  userId         Int            @map("user_id") @db.UnsignedInt
+  categoryId     Int            @map("category_id") @db.UnsignedTinyInt
+  typeId         Int            @map("type_id") @db.UnsignedTinyInt
+  currencyCode   String         @map("currency_code") @db.Char(3)
+  name           String         @db.VarChar(100)
+  icon           String         @default("default") @db.VarChar(50)
+  currentBalance Decimal        @default(0.00) @db.Decimal(15, 2)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  user           User           @relation("UserAccounts", fields: [userId], references: [id], onDelete: Cascade)
+  category       AccountCategory @relation("AccountCategory", fields: [categoryId], references: [id])
+  type           AccountType    @relation("AccountType", fields: [typeId], references: [id])
+  currency       Currency       @relation("AccountCurrency", fields: [currencyCode], references: [code])
+  transactions   Transaction[]  @relation("AccountTransactions")
+
+  @@index([userId, categoryId])
+  @@map("accounts")
+}
+
+model DefaultCategory {
+  id              Int       @id @default(autoincrement()) @db.UnsignedInt
+  name            String    @db.VarChar(100)
+  icon            String    @default("default") @db.VarChar(50)
+  currencyCode    String    @map("currency_code") @db.Char(3)
+  isExpense       Boolean   @map("is_expense")
+  parentId        Int?      @map("parent_id") @db.UnsignedInt
+  parent          DefaultCategory? @relation("DefaultCategoryParent", fields: [parentId], references: [id], onDelete: SetNull)
+  subcategories   DefaultCategory[] @relation("DefaultCategoryParent")
+  currency        Currency    @relation("DefaultCategoryCurrency", fields: [currencyCode], references: [code])
+  userCategories  Category[]  @relation("DefaultCategoryToUserCategory")
+
+  @@map("default_categories")
+}
+
+model Category {
+  id               Int            @id @default(autoincrement()) @db.UnsignedInt
+  userId           Int            @map("user_id") @db.UnsignedInt
+  name             String         @db.VarChar(100)
+  icon             String         @default("default") @db.VarChar(50)
+  currencyCode     String         @map("currency_code") @db.Char(3)
+  isExpense        Boolean        @map("is_expense")
+  parentId         Int?           @map("parent_id") @db.UnsignedInt
+  defaultCategoryId Int?           @map("default_category_id") @db.UnsignedInt
+  createdAt        DateTime       @default(now()) @map("created_at")
+  user             User           @relation("UserCategories", fields: [userId], references: [id], onDelete: Cascade)
+  parent           Category?      @relation("CategoryParent", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories    Category[]     @relation("CategoryParent")
+  currency         Currency       @relation("CategoryCurrency", fields: [currencyCode], references: [code])
+  defaultCategory  DefaultCategory? @relation("DefaultCategoryToUserCategory", fields: [defaultCategoryId], references: [id], onDelete: SetNull)
+  transactions     Transaction[]  @relation("CategoryTransactions")
+
+  @@unique([userId, name])
+  @@index([userId, isExpense])
+  @@map("categories")
+}
+
+model Transaction {
+  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  userId          Int         @map("user_id") @db.UnsignedInt
+  accountId       Int         @map("account_id") @db.UnsignedInt
+  categoryId      Int         @map("category_id") @db.UnsignedInt
+  amount          Decimal     @db.Decimal(15, 2)
+  transactionDate DateTime    @map("transaction_date") @db.DateTime
+  description     String?     @db.Text
+  createdAt       DateTime    @default(now()) @map("created_at")
+  user            User        @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  account         Account     @relation("AccountTransactions", fields: [accountId], references: [id])
+  category        Category    @relation("CategoryTransactions", fields: [categoryId], references: [id])
+
+  @@index([userId, transactionDate])
+  @@index([accountId, transactionDate])
+  @@map("transactions")
+}
