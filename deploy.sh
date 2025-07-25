@@ -20,7 +20,6 @@ docker cp backend/prisma/seed.sql mymoney-db-1:/seed.sql
 docker exec -it mymoney-db-1 mysql -u root -p2006 mymoneydb -e "SOURCE /seed.sql;"
 
 echo "Восстановление DATABASE_URL для admin..."
-docker exec -it mymoney-backend-1 bash -c "echo 'DATABASE_URL=mysql://admin:2006@db:3306/mymoneydb' > /app/.env"
 docker-compose restart backend
 
 echo "Развёртывание завершено!"
