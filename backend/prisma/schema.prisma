@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id          Int       @id @default(autoincrement()) @map("id") @db.UnsignedInt
-  email       String    @unique @db.VarChar(255)
-  passwordHash String    @map("password_hash") @db.Char(60)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  lastLogin   DateTime? @map("last_login")
-  accounts    Account[] @relation("UserAccounts")
-  categories  Category[] @relation("UserCategories")
-  transactions Transaction[] @relation("UserTransactions")
+  id            String        @id @default(uuid()) @map("id") @db.Char(36)
+  email         String        @unique @db.VarChar(255)
+  passwordHash  String        @map("password_hash") @db.Char(60)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  lastLogin     DateTime?     @map("last_login")
+  accounts      Account[]     @relation("UserAccounts")
+  categories    Category[]    @relation("UserCategories")
+  transactions  Transaction[] @relation("UserTransactions")
 
   @@index([email])
   @@map("users")
 }
+
 
 model Currency {
   code          String    @id @db.Char(3)
@@ -50,7 +51,7 @@ model AccountType {
 
 model Account {
   id             Int            @id @default(autoincrement()) @db.UnsignedInt
-  userId         Int            @map("user_id") @db.UnsignedInt
+  userId         String         @map("user_id") @db.Char(36)
   categoryId     Int            @map("category_id") @db.UnsignedTinyInt
   typeId         Int            @map("type_id") @db.UnsignedTinyInt
   currencyCode   String         @map("currency_code") @db.Char(3)
@@ -86,7 +87,7 @@ model DefaultCategory {
 
 model Category {
   id               Int            @id @default(autoincrement()) @db.UnsignedInt
-  userId           Int            @map("user_id") @db.UnsignedInt
+  userId           String         @map("user_id") @db.Char(36)
   name             String         @db.VarChar(100)
   icon             String         @default("default") @db.VarChar(50)
   currencyCode     String         @map("currency_code") @db.Char(3)
@@ -108,7 +109,7 @@ model Category {
 
 model Transaction {
   id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
-  userId          Int         @map("user_id") @db.UnsignedInt
+  userId          String      @map("user_id") @db.Char(36)
   accountId       Int         @map("account_id") @db.UnsignedInt
   categoryId      Int         @map("category_id") @db.UnsignedInt
   amount          Decimal     @db.Decimal(15, 2)
