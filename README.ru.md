@@ -36,6 +36,16 @@ MyMoney — это приложение для управления финанс
    ```env
     DATABASE_URL=mysql://$YOUR_USER:$YOUR_PASS@db:3306/mymoneydb
     JWT_SECRET="ТВОЙ_СЕКРЕТНЫЙ_КЛЮЧ"
+
+    # Таймауты токенов
+    JWT_ACCESS_EXPIRES_IN=15m
+    JWT_REFRESH_EXPIRES_IN=7d
+   
+    # Имя куки для refresh-токена
+    REFRESH_TOKEN_COOKIE_NAME=refresh_token
+   
+    # Среда (development|production)
+    NODE_ENV=development
    ```
 
 3. **Запустите проект**:
