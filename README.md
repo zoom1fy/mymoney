@@ -39,6 +39,11 @@ MyMoney is a financial management application built with Next.js (frontend), Nes
    ```env
     DATABASE_URL=mysql://$YOUR_USER:$YOUR_PASS@db:3306/mymoneydb
     JWT_SECRET="${YOUR_SECRET_KEY}"
+
+    JWT_ACCESS_EXPIRES_IN=15m
+    JWT_REFRESH_EXPIRES_IN=7d
+    REFRESH_TOKEN_COOKIE_NAME=refresh_token
+    NODE_ENV=development
    ```
 
 3. **Run the project**:
