@@ -34,6 +34,13 @@ MyMoney is a financial management application built with Next.js (frontend), Nes
    NEXTJS_PORT=3001
    ```
 
+   Copy to `backend/.env`:
+   Create `.env` and make sure, it include:
+   ```env
+    DATABASE_URL=mysql://$YOUR_USER:$YOUR_PASS@db:3306/mymoneydb
+    JWT_SECRET="${YOUR_SECRET_KEY}"
+   ```
+
 3. **Run the project**:
    - **On macOS**:
      ```bash
