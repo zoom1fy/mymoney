@@ -10,7 +10,7 @@ datasource db {
 model User {
   id            String        @id @default(uuid()) @map("id") @db.Char(36)
   email         String        @unique @db.VarChar(255)
-  passwordHash  String        @map("password_hash") @db.Char(60)
+  passwordHash  String        @map("password_hash") @db.Char(255)
   createdAt     DateTime      @default(now()) @map("created_at")
   lastLogin     DateTime?     @map("last_login")
   accounts      Account[]     @relation("UserAccounts")
