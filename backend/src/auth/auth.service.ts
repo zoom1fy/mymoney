@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthDto } from '../user/dto/auth.dto';
+import { AuthDto } from './dto/auth.dto';
 import { UserService } from '../user/user.service';
 import { verify } from 'argon2';
 import { Response } from 'express';
