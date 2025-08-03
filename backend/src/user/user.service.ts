@@ -33,4 +33,25 @@ export class UserService {
 
     return this.prisma.user.create({ data: user });
   }
+
+  async update(id: string, dto: AuthDto) {
+    let data = dto;
+
+    if(dto.password){
+      data = {...dto, password: await hash(dto.password)}
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async getProfile(id: string) {
+    const profile = await this.findById(id);
+    if (profile) {
+      delete (profile as { passwordHash?: string }).passwordHash;
+    }
+    return profile;
+  }
 }
