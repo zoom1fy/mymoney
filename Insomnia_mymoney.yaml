@@ -49,7 +49,7 @@ collection:
         meta:
           id: req_b0f0db5927ef4279b10b3dc84e899123
           created: 1753481760011
-          modified: 1753481934520
+          modified: 1754507241013
           isPrivate: false
           description: ""
           sortKey: -1753481737302
@@ -58,7 +58,7 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"email": "test@ya.ru",
+            	"email": "test2@ya.ru",
             	"password": "1234565e"
             }
         headers:
@@ -129,7 +129,7 @@ collection:
         meta:
           id: req_f5b6e46c9d7c48a0aeb11fdcdc45edc6
           created: 1754223079947
-          modified: 1754224301041
+          modified: 1754506358380
           isPrivate: false
           description: ""
           sortKey: -1754223083796
@@ -151,7 +151,7 @@ collection:
             value: insomnia/11.3.0
         authentication:
           type: bearer
-          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkMzBkMmVjLTdlMDMtNDI4OS1iMTE5LTY0N2EwMTU3ZmI0NyIsImlhdCI6MTc1NDIyNDE5OSwiZXhwIjoxNzU0MjI1MDk5fQ.uBbuMusiYYq6VcHHxhuCmgVbnKYxvOqPfcfiOWCcKCE
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjOTViMWU1LWYwZDQtNGJkZS1iYjg4LTNjMDc3Y2Y4ZDVhZCIsImlhdCI6MTc1NDUwNjIwMiwiZXhwIjoxNzU0NTA3MTAyfQ.n4hu_jcUXV8nU0JJMlgQrKzf-vyt5dPBOR_nm55DqlI
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -264,23 +264,170 @@ collection:
             send: true
             store: true
           rebuildPath: true
+  - name: categories
+    meta:
+      id: fld_2353b9a369f848c0b00b965cc5db8403
+      created: 1754505637629
+      modified: 1754505637629
+      sortKey: -1754505637629
+      description: ""
+    children:
+      - url: http://localhost:3000/api/category/
+        name: category
+        meta:
+          id: req_3529de31c8124686b2fb151ce15cde61
+          created: 1754505656140
+          modified: 1754507827649
+          isPrivate: false
+          description: ""
+          sortKey: -1754505680981
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"name": "влада2",
+            	"currencyCode": "в",
+            	"isExpense": true,
+            	"icon": "asset/icon.png"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU0NTA4Njg5fQ.7zJNo8gZ9u8pdAemna1uKlp7psnYDlGpcf7aR5gTmnQ
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/category/1
+        name: category/:id
+        meta:
+          id: req_4a88915296cc4431a302bb44f412a3bd
+          created: 1754506910314
+          modified: 1754507885405
+          isPrivate: false
+          description: ""
+          sortKey: -1754505681081
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"name": "влада"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU0NTA4Njg5fQ.7zJNo8gZ9u8pdAemna1uKlp7psnYDlGpcf7aR5gTmnQ
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/category/
+        name: category
+        meta:
+          id: req_b1f6fb537df74114bfdd164f4ca7059f
+          created: 1754506938933
+          modified: 1754507835287
+          isPrivate: false
+          description: ""
+          sortKey: -1754505681181
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU0NTA4Njg5fQ.7zJNo8gZ9u8pdAemna1uKlp7psnYDlGpcf7aR5gTmnQ
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/category/2
+        name: category/:id
+        meta:
+          id: req_6d5212f2d6884226be98ad9e5498b21c
+          created: 1754506952509
+          modified: 1754507854588
+          isPrivate: false
+          description: ""
+          sortKey: -1754505681281
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU0NTA4Njg5fQ.7zJNo8gZ9u8pdAemna1uKlp7psnYDlGpcf7aR5gTmnQ
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/category/1
+        name: category/:id
+        meta:
+          id: req_6d7794c6ec164f1eab2939130cc90378
+          created: 1754506963229
+          modified: 1754507892963
+          isPrivate: false
+          description: ""
+          sortKey: -1754505681381
+        method: DELETE
+        headers:
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU0NTA4Njg5fQ.7zJNo8gZ9u8pdAemna1uKlp7psnYDlGpcf7aR5gTmnQ
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
     id: jar_423ac911db4d42735be59573d15d4e90a1f207e6
     created: 1753404315590
-    modified: 1754224199587
+    modified: 1754507789803
   cookies:
     - key: refresh_token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkMzBkMmVjLTdlMDMtNDI4OS1iMTE5LTY0N2EwMTU3ZmI0NyIsImlhdCI6MTc1NDIyNDE5OSwiZXhwIjoxNzU0ODI4OTk5fQ.fsuMCBXqJitCEgqEQt-xMDf7KRdUPp8t2KJYrYWSI8g
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU1MTEyNTg5fQ.1DEzZJcOTWX29NeEAv8fS-RkqdbWw7IxWSU_Wq7n3s8
       domain: localhost
       path: /
       httpOnly: true
       hostOnly: true
       creation: 2025-07-25T23:49:10.614Z
-      lastAccessed: 2025-08-03T12:29:59.587Z
+      lastAccessed: 2025-08-06T19:16:29.803Z
       sameSite: lax
-      id: 3e39203f-8997-4970-be83-adbd45628601
+      id: 73076e68-a276-46ab-9c73-b5f94deeb4aa
 environments:
   name: Base Environment
   meta:
