@@ -19,7 +19,7 @@ collection:
         meta:
           id: req_f13783026693427a9b38296062579f5c
           created: 1753404327758
-          modified: 1753481750794
+          modified: 1754830531699
           isPrivate: false
           description: ""
           sortKey: -1753481737352
@@ -49,7 +49,7 @@ collection:
         meta:
           id: req_b0f0db5927ef4279b10b3dc84e899123
           created: 1753481760011
-          modified: 1754507241013
+          modified: 1754592048696
           isPrivate: false
           description: ""
           sortKey: -1753481737302
@@ -58,7 +58,7 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"email": "test2@ya.ru",
+            	"email": "test@ya.ru",
             	"password": "1234565e"
             }
         headers:
@@ -129,7 +129,7 @@ collection:
         meta:
           id: req_f5b6e46c9d7c48a0aeb11fdcdc45edc6
           created: 1754223079947
-          modified: 1754506358380
+          modified: 1754836794893
           isPrivate: false
           description: ""
           sortKey: -1754223083796
@@ -142,6 +142,7 @@ collection:
             	"categoryId": 2,
             	"typeId": 5,
             	"currencyCode": "RUB",
+            	"currentBalance": 10000,
             	"icon": "asset/icon.png"
             }
         headers:
@@ -151,7 +152,7 @@ collection:
             value: insomnia/11.3.0
         authentication:
           type: bearer
-          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjOTViMWU1LWYwZDQtNGJkZS1iYjg4LTNjMDc3Y2Y4ZDVhZCIsImlhdCI6MTc1NDUwNjIwMiwiZXhwIjoxNzU0NTA3MTAyfQ.n4hu_jcUXV8nU0JJMlgQrKzf-vyt5dPBOR_nm55DqlI
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNGRiZDIyLTVhZGItNGIxYy05OGNkLTU4ZmQxNjAxYjU3YiIsImlhdCI6MTc1NDgzNjY2NSwiZXhwIjoxNzU0ODM3NTY1fQ.G0nr6pJhIqkhKE64dsSlgo8TqbRIjqXRvmcErJnCKp8
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -165,7 +166,7 @@ collection:
         meta:
           id: req_240ef383d4154e5c95892e5b206cab2b
           created: 1754224242774
-          modified: 1754224281539
+          modified: 1754829091255
           isPrivate: false
           description: ""
           sortKey: -1753852410574
@@ -175,7 +176,7 @@ collection:
             value: insomnia/11.3.0
         authentication:
           type: bearer
-          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkMzBkMmVjLTdlMDMtNDI4OS1iMTE5LTY0N2EwMTU3ZmI0NyIsImlhdCI6MTc1NDIyNDE5OSwiZXhwIjoxNzU0MjI1MDk5fQ.uBbuMusiYYq6VcHHxhuCmgVbnKYxvOqPfcfiOWCcKCE
+          token: ""
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -213,7 +214,7 @@ collection:
         meta:
           id: req_fa5a98afeb8f4e67a9067fab572d22c3
           created: 1754224444708
-          modified: 1754224447490
+          modified: 1754592135171
           isPrivate: false
           description: ""
           sortKey: -1753574405657.5
@@ -223,7 +224,7 @@ collection:
             value: insomnia/11.3.0
         authentication:
           type: bearer
-          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkMzBkMmVjLTdlMDMtNDI4OS1iMTE5LTY0N2EwMTU3ZmI0NyIsImlhdCI6MTc1NDIyNDE5OSwiZXhwIjoxNzU0MjI1MDk5fQ.uBbuMusiYYq6VcHHxhuCmgVbnKYxvOqPfcfiOWCcKCE
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA5NmEyZjI3LTZjNTYtNDI3Ni04ODdiLTZlZjcyZDMxNGQ3ZSIsImlhdCI6MTc1NDU5MjA5MywiZXhwIjoxNzU0NTkyOTkzfQ.gkfhs8fO5YQ0U14z8djSSnW3DPVlBa2CtA90H3iWkD4
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -237,7 +238,7 @@ collection:
         meta:
           id: req_42512d87d2ad4497bc3872ced61f6a59
           created: 1754224510984
-          modified: 1754224531552
+          modified: 1754836802120
           isPrivate: false
           description: ""
           sortKey: -1754037747185
@@ -246,7 +247,7 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"name": "сберегательный_edit"
+            	"currentBalance": 10000
             }
         headers:
           - name: Content-Type
@@ -255,7 +256,7 @@ collection:
             value: insomnia/11.3.0
         authentication:
           type: bearer
-          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkMzBkMmVjLTdlMDMtNDI4OS1iMTE5LTY0N2EwMTU3ZmI0NyIsImlhdCI6MTc1NDIyNDE5OSwiZXhwIjoxNzU0MjI1MDk5fQ.uBbuMusiYYq6VcHHxhuCmgVbnKYxvOqPfcfiOWCcKCE
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNGRiZDIyLTVhZGItNGIxYy05OGNkLTU4ZmQxNjAxYjU3YiIsImlhdCI6MTc1NDgzNjY2NSwiZXhwIjoxNzU0ODM3NTY1fQ.G0nr6pJhIqkhKE64dsSlgo8TqbRIjqXRvmcErJnCKp8
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -277,7 +278,7 @@ collection:
         meta:
           id: req_3529de31c8124686b2fb151ce15cde61
           created: 1754505656140
-          modified: 1754507827649
+          modified: 1754836807965
           isPrivate: false
           description: ""
           sortKey: -1754505680981
@@ -286,8 +287,8 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"name": "влада2",
-            	"currencyCode": "в",
+            	"name": "влада",
+            	"currencyCode": "RUB",
             	"isExpense": true,
             	"icon": "asset/icon.png"
             }
@@ -298,7 +299,7 @@ collection:
             value: insomnia/11.3.0
         authentication:
           type: bearer
-          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU0NTA4Njg5fQ.7zJNo8gZ9u8pdAemna1uKlp7psnYDlGpcf7aR5gTmnQ
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNGRiZDIyLTVhZGItNGIxYy05OGNkLTU4ZmQxNjAxYjU3YiIsImlhdCI6MTc1NDgzNjY2NSwiZXhwIjoxNzU0ODM3NTY1fQ.G0nr6pJhIqkhKE64dsSlgo8TqbRIjqXRvmcErJnCKp8
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -344,7 +345,7 @@ collection:
         meta:
           id: req_b1f6fb537df74114bfdd164f4ca7059f
           created: 1754506938933
-          modified: 1754507835287
+          modified: 1754828451028
           isPrivate: false
           description: ""
           sortKey: -1754505681181
@@ -411,23 +412,168 @@ collection:
             send: true
             store: true
           rebuildPath: true
+  - name: transactions
+    meta:
+      id: fld_80c9a0e5f41a4e3db112a2eeb43a5af1
+      created: 1754773303737
+      modified: 1754773340877
+      sortKey: -1754773303737
+      description: ""
+    children:
+      - url: http://localhost:3000/api/transactions/
+        name: transactions
+        meta:
+          id: req_b9f08feae59d451b8042da59c11b6f03
+          created: 1754773333614
+          modified: 1754836929072
+          isPrivate: false
+          description: ""
+          sortKey: -1754773352404
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"accountId": 1,
+            	"amount": 200,
+            	"targetAccountId": 2,
+            	"currencyCode": "RUB",
+            	"type": "TRANSFER"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNGRiZDIyLTVhZGItNGIxYy05OGNkLTU4ZmQxNjAxYjU3YiIsImlhdCI6MTc1NDgzNjY2NSwiZXhwIjoxNzU0ODM3NTY1fQ.G0nr6pJhIqkhKE64dsSlgo8TqbRIjqXRvmcErJnCKp8
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/transactions/1
+        name: transactions/:id
+        meta:
+          id: req_2e49cbe1a6434307b630e0ba483092b9
+          created: 1754828459926
+          modified: 1754837079354
+          isPrivate: false
+          description: ""
+          sortKey: -1754773352504
+        method: DELETE
+        headers:
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNGRiZDIyLTVhZGItNGIxYy05OGNkLTU4ZmQxNjAxYjU3YiIsImlhdCI6MTc1NDgzNjY2NSwiZXhwIjoxNzU0ODM3NTY1fQ.G0nr6pJhIqkhKE64dsSlgo8TqbRIjqXRvmcErJnCKp8
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/transactions/2
+        name: transactions/:id
+        meta:
+          id: req_a6257d45d5b9425d8361c61251ab2d62
+          created: 1754828476174
+          modified: 1754836983506
+          isPrivate: false
+          description: ""
+          sortKey: -1754773352604
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNGRiZDIyLTVhZGItNGIxYy05OGNkLTU4ZmQxNjAxYjU3YiIsImlhdCI6MTc1NDgzNjY2NSwiZXhwIjoxNzU0ODM3NTY1fQ.G0nr6pJhIqkhKE64dsSlgo8TqbRIjqXRvmcErJnCKp8
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/transactions/
+        name: transactions
+        meta:
+          id: req_620f7167e7e844f59de978e3fa4b0e3c
+          created: 1754828488607
+          modified: 1754836975094
+          isPrivate: false
+          description: ""
+          sortKey: -1754773352704
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNGRiZDIyLTVhZGItNGIxYy05OGNkLTU4ZmQxNjAxYjU3YiIsImlhdCI6MTc1NDgzNjY2NSwiZXhwIjoxNzU0ODM3NTY1fQ.G0nr6pJhIqkhKE64dsSlgo8TqbRIjqXRvmcErJnCKp8
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:3000/api/transactions/1
+        name: transactions/:id
+        meta:
+          id: req_ff466448d38d4e07a2c0091455f59718
+          created: 1754828505415
+          modified: 1754837100132
+          isPrivate: false
+          description: ""
+          sortKey: -1754773352804
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.3.0
+        authentication:
+          type: bearer
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU0NTA4Njg5fQ.7zJNo8gZ9u8pdAemna1uKlp7psnYDlGpcf7aR5gTmnQ
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
     id: jar_423ac911db4d42735be59573d15d4e90a1f207e6
     created: 1753404315590
-    modified: 1754507789803
+    modified: 1754836665943
   cookies:
     - key: refresh_token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczZDA3MjA2LTZhMzMtNGU3ZC1iMTE3LTNjOWU4ZjA3ZDI2YSIsImlhdCI6MTc1NDUwNzc4OSwiZXhwIjoxNzU1MTEyNTg5fQ.1DEzZJcOTWX29NeEAv8fS-RkqdbWw7IxWSU_Wq7n3s8
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNGRiZDIyLTVhZGItNGIxYy05OGNkLTU4ZmQxNjAxYjU3YiIsImlhdCI6MTc1NDgzNjY2NSwiZXhwIjoxNzU1NDQxNDY1fQ.4qHEV6KlvQHgStixz0pEIMS5MYU2I9JeIF7Srjm_leY
       domain: localhost
       path: /
       httpOnly: true
       hostOnly: true
       creation: 2025-07-25T23:49:10.614Z
-      lastAccessed: 2025-08-06T19:16:29.803Z
+      lastAccessed: 2025-08-10T14:37:45.942Z
       sameSite: lax
-      id: 73076e68-a276-46ab-9c73-b5f94deeb4aa
+      id: 75c0ba64-da45-4ffc-aa41-44366df23a17
 environments:
   name: Base Environment
   meta:
