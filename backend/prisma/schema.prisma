@@ -23,12 +23,13 @@ model User {
 
 
 model Currency {
-  code          String    @id @db.Char(3)
-  name          String    @db.VarChar(50)
-  symbol        String    @db.VarChar(5)
-  accounts      Account[] @relation("AccountCurrency")
-  categories    Category[] @relation("CategoryCurrency")
-  defaultCategories DefaultCategory[] @relation("DefaultCategoryCurrency")
+  code              String                @id @db.Char(3)
+  name              String                @db.VarChar(50)
+  symbol            String                @db.VarChar(5)
+  accounts          Account[]             @relation("AccountCurrency")
+  categories        Category[]            @relation("CategoryCurrency")
+  transactions      Transaction[]         @relation("TransactionCurrency")
+  defaultCategories DefaultCategory[]     @relation("DefaultCategoryCurrency")
 
   @@map("currencies")
 }
@@ -107,18 +108,28 @@ model Category {
   @@map("categories")
 }
 
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
 model Transaction {
-  id              BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  id              Int         @id @default(autoincrement()) @db.UnsignedInt
   userId          String      @map("user_id") @db.Char(36)
   accountId       Int         @map("account_id") @db.UnsignedInt
-  categoryId      Int         @map("category_id") @db.UnsignedInt
+  targetAccountId Int?        @map("target_account_id") @db.UnsignedInt
+  categoryId      Int?        @map("category_id") @db.UnsignedInt
   amount          Decimal     @db.Decimal(15, 2)
+  currencyCode    String      @map("currency_code") @db.Char(3)
   transactionDate DateTime    @map("transaction_date") @db.DateTime
   description     String?     @db.Text
+  type            TransactionType
   createdAt       DateTime    @default(now()) @map("created_at")
   user            User        @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
   account         Account     @relation("AccountTransactions", fields: [accountId], references: [id])
-  category        Category    @relation("CategoryTransactions", fields: [categoryId], references: [id])
+  category        Category?   @relation("CategoryTransactions", fields: [categoryId], references: [id])
+  currency        Currency    @relation("TransactionCurrency", fields: [currencyCode], references: [code])
 
   @@index([userId, transactionDate])
   @@index([accountId, transactionDate])

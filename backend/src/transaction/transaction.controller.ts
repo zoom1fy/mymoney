@@ -1,34 +1,43 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode } from '@nestjs/common';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { CurrentUser } from '../auth/decorators/user.decorator';
+import { User } from '@/../.prisma/client';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
-@Controller('transaction')
+@Auth()
+@Controller('transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Post()
-  create(@Body() createTransactionDto: CreateTransactionDto) {
-    return this.transactionService.create(createTransactionDto);
+  async create(@CurrentUser() user: User, @Body() dto: CreateTransactionDto) {
+    return this.transactionService.create(user.id, dto);
   }
 
   @Get()
-  findAll() {
-    return this.transactionService.findAll();
+  async findAll(@CurrentUser() user: User) {
+    return this.transactionService.findAll(user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionService.findOne(+id);
+  async findOne(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.transactionService.findOne(user.id, Number(id));
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
-    return this.transactionService.update(+id, updateTransactionDto);
+  async update(
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+    @Body() dto: UpdateTransactionDto
+  ) {
+    return this.transactionService.update(user.id, Number(id), dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transactionService.remove(+id);
+  @HttpCode(204)
+  async remove(@CurrentUser() user: User, @Param('id') id: string) {
+    await this.transactionService.remove(user.id, Number(id));
   }
 }
