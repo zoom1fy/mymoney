@@ -10,9 +10,10 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   app.enableCors({
-    //origin: ['http://localhost:3001'],
-    credentials: true,
-  })
+    origin: 'http://localhost:3001', // фронтенд
+    credentials: true, // чтобы сработал withCredentials
+  });
+
   await app.listen(3000);
 }
 bootstrap();

@@ -6,6 +6,7 @@ import { CurrentUser } from '../auth/decorators/user.decorator';
 import { User } from '@/../.prisma/client';
 import { Auth } from '../auth/decorators/auth.decorator';
 
+
 @Auth()
 @Controller('category')
 export class CategoryController {
