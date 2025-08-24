@@ -1,0 +1,80 @@
+.toggleButton {
+  --primary-light: #64b5f6;
+  --primary: #2196f3;
+  --primary-dark: #1976d2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-light), var(--primary));
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.15),
+    inset 0 2px 6px rgba(255, 255, 255, 0.3);
+  transform-style: preserve-3d;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow:
+      0 8px 25px rgba(0, 0, 0, 0.2),
+      inset 0 4px 8px rgba(255, 255, 255, 0.4);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.iconContainer {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.icon {
+  position: absolute;
+  transition: opacity 0.5s ease;
+  color: white; // Цвет солнца
+}
+
+.sun {
+  opacity: 1;
+}
+
+.moon {
+  opacity: 0;
+}
+
+.hidden {
+  opacity: 0 !important;
+}
+
+[data-theme='dark'] .toggleButton {
+  --primary-light: #455a64;
+  --primary: #263238;
+  --primary-dark: #1a237e;
+
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 2px 6px rgba(255, 255, 255, 0.1);
+
+  .icon {
+    color: #f5f5f5; // Цвет иконок в темной теме
+  }
+
+  .moon {
+    opacity: 1;
+  }
+
+  .sun {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,194 @@
+@keyframes blob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.2);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.8);
+  }
+}
+
+@keyframes blobPurple {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-50px, 40px) scale(1.1);
+  }
+  50% {
+    transform: translate(20px, -20px) scale(0.9);
+  }
+  75% {
+    transform: translate(-30px, 50px) scale(1.15);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary), 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 20px rgba(var(--primary), 0);
+  }
+}
+
+@keyframes underline {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.formContainer {
+  animation: fadeIn 0.8s ease-out forwards;
+  background: var(--surface);
+  position: relative;
+  border-radius: 1rem;
+  color: var(--text-primary);
+  padding: 2rem;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.blob {
+  animation: blob 8s infinite ease-in-out;
+  position: absolute;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(3rem);
+  opacity: 0.2;
+}
+
+.blobIndigo {
+  top: -6rem;
+  left: -6rem;
+  background-color: var(--primary-light);
+}
+
+.blobPink {
+  bottom: -6rem;
+  right: -6rem;
+  background-color: var(--accent-yellow);
+}
+
+.blobPurple {
+  top: 2rem;
+  right: 2rem;
+  animation: blobPurple 10s infinite ease-in-out;
+  background-color: var(--primary);
+  width: 15rem;
+  height: 15rem;
+  opacity: 0.15;
+}
+
+.animationDelay2s {
+  animation-delay: 2s;
+}
+
+.animationDelay4s {
+  animation-delay: 4s;
+}
+
+.pointerNone {
+  pointer-events: none;
+}
+
+.formField {
+  animation: slideIn 0.5s ease-out forwards;
+  animation-delay: calc(0.2s * var(--field-index));
+}
+
+.toggleButton {
+  position: relative;
+  display: inline-block;
+  font-weight: 600;
+  color: var(--primary);
+  transition: color 0.3s ease;
+
+  &:hover,
+  &:focus {
+    color: var(--primary-light);
+  }
+
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover:after,
+  &:focus:after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+  }
+}
+
+.pageBackground {
+  background: linear-gradient(
+    45deg,
+    var(--primary),
+    var(--primary-light),
+    var(--accent-blue)
+  );
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+}
+
+.toastSuccess {
+  background-color: var(--accent-green);
+  color: white;
+}
+
+.toastError {
+  background-color: var(--accent-red);
+  color: white;
+}
