@@ -28,13 +28,15 @@ export default function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru">
+    <html
+      lang="ru"
+      suppressHydrationWarning
+    >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
           {children}
-
           <Toaster
             theme="dark"
             position="bottom-right"
@@ -45,6 +47,7 @@ export default function RootLayout({
     </html>
   )
 }
+
 function setLoading(arg0: boolean) {
   throw new Error('Function not implemented.')
 }
