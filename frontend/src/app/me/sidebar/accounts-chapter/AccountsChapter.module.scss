@@ -75,7 +75,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-secondary);
+  color: var(--primary-dark);
   font-size: 0.875rem;
   margin-left: 0.5rem;
 }
@@ -83,7 +83,7 @@
 .loader {
   width: 20px;
   height: 20px;
-  color: var(--primary);
+  color: var(--primary-dark);
   animation: spin 1s linear infinite;
 }
 

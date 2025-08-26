@@ -5,6 +5,7 @@
   box-shadow: var(--shadow-sm);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: cardEntrance 0.6s ease-out;
+  color: var(--light-text);
   &:hover {
     transform: translateY(-2px);
     box-shadow:
