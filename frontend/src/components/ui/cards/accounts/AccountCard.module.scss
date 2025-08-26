@@ -1,0 +1,38 @@
+.card {
+  cursor: pointer;
+  background-color: var(--primary-dark);
+  transition:
+    background 0.2s,
+    transform 0.15s;
+  &:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+  }
+}
+.content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.icon {
+  width: 24px;
+  height: 24px;
+  color: var(--primary-light);
+  flex-shrink: 0;
+  animation: iconEntrance 0.5s ease-out;
+}
+.details {
+  display: flex;
+  flex-direction: column;
+}
+.name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  animation: textEntrance 0.5s ease-out;
+}
+.balance {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  animation: textEntrance 0.5s ease-out 0.1s both;
+}

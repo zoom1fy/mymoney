@@ -16,7 +16,7 @@ export const authService = {
   },
 
   async getNewTokens() {
-    const response = await axiosClassic.get<IAuthResponse>(
+    const response = await axiosClassic.post<IAuthResponse>(
       `/auth/login/access-token`
     )
 
