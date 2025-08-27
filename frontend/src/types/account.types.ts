@@ -1,4 +1,35 @@
 import { IBase } from './root.types'
+import {
+  BadgeRussianRuble,
+  Banknote,
+  BanknoteArrowDown,
+  BanknoteArrowUp,
+  Bitcoin,
+  CircleDollarSign,
+  CirclePoundSterling,
+  Coins,
+  CreditCard,
+  DollarSign,
+  Euro,
+  HandCoins,
+  JapaneseYen,
+  Landmark,
+  LucideIcon,
+  PiggyBank,
+  PoundSterling,
+  Receipt,
+  ReceiptCent,
+  ReceiptEuro,
+  ReceiptJapaneseYen,
+  ReceiptPoundSterling,
+  ReceiptRussianRuble,
+  ReceiptSwissFranc,
+  ReceiptTurkishLira,
+  RussianRuble,
+  Wallet,
+  WalletCards,
+  WalletMinimal
+} from 'lucide-react'
 
 export enum CurrencyCode {
   RUB = 'RUB',
@@ -8,8 +39,8 @@ export enum CurrencyCode {
 }
 
 export enum AccountCategoryEnum {
-  ACCOUNTS = 1, // "Счета"
-  SAVINGS = 2 // "Сбережения"
+  ACCOUNTS = 1,
+  SAVINGS = 2
 }
 
 export const AccountCategoryNameMap: Record<AccountCategoryEnum, string> = {
@@ -25,24 +56,58 @@ export enum AccountTypeEnum {
   DEPOSIT = 5
 }
 
+// Объект с иконками вместо enum
+export const AccountIcons: Record<string, LucideIcon> = {
+  BanknoteArrowDown,
+  BanknoteArrowUp,
+  Receipt,
+  ReceiptCent,
+  ReceiptEuro,
+  ReceiptJapaneseYen,
+  ReceiptPoundSterling,
+  ReceiptRussianRuble,
+  ReceiptSwissFranc,
+  ReceiptTurkishLira,
+  CreditCard,
+  WalletCards,
+  Wallet,
+  WalletMinimal,
+  Coins,
+  HandCoins,
+  CircleDollarSign,
+  CirclePoundSterling,
+  Banknote,
+  Bitcoin,
+  DollarSign,
+  Euro,
+  JapaneseYen,
+  Landmark,
+  PiggyBank,
+  PoundSterling,
+  RussianRuble,
+  BadgeRussianRuble
+}
+
+export type AccountIconName = keyof typeof AccountIcons
+
 /**
- * Интерфейс создания аккаунта (фронт → бэк)
+ * Интерфейс создания аккаунта
  */
 export interface ICreateAccount {
   name: string
   categoryId: AccountCategoryEnum
   typeId: AccountTypeEnum
   currencyCode: CurrencyCode
-  icon?: string
+  icon?: AccountIconName
   currentBalance: number
 }
 
 /**
- * Полный аккаунт (бэк → фронт)
+ * Полный аккаунт
  */
 export interface IAccount extends IBase, ICreateAccount {}
 
 /**
- * Интерфейс обновления аккаунта (частичный)
+ * Интерфейс обновления аккаунта
  */
 export type IUpdateAccount = Partial<ICreateAccount>

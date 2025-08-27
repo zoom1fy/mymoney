@@ -13,7 +13,9 @@ interface CategoryState {
   [key: string]: boolean
 }
 
-export const AccountsChapter: React.FC = () => {
+export const AccountsChapter: React.FC<{ refreshKey?: number }> = ({
+  refreshKey
+}) => {
   const [accounts, setAccounts] = useState<IAccount[]>([])
   const [loading, setLoading] = useState(true)
   const [collapsed, setCollapsed] = useState<CategoryState>({
@@ -31,7 +33,7 @@ export const AccountsChapter: React.FC = () => {
       }
     }
     fetchAccounts()
-  }, [])
+  }, [refreshKey])
 
   const toggleCategory = (categoryId: string) => {
     setCollapsed(prev => ({ ...prev, [categoryId]: !prev[categoryId] }))

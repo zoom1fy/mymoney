@@ -28,7 +28,11 @@ axiosClassic.interceptors.response.use(
   error => {
     if (error.response) {
       // Сервер ответил с ошибкой (4xx/5xx)
-      console.error('❌ Server Error:', error.response.status, error.response.data)
+      console.error(
+        '❌ Server Error:',
+        error.response.status,
+        error.response.data
+      )
     } else if (error.request) {
       // Запрос был отправлен, ответа нет
       console.error('❌ No response received:', error.request)
@@ -40,9 +44,11 @@ axiosClassic.interceptors.response.use(
   }
 )
 
-
 axiosWithAuth.interceptors.request.use(config => {
   const accessToken = getAccessToken()
+
+  console.log('➡️ Sending request to:', (config.baseURL || '') + config.url)
+  console.log('➡️ Data:', config.data)
 
   if (config?.headers && accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`

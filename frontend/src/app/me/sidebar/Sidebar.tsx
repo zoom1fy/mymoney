@@ -2,12 +2,17 @@
 
 import styles from './Sidebar.module.scss'
 import { AccountsChapter } from './accounts-chapter/AccountsChapter'
-import { ChevronDown, ChevronRight, Menu } from 'lucide-react'
-import * as React from 'react'
+import { CreateAccountModal } from './accounts-chapter/CreateAccountModal'
+import { ChevronDown, ChevronRight, Menu, Plus } from 'lucide-react'
+import { FC, useState } from 'react'
 
-export const Sidebar: React.FC = () => {
-  const [collapsed, setCollapsed] = React.useState(false)
-  const [mobileOpen, setMobileOpen] = React.useState(false)
+import { ButtonPlus } from '@/components/ui/buttons/ButtonPlus'
+
+export const Sidebar: FC = () => {
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   return (
     <>
@@ -21,7 +26,16 @@ export const Sidebar: React.FC = () => {
 
       <aside className={`${styles.sidebar} ${mobileOpen ? styles.open : ''}`}>
         <h2 className={styles.sidebarTitle}>MyMoney</h2>
-
+        {/* Кнопка добавления с использованием ButtonPlus */}
+        <ButtonPlus
+          onClick={() => setModalOpen(true)}
+          size="small" // или 'medium' в зависимости от нужного размера
+          variant="outline" // или 'default' для основной кнопки
+          iconPosition="left"
+          className={styles.addButton} // если нужны дополнительные стили
+        >
+          Добавить счет
+        </ButtonPlus>
         <div
           className={styles.chapterHeader}
           onClick={() => setCollapsed(!collapsed)}
@@ -32,8 +46,17 @@ export const Sidebar: React.FC = () => {
 
         {!collapsed && (
           <div className={styles.accountsWrapper}>
-            <AccountsChapter />
+            <AccountsChapter key={refreshKey} />
           </div>
+        )}
+        {modalOpen && (
+          <CreateAccountModal
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onSuccess={() => {
+              setRefreshKey(prev => prev + 1) // Триггер перезагрузки списка
+            }}
+          />
         )}
       </aside>
     </>

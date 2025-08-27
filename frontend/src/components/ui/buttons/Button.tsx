@@ -3,7 +3,7 @@
 import styles from './Button.module.scss'
 import { ButtonHTMLAttributes, PropsWithChildren } from 'react'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isPending?: boolean
 }
 

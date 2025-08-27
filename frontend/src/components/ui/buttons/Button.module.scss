@@ -4,7 +4,7 @@
   border-radius: 0.75rem;
   font-weight: 600;
   color: white;
-  background-color: var(--primary);
+  background-color: var(--primary-dark);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -12,13 +12,14 @@
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
+  cursor: pointer;
 
   &:hover:not(:disabled) {
-    background-color: var(--primary-light);
+    background-color: var(--primary);
   }
 
   &:active:not(:disabled) {
-    background-color: var(--primary-dark);
+    background-color: var(--primary-light);
   }
 
   &:after {

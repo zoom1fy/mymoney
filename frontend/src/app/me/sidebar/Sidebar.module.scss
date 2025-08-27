@@ -1,3 +1,12 @@
+@mixin no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
 .sidebar {
   width: 280px;
   background: var(--surface);
@@ -7,6 +16,9 @@
   flex-direction: column;
   gap: 1rem;
   transition: transform 0.3s ease;
+  box-shadow:
+    var(--shadow-md),
+    0 0 12px 4px rgba(45, 38, 167, 0.25); // фиолетовое мягкое свечение
 
   // Скрываем сайдбар на мобильных по умолчанию
   @media (max-width: 768px) {
@@ -24,11 +36,19 @@
 }
 
 .sidebarTitle {
+  @include no-select;
+
   font-size: 1.5rem;
   font-weight: 900;
   text-align: center;
   color: var(--primary-dark);
   margin-bottom: 1rem;
+  cursor: default;
+  transition: color 0.3s;
+
+  &:hover {
+    color: var(--primary);
+  }
 
   @media (max-width: 768px) {
     font-size: 1.25rem;
@@ -48,7 +68,7 @@
 .accountsWrapper {
   flex: 1;
   overflow-y: auto;
-  max-height: 80vh;
+  max-height: 70vh;
   padding-left: 0.25rem; // отступ слева для скролла
 
   direction: rtl; // переворачиваем контейнер горизонтально
