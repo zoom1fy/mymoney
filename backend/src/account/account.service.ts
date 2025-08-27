@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import Decimal from 'decimal.js';
 
 @Injectable()
 export class AccountService {
@@ -19,6 +20,14 @@ export class AccountService {
       throw new BadRequestException('Счёт с таким именем уже существует');
     }
 
+    console.log('DTO:', dto);
+    console.log('currentBalance:', dto.currentBalance, 'Type:', typeof dto.currentBalance);
+
+    const balance =
+      dto.currentBalance !== undefined && !isNaN(dto.currentBalance)
+        ? new Decimal(dto.currentBalance)
+        : new Decimal(0);
+
     return this.prisma.account.create({
       data: {
         userId,
@@ -27,15 +36,22 @@ export class AccountService {
         categoryId: dto.categoryId,
         typeId: dto.typeId,
         currencyCode: dto.currencyCode,
+        currentBalance: balance,
       },
     });
   }
 
   async findAll(userId: string) {
-    return this.prisma.account.findMany({
+    const accounts = await this.prisma.account.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
+
+    // Convert Decimal to number for JSON serialization
+    return accounts.map((account) => ({
+      ...account,
+      currentBalance: Number(account.currentBalance), // Convert Decimal to number
+    }));
   }
 
   async findOne(userId: string, id: number) {
@@ -45,7 +61,10 @@ export class AccountService {
 
     if (!account) throw new NotFoundException('Счёт не найден');
 
-    return account;
+    return {
+      ...account,
+      currentBalance: Number(account.currentBalance), // Convert Decimal to number
+    };
   }
 
   async update(userId: string, id: number, dto: UpdateAccountDto) {
@@ -65,9 +84,14 @@ export class AccountService {
       }
     }
 
+    const updateData: any = { ...dto };
+    if (dto.currentBalance !== undefined) {
+      updateData.currentBalance = new Decimal(dto.currentBalance);
+    }
+
     return this.prisma.account.update({
       where: { id },
-      data: { ...dto },
+      data: updateData,
     });
   }
 
