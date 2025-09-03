@@ -74,6 +74,20 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     return () => window.removeEventListener('resize', checkScreen)
   }, [])
 
+  // Закрытие по Esc
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   const handleChange = (name: string, value: any, type?: string) => {
     const newValue = type === 'number' ? Number(value) : value
     setFormData(prev => ({ ...prev, [name]: newValue }))

@@ -22,6 +22,18 @@
     }
   }
 
+  &:focus,
+  &:focus-visible {
+    outline: none; // убираем системный обвод
+    background: inherit; // сохраняем текущий фон
+    color: inherit; // сохраняем текущий цвет текста
+  }
+
+  // чтобы добавить кастомное свечение при фокусе (но без сброса цвета):
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.4);
+  }
+
   // Варианты размеров
   &.small {
     padding: 0.5rem 1rem;

@@ -136,7 +136,7 @@ export const CreateAccountModal: FC<CreateAccountModalProps> = ({
         size="lg"
       >
         <div style={{ marginBottom: '1rem' }}>
-          <div className={styles}>Выберите иконку для счета</div>
+          <div className={styles.pickerTitle}>Выберите иконку для счета</div>
           <IconPicker
             value={selectedIcon}
             onChange={setSelectedIcon}
