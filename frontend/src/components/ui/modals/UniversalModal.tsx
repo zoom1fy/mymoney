@@ -46,7 +46,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
   cancelText = 'Отмена',
   loading = false,
   children,
-  size = 'md'
+  size = 'lg'
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})

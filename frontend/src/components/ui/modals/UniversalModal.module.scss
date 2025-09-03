@@ -50,7 +50,7 @@
 .modal {
   background: var(--background);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: var(--shadow-lg);
   max-width: 100%;
   max-height: 90vh;
@@ -76,7 +76,7 @@
 
 /* Desktop-версия */
 .desktop {
-  width: 600px;
+  width: 100%;
 }
 
 /* Mobile-версия — fullscreen */
@@ -93,7 +93,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 1.5rem 1rem;
+  text-align: center;
+  padding: 0.25rem 0.25rem 0.25rem;
   border-bottom: 1px solid var(--border);
 }
 
@@ -101,6 +102,7 @@
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
+  text-align: center;
   color: var(--text-primary);
 }
 
@@ -120,7 +122,9 @@
 }
 
 .form {
-  padding: 1.5rem;
+  padding: 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .fields {
@@ -137,9 +141,9 @@
 }
 
 .label {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: 1.25rem;
 }
 
 .required {
@@ -154,7 +158,6 @@
   border-radius: 8px;
   background: var(--surface);
   color: var(--text-primary);
-  font-size: 0.875rem;
   transition: all 0.2s ease;
   width: 100%;
 
@@ -176,7 +179,6 @@
   border-radius: 8px;
   background: var(--surface);
   color: var(--text-primary);
-  font-size: 0.875rem;
   transition: all 0.2s ease;
   width: 100%;
 
@@ -198,7 +200,6 @@
   border-radius: 8px;
   background: var(--surface);
   color: var(--text-primary);
-  font-size: 0.875rem;
   transition: all 0.2s ease;
   width: 100%;
   resize: vertical;

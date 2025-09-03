@@ -2,7 +2,7 @@
 
 import styles from './IconPicker.module.scss'
 
-import { AccountIconName, AccountIcons } from '@/types/account.types'
+import { AccountIcons } from '@/types/account.types'
 
 interface IconPickerProps<T extends string> {
   icons?: Record<T, React.ComponentType<any>> // Набор иконок (по умолчанию AccountIcons)

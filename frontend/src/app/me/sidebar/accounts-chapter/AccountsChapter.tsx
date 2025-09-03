@@ -4,8 +4,7 @@ import { AccountCard } from '../../../../components/ui/cards/accounts/AccountCar
 import styles from './AccountsChapter.module.scss'
 import { accountService } from '@/services/account.service'
 import { Loader } from 'lucide-react'
-import * as React from 'react'
-import { useEffect, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
 
 import { IAccount } from '@/types/account.types'
 
@@ -13,7 +12,7 @@ interface CategoryState {
   [key: string]: boolean
 }
 
-export const AccountsChapter: React.FC<{ refreshKey?: number }> = ({
+export const AccountsChapter: FC<{ refreshKey?: number }> = ({
   refreshKey
 }) => {
   const [accounts, setAccounts] = useState<IAccount[]>([])

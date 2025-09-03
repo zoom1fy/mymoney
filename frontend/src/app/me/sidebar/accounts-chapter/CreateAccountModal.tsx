@@ -4,6 +4,7 @@ import { ModalPortal } from './ModalPortal'
 import { accountService } from '@/services/account.service'
 import { FC, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import styles from './CreateAccountModal.module.scss'
 
 import { IconPicker } from '@/components/ui/modals/IconPicker'
 import {
@@ -135,7 +136,7 @@ export const CreateAccountModal: FC<CreateAccountModalProps> = ({
         size="lg"
       >
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ marginBottom: '1rem' }}>Выберите иконку для счета</div>
+          <div className={styles}>Выберите иконку для счета</div>
           <IconPicker
             value={selectedIcon}
             onChange={setSelectedIcon}
