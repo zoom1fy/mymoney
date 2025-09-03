@@ -27,6 +27,7 @@ export interface UniversalModalProps {
   isOpen: boolean
   onClose: () => void
   title: string
+  headerActions?: ReactNode
   fields: FieldConfig[]
   onSubmit: (data: Record<string, any>) => Promise<void> | void
   submitText?: string
@@ -40,6 +41,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
   isOpen,
   onClose,
   title,
+  headerActions, // Добавлено в деструктуризацию
   fields,
   onSubmit,
   submitText = 'Сохранить',
@@ -52,21 +54,15 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isMobile, setIsMobile] = useState(false)
 
-  // Инициализация formData значениями по умолчанию
   useEffect(() => {
-    if (!isOpen) return // ничего не делаем, если модалка закрыта
-    // инициализируем только если formData пустой
-    setFormData(prev => {
-      if (Object.keys(prev).length > 0) return prev
-      const initialData: Record<string, any> = {}
-      fields.forEach(field => {
-        initialData[field.name] = field.defaultValue ?? ''
-      })
-      return initialData
+    if (!isOpen) return
+    const initialData: Record<string, any> = {}
+    fields.forEach(field => {
+      initialData[field.name] = field.defaultValue ?? ''
     })
+    setFormData(initialData)
   }, [fields, isOpen])
 
-  // Определяем mobile / desktop
   useEffect(() => {
     const checkScreen = () => setIsMobile(window.innerWidth < 768)
     checkScreen()
@@ -74,16 +70,13 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     return () => window.removeEventListener('resize', checkScreen)
   }, [])
 
-  // Закрытие по Esc
   useEffect(() => {
     if (!isOpen) return
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose()
       }
     }
-
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
@@ -91,7 +84,6 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
   const handleChange = (name: string, value: any, type?: string) => {
     const newValue = type === 'number' ? Number(value) : value
     setFormData(prev => ({ ...prev, [name]: newValue }))
-
     if (errors[name]) {
       const fieldConfig = fields.find(f => f.name === name)
       if (fieldConfig?.validation) {
@@ -103,7 +95,6 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
-
     fields.forEach(field => {
       if (field.required && !formData[field.name]) {
         newErrors[field.name] = 'Это поле обязательно'
@@ -114,16 +105,13 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
         }
       }
     })
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!validateForm()) return
-
     try {
       await onSubmit(formData)
       onClose()
@@ -145,6 +133,9 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
       >
         <div className={styles.header}>
           <h3 className={styles.title}>{title}</h3>
+          {headerActions && (
+            <div className={styles.headerActions}>{headerActions}</div>
+          )}
           <button
             className={styles.closeButton}
             onClick={onClose}
@@ -153,7 +144,6 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
             <X size={20} />
           </button>
         </div>
-
         <form
           onSubmit={handleSubmit}
           className={styles.form}
@@ -168,7 +158,6 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
                   {field.label}
                   {field.required && <span className={styles.required}>*</span>}
                 </label>
-
                 {field.type === 'select' ? (
                   <select
                     name={field.name}
@@ -179,7 +168,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
                     <option value="">Выберите...</option>
                     {field.options?.map(option => (
                       <option
-                        key={option.value}
+                        key={String(option.value)}
                         value={option.value}
                       >
                         {option.label}
@@ -217,16 +206,13 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
                     className={`${styles.inputField} ${errors[field.name] ? styles.error : ''}`}
                   />
                 )}
-
                 {errors[field.name] && (
                   <span className={styles.errorText}>{errors[field.name]}</span>
                 )}
               </div>
             ))}
           </div>
-
           {children && <div className={styles.children}>{children}</div>}
-
           <div className={styles.actions}>
             <Button
               type="button"

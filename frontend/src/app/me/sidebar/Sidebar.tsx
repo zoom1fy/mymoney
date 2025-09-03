@@ -1,22 +1,26 @@
 'use client'
 
 import styles from './Sidebar.module.scss'
+import { AccountModal } from './accounts-chapter/AccountModal'
 import { AccountsChapter } from './accounts-chapter/AccountsChapter'
-import { CreateAccountModal } from './accounts-chapter/CreateAccountModal'
 import { ChevronDown, ChevronRight, Menu, Plus } from 'lucide-react'
 import { FC, useState } from 'react'
 
 import { ButtonPlus } from '@/components/ui/buttons/ButtonPlus'
+
+import { IAccount } from '@/types/account.types'
 
 export const Sidebar: FC = () => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [editingAccount, setEditingAccount] = useState<IAccount | undefined>(
+    undefined
+  ) // Изменено на undefined
 
   return (
     <>
-      {/* Кнопка гамбургера на мобильных */}
       <button
         className={styles.mobileToggle}
         onClick={() => setMobileOpen(!mobileOpen)}
@@ -26,13 +30,15 @@ export const Sidebar: FC = () => {
 
       <aside className={`${styles.sidebar} ${mobileOpen ? styles.open : ''}`}>
         <h2 className={styles.sidebarTitle}>MyMoney</h2>
-        {/* Кнопка добавления с использованием ButtonPlus */}
         <ButtonPlus
-          onClick={() => setModalOpen(true)}
-          size="small" // или 'medium' в зависимости от нужного размера
-          variant="outline" // или 'default' для основной кнопки
+          onClick={() => {
+            setEditingAccount(undefined) // Сбрасываем для создания нового аккаунта
+            setModalOpen(true)
+          }}
+          size="small"
+          variant="outline"
           iconPosition="left"
-          className={styles.addButton} // если нужны дополнительные стили
+          className={styles.addButton}
         >
           Добавить счет
         </ButtonPlus>
@@ -46,16 +52,27 @@ export const Sidebar: FC = () => {
 
         {!collapsed && (
           <div className={styles.accountsWrapper}>
-            <AccountsChapter key={refreshKey} />
+            <AccountsChapter
+              key={refreshKey}
+              refreshKey={refreshKey}
+              setEditingAccount={setEditingAccount} // Передаем setEditingAccount
+              setModalOpen={setModalOpen} // Передаем setModalOpen
+            />
           </div>
         )}
         {modalOpen && (
-          <CreateAccountModal
+          <AccountModal
             isOpen={modalOpen}
-            onClose={() => setModalOpen(false)}
+            onClose={() => {
+              setModalOpen(false)
+              setEditingAccount(undefined) // Сбрасываем при закрытии
+            }}
             onSuccess={() => {
               setRefreshKey(prev => prev + 1) // Триггер перезагрузки списка
+              setModalOpen(false)
+              setEditingAccount(undefined) // Сбрасываем после успеха
             }}
+            account={editingAccount} // Тип теперь IAccount | undefined
           />
         )}
       </aside>

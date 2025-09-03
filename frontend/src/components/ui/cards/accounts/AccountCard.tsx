@@ -9,14 +9,20 @@ export interface AccountCardProps {
   name: string
   balance: number
   icon: string
+  onClick?: () => void // ✅ поддержка клика
 }
+
 export const AccountCard: React.FC<AccountCardProps> = ({
   name,
   balance,
-  icon
+  icon,
+  onClick // ✅ сюда нужно было добавить!
 }) => {
   return (
-    <Card className={styles.card}>
+    <Card
+      className={styles.card}
+      onClick={onClick} // теперь работает
+    >
       <CardContent className={styles.content}>
         <DynamicIcon
           name={icon}

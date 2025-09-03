@@ -12,8 +12,16 @@ interface CategoryState {
   [key: string]: boolean
 }
 
-export const AccountsChapter: FC<{ refreshKey?: number }> = ({
-  refreshKey
+interface AccountsChapterProps {
+  refreshKey?: number
+  setEditingAccount: (account: IAccount | undefined) => void // Обновлённый тип
+  setModalOpen: (open: boolean) => void
+}
+
+export const AccountsChapter: FC<AccountsChapterProps> = ({
+  refreshKey,
+  setEditingAccount,
+  setModalOpen
 }) => {
   const [accounts, setAccounts] = useState<IAccount[]>([])
   const [loading, setLoading] = useState(true)
@@ -85,6 +93,10 @@ export const AccountsChapter: FC<{ refreshKey?: number }> = ({
                         name={acc.name}
                         balance={acc.currentBalance}
                         icon={acc.icon || 'Wallet'}
+                        onClick={() => {
+                          setEditingAccount(acc) // Устанавливаем аккаунт для редактирования
+                          setModalOpen(true) // Открываем модалку
+                        }}
                       />
                     ))}
                   </div>
