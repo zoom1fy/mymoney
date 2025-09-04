@@ -21,7 +21,10 @@ export const metadata: Metadata = {
     default: SITE_NAME,
     template: `%s | ${SITE_NAME}`
   },
-  description: 'Web app for financial accountin'
+  description: 'Web app for financial accountin',
+  icons: {
+    icon: '/favicon.ico'
+  }
 }
 
 export default function RootLayout({

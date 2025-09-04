@@ -1,10 +1,11 @@
 'use client'
 
-import { AccountCard } from '../../../../components/ui/cards/accounts/AccountCard'
 import styles from './AccountsChapter.module.scss'
 import { accountService } from '@/services/account.service'
 import { Loader } from 'lucide-react'
 import { FC, useEffect, useState } from 'react'
+
+import { AccountCard } from '@/components/ui/cards/accounts/AccountCard'
 
 import { IAccount } from '@/types/account.types'
 

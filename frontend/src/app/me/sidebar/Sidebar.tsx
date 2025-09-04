@@ -17,7 +17,7 @@ export const Sidebar: FC = () => {
   const [refreshKey, setRefreshKey] = useState(0)
   const [editingAccount, setEditingAccount] = useState<IAccount | undefined>(
     undefined
-  ) // Изменено на undefined
+  )
 
   return (
     <>

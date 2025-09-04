@@ -1,0 +1,205 @@
+@mixin no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+.wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(
+    135deg,
+    var(--primary-dark) 0%,
+    var(--primary) 50%,
+    var(--primary-light) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+  transition: background-position 0.5s ease;
+}
+
+.hero {
+  position: relative;
+  max-width: 700px;
+  z-index: 2;
+  animation: fadeIn 1.8s ease-out;
+  padding: 2.5rem;
+  border-radius: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.title {
+  @include no-select;
+  font-size: 4rem;
+  margin-bottom: 2rem;
+  font-weight: 900;
+  color: var(--light-text);
+  text-shadow:
+    0 0 15px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(34, 197, 94, 0.2);
+  // Анимация убрана
+}
+
+.typing {
+  @include no-select;
+  font-size: 1.5rem;
+  min-height: 2.5rem;
+  border-right: 3px solid var(--accent-green);
+  margin-bottom: 2.5rem;
+  color: var(--light-text);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  white-space: pre-wrap;
+  overflow-x: hidden;
+  min-width: 15rem;
+
+  animation:
+    blink 0.7s step-end infinite,
+    textGlow 2s ease-in-out infinite;
+}
+
+.button {
+  @include no-select;
+  display: inline-flex;
+  align-items: center;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  background: linear-gradient(45deg, #6b21a8, #7326b2);
+  color: var(--light-text);
+  font-weight: 700;
+  transition: all 0.8s ease;
+  box-shadow:
+    0 4px 15px rgba(197, 34, 194, 0.5),
+    inset 0 0 10px rgba(255, 255, 255, 0.2);
+  animation:
+    buttonPop 1s ease-out forwards,
+    buttonGlow 2s ease-in-out infinite;
+
+  &:hover {
+    background: linear-gradient(45deg, #7326b2, #7326b2);
+    box-shadow:
+      0 6px 25px rgba(129, 34, 197, 0.8),
+      inset 0 0 15px rgba(255, 255, 255, 0.3);
+    // Добавили увеличение
+    transform: translateY(-3px) scale(1.05);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4);
+  }
+}
+
+.githubBadge {
+  @include no-select;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  color: var(--light-text);
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: scale(1.1) rotate(15deg);
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ✨ Анимации */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// Удалена анимация pulseGlow
+
+@keyframes textGlow {
+  0%,
+  100% {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    text-shadow:
+      0 0 20px rgba(255, 255, 255, 0.5),
+      0 0 30px rgba(34, 197, 94, 0.3);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    border-color: transparent;
+  }
+  50% {
+    border-color: var(--accent-green);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes buttonPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) rotate(5deg);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes buttonGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 15px rgba(154, 34, 197, 0.5),
+      inset 0 0 10px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 6px 25px rgba(181, 34, 197, 0.7),
+      inset 0 0 15px rgba(255, 255, 255, 0.3);
+  }
+}
