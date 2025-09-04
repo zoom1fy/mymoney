@@ -61,7 +61,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
       initialData[field.name] = field.defaultValue ?? ''
     })
     setFormData(initialData)
-  }, [fields, isOpen])
+  }, [isOpen])
 
   useEffect(() => {
     const checkScreen = () => setIsMobile(window.innerWidth < 768)
@@ -114,7 +114,6 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     if (!validateForm()) return
     try {
       await onSubmit(formData)
-      onClose()
     } catch (error) {
       console.error('Ошибка при отправке формы:', error)
     }

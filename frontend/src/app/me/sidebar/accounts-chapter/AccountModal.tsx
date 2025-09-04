@@ -4,7 +4,10 @@ import styles from './CreateAccountModal.module.scss'
 import { ModalPortal } from './ModalPortal'
 import { accountService } from '@/services/account.service'
 import { FC, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import Swal from 'sweetalert2'
+
+// ✅ импорт
 
 import { DeleteButton } from '@/components/ui/buttons/DeleteButton'
 import { IconPicker } from '@/components/ui/modals/IconPicker'
@@ -40,10 +43,8 @@ export const AccountModal: FC<AccountModalProps> = ({
   const [selectedIcon, setSelectedIcon] = useState<AccountIconName>()
 
   useEffect(() => {
-    if (account) {
-      if (account.icon) {
-        setSelectedIcon(account.icon as AccountIconName)
-      }
+    if (account?.icon) {
+      setSelectedIcon(account.icon as AccountIconName)
     }
   }, [account])
 
@@ -120,7 +121,9 @@ export const AccountModal: FC<AccountModalProps> = ({
           ...(selectedIcon && { icon: selectedIcon })
         }
         const updated = await accountService.update(account.id, updateData)
+        toast.success('Счёт успешно обновлён!')
         onSuccess?.(updated)
+        onClose() // ✅ закрываем только при успехе
       } else {
         const createData: ICreateAccount = {
           name: data.name,
@@ -131,8 +134,16 @@ export const AccountModal: FC<AccountModalProps> = ({
           ...(selectedIcon && { icon: selectedIcon })
         }
         const created = await accountService.create(createData)
+        toast.success('Счёт успешно создан 🎉')
         onSuccess?.(created)
+        onClose() // ✅ закрываем только при успехе
       }
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+          'Произошла ошибка при сохранении счёта ❌'
+      )
+      // ❌ onClose не вызываем
     } finally {
       setLoading(false)
     }
@@ -154,13 +165,7 @@ export const AccountModal: FC<AccountModalProps> = ({
       cancelButtonText: 'Отмена',
       background: isDarkMode ? 'var(--surface)' : '#fff',
       color: isDarkMode ? 'var(--text-primary)' : '#555',
-      backdrop: isDarkMode
-        ? `
-        rgba(0, 0, 0, 0.7)
-      `
-        : `
-        rgba(0, 0, 0, 0.4)
-      `
+      backdrop: isDarkMode ? `rgba(0, 0, 0, 0.7)` : `rgba(0, 0, 0, 0.4)`
     })
 
     if (result.isConfirmed) {
@@ -169,14 +174,7 @@ export const AccountModal: FC<AccountModalProps> = ({
         await accountService.delete(account.id)
         onSuccess?.()
         onClose()
-        await Swal.fire({
-          title: 'Удалено!',
-          text: 'Ваш счет был удален.',
-          icon: 'success',
-          background: isDarkMode ? 'var(--surface)' : '#fff',
-          color: isDarkMode ? 'var(--text-primary)' : '#555',
-          confirmButtonColor: isDarkMode ? '#22c55e' : '#4caf50'
-        })
+        toast.success('Счёт успешно удалён')
       } finally {
         setLoading(false)
       }
