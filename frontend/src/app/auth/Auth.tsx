@@ -6,14 +6,63 @@ import { authService } from '@/services/auth.service'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import { SubmitHandler, UseFormRegisterReturn, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/buttons/Button'
-import { Field } from '@/components/ui/fields/Fields'
 import { ThemeToggle } from '@/components/ui/theme-toogle/ThemeToggle'
 
 import { IAuthForm } from '@/types/auth.types'
+
+interface IFieldProps {
+  id: string
+  label: string
+  placeholder: string
+  type?: string
+  register: UseFormRegisterReturn
+  error?: string
+}
+
+interface IButtonProps {
+  children: React.ReactNode
+  type: 'submit' | 'button' | 'reset'
+  isPending: boolean
+}
+
+const Field = ({
+  id,
+  label,
+  placeholder,
+  type = 'text',
+  register,
+  error
+}: IFieldProps) => (
+  <div className={styles.field}>
+    <label
+      htmlFor={id}
+      className={styles.label}
+    >
+      {label}
+    </label>
+    <input
+      id={id}
+      type={type}
+      placeholder={placeholder}
+      className={styles.input}
+      {...register}
+    />
+    {error && <span className={styles.error}>{error}</span>}
+  </div>
+)
+
+const Button = ({ children, type, isPending }: IButtonProps) => (
+  <button
+    type={type}
+    disabled={isPending}
+    className={styles.button}
+  >
+    {isPending ? 'Загрузка...' : children}
+  </button>
+)
 
 export function Auth() {
   const {
@@ -51,41 +100,26 @@ export function Auth() {
     mutate(data)
   }
 
-  // Focus management for accessibility
   useEffect(() => {
     const firstInput = document.querySelector('input') as HTMLInputElement
     firstInput?.focus()
   }, [isLoginForm])
 
   return (
-    <div
-      className={`${styles.pageBackground} min-h-screen flex items-center justify-center p-4`}
-    >
+    <div className={`${styles.wrapper} flex items-center justify-center p-4`}>
       <div
         className={`${styles.formContainer} relative shadow-2xl rounded-2xl w-full max-w-md p-8 sm:p-10 overflow-hidden transition-all duration-300`}
       >
-        {/* ThemeToggle */}
         <div className="absolute top-6 right-4">
           <ThemeToggle />
         </div>
 
-        {/* Blob animations */}
-        <div
-          className={`${styles.blob} ${styles.blobIndigo} ${styles.pointerNone}`}
-        ></div>
-        <div
-          className={`${styles.blob} ${styles.blobPink} ${styles.animationDelay2s} ${styles.pointerNone}`}
-        ></div>
-        <div
-          className={`${styles.blob} ${styles.blobPurple} ${styles.animationDelay4s} ${styles.pointerNone}`}
-        ></div>
-
-        {/* Form header */}
-        <h2 className="text-3xl sm:text-4xl font-extrabold mb-6 sm:mb-8 text-center tracking-tight">
+        <h2
+          className={`${styles.title} text-3xl sm:text-4xl font-extrabold mb-6 sm:mb-8 text-center tracking-tight`}
+        >
           {isLoginForm ? 'Вход' : 'Регистрация'}
         </h2>
 
-        {/* Form */}
         <form
           className="space-y-6"
           onSubmit={handleSubmit(onSubmit)}
@@ -96,7 +130,7 @@ export function Auth() {
             id="email"
             label="Email"
             placeholder="your@email.com"
-            {...register('email', {
+            register={register('email', {
               required: 'Email обязателен',
               pattern: {
                 value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -111,7 +145,7 @@ export function Auth() {
             label="Пароль"
             placeholder="••••••••"
             type="password"
-            {...register('password', {
+            register={register('password', {
               required: 'Пароль обязателен',
               minLength: {
                 value: 6,
@@ -121,17 +155,14 @@ export function Auth() {
             error={errors.password?.message}
           />
 
-          {/* Submit button */}
           <Button
             type="submit"
             isPending={isPending}
-            aria-label={isLoginForm ? 'Войти' : 'Регистрация'}
           >
             {isLoginForm ? 'Войти' : 'Регистрация'}
           </Button>
         </form>
 
-        {/* Toggle between login and register */}
         <p className="mt-6 text-sm text-center">
           {isLoginForm ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
           <button
