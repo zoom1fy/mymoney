@@ -93,9 +93,10 @@ export const AccountsChapter: FC<AccountsChapterProps> = ({
                         name={acc.name}
                         balance={acc.currentBalance}
                         icon={acc.icon || 'Wallet'}
+                        currencyCode={acc.currencyCode}
                         onClick={() => {
-                          setEditingAccount(acc) // Устанавливаем аккаунт для редактирования
-                          setModalOpen(true) // Открываем модалку
+                          setEditingAccount(acc)
+                          setModalOpen(true)
                         }}
                       />
                     ))}

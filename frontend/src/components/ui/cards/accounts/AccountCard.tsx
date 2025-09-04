@@ -3,25 +3,30 @@
 import { DynamicIcon } from '../../DynamicIcon'
 import { Card, CardContent } from '../Сard'
 import styles from './AccountCard.module.scss'
+import { getCurrencySymbol } from '@/utils/currency-symbols'
 import * as React from 'react'
+
+import { CurrencyCode } from '@/types/account.types'
 
 export interface AccountCardProps {
   name: string
   balance: number
   icon: string
-  onClick?: () => void // ✅ поддержка клика
+  currencyCode: CurrencyCode
+  onClick?: () => void
 }
 
 export const AccountCard: React.FC<AccountCardProps> = ({
   name,
   balance,
   icon,
-  onClick // ✅ сюда нужно было добавить!
+  currencyCode,
+  onClick
 }) => {
   return (
     <Card
       className={styles.card}
-      onClick={onClick} // теперь работает
+      onClick={onClick}
     >
       <CardContent className={styles.content}>
         <DynamicIcon
@@ -31,7 +36,9 @@ export const AccountCard: React.FC<AccountCardProps> = ({
         />
         <div className={styles.details}>
           <span className={styles.name}>{name}</span>
-          <span className={styles.balance}>{balance.toLocaleString()} ₽</span>
+          <span className={styles.balance}>
+            {balance.toLocaleString()} {getCurrencySymbol(currencyCode)}
+          </span>
         </div>
       </CardContent>
     </Card>

@@ -3,18 +3,14 @@
 import styles from './CreateAccountModal.module.scss'
 import { ModalPortal } from './ModalPortal'
 import { accountService } from '@/services/account.service'
+import { confirmDialog } from '@/utils/confirm-dialog.utils'
 import { FC, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import Swal from 'sweetalert2'
-
-// ✅ импорт
 
 import { DeleteButton } from '@/components/ui/buttons/DeleteButton'
 import { IconPicker } from '@/components/ui/modals/IconPicker'
-import {
-  FieldConfig,
-  UniversalModal
-} from '@/components/ui/modals/UniversalModal'
+import { UniversalModal } from '@/components/ui/modals/UniversalModal'
+import { getAccountFields } from '@/components/ui/modals/accounts/account-fields.config'
 
 import {
   AccountCategoryEnum,
@@ -48,65 +44,7 @@ export const AccountModal: FC<AccountModalProps> = ({
     }
   }, [account])
 
-  const fields: FieldConfig[] = [
-    {
-      name: 'name',
-      label: 'Название счета',
-      type: 'text',
-      placeholder: 'Введите название',
-      required: true,
-      defaultValue: account?.name || '',
-      validation: (value: string) =>
-        value.length < 2 ? 'Название должно быть не менее 2 символов' : null
-    },
-    {
-      name: 'categoryId',
-      label: 'Категория',
-      type: 'select',
-      required: true,
-      defaultValue: account?.categoryId || AccountCategoryEnum.ACCOUNTS,
-      options: [
-        { value: AccountCategoryEnum.ACCOUNTS, label: 'Счета' },
-        { value: AccountCategoryEnum.SAVINGS, label: 'Сбережения' }
-      ]
-    },
-    {
-      name: 'typeId',
-      label: 'Тип счета',
-      type: 'select',
-      required: true,
-      defaultValue: account?.typeId || AccountTypeEnum.CARD,
-      options: [
-        { value: AccountTypeEnum.CARD, label: 'Карта' },
-        { value: AccountTypeEnum.CASH, label: 'Наличные' },
-        { value: AccountTypeEnum.CRYPTO, label: 'Криптовалюта' },
-        { value: AccountTypeEnum.SAVING, label: 'Сберегательный' },
-        { value: AccountTypeEnum.DEPOSIT, label: 'Депозит' }
-      ]
-    },
-    {
-      name: 'currencyCode',
-      label: 'Валюта',
-      type: 'select',
-      required: true,
-      defaultValue: account?.currencyCode || CurrencyCode.RUB,
-      options: [
-        { value: CurrencyCode.RUB, label: 'RUB - Российский рубль' },
-        { value: CurrencyCode.USD, label: 'USD - Доллар США' },
-        { value: CurrencyCode.EUR, label: 'EUR - Евро' },
-        { value: CurrencyCode.BTC, label: 'BTC - Биткоин' }
-      ]
-    },
-    {
-      name: 'currentBalance',
-      label: 'Баланс',
-      type: 'number',
-      placeholder: '0.00',
-      defaultValue: account?.currentBalance || 0,
-      validation: (value: number) =>
-        value < 0 ? 'Баланс не может быть отрицательным' : null
-    }
-  ]
+  const fields = getAccountFields(account)
 
   const onSubmitForm = async (data: Record<string, any>) => {
     setLoading(true)
@@ -143,7 +81,6 @@ export const AccountModal: FC<AccountModalProps> = ({
         error?.response?.data?.message ||
           'Произошла ошибка при сохранении счёта ❌'
       )
-      // ❌ onClose не вызываем
     } finally {
       setLoading(false)
     }
@@ -152,20 +89,11 @@ export const AccountModal: FC<AccountModalProps> = ({
   const handleDelete = async () => {
     if (!account) return
 
-    const isDarkMode = document.documentElement.classList.contains('dark')
-
-    const result = await Swal.fire({
+    const result = await confirmDialog({
       title: 'Вы уверены?',
-      text: 'Вы не сможете восстановить этот счет!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: isDarkMode ? '#ef4444' : '#d33',
-      cancelButtonColor: isDarkMode ? '#3b82f6' : '#3085d6',
-      confirmButtonText: 'Да, удалить!',
-      cancelButtonText: 'Отмена',
-      background: isDarkMode ? 'var(--surface)' : '#fff',
-      color: isDarkMode ? 'var(--text-primary)' : '#555',
-      backdrop: isDarkMode ? `rgba(0, 0, 0, 0.7)` : `rgba(0, 0, 0, 0.4)`
+      text: 'Вы не сможете восстановить этот счёт!',
+      confirmText: 'Да, удалить!',
+      cancelText: 'Отмена'
     })
 
     if (result.isConfirmed) {
