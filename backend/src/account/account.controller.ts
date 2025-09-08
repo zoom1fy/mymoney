@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -11,6 +21,7 @@ import { User } from '@/../.prisma/client';
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
+  @UsePipes(new ValidationPipe())
   @Post()
   create(@CurrentUser() user: User, @Body() dto: CreateAccountDto) {
     return this.accountService.create(user.id, dto);
@@ -26,6 +37,7 @@ export class AccountController {
     return this.accountService.findOne(user.id, Number(id));
   }
 
+  @UsePipes(new ValidationPipe())
   @Patch(':id')
   update(@CurrentUser() user: User, @Param('id') id: string, @Body() dto: UpdateAccountDto) {
     return this.accountService.update(user.id, Number(id), dto);

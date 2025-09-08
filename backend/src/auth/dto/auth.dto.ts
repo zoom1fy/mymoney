@@ -5,10 +5,10 @@ export class AuthDto {
   email: string;
 
   @MinLength(6, {
-    message: 'Password must be at least 6 characters long',
+    message: 'Пароль должен содержать не менее 6 символов',
   })
   @IsString({
-    message: 'Password must be a string',
+    message: 'Пароль должен быть строкой',
   })
   password: string;
 }

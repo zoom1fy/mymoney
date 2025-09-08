@@ -4,7 +4,7 @@ import { CurrencyCode } from '../../common/enums/currency.enum';
 export class CreateCategoryDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
+  @MaxLength(11)
   name: string;
 
   @IsEnum(CurrencyCode)

@@ -1,4 +1,14 @@
-import { Body, Controller, HttpCode, Post, Req, Res, UnauthorizedException, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
@@ -30,18 +40,19 @@ export class AuthController {
   @HttpCode(200)
   @Post('login/access-token')
   async getNewTokens(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const refreshTokenFromCookies = req.cookies[this.authService.tokenConfig.refreshTokenName]
+    const refreshTokenFromCookies = req.cookies[this.authService.tokenConfig.refreshTokenName];
 
-    if(!refreshTokenFromCookies){
-      this.authService.removeRefreshTokenFromResponse(res)
-      throw new UnauthorizedException('Invalid refresh token')
+    if (!refreshTokenFromCookies) {
+      this.authService.removeRefreshTokenFromResponse(res);
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const { refreshToken, ...response } = await this.authService.getNewTokens(refreshTokenFromCookies)
+    const { refreshToken, ...response } =
+      await this.authService.getNewTokens(refreshTokenFromCookies);
 
-    this.authService.addRefreshTokenToResponse(res, refreshToken)
+    this.authService.addRefreshTokenToResponse(res, refreshToken);
 
-    return response
+    return response;
   }
 
   @HttpCode(200)
