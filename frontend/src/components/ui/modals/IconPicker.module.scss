@@ -12,8 +12,8 @@
   border: 1px solid var(--border);
 
   // по умолчанию без ограничений
-  max-height: none;
-  overflow: visible;
+  max-height: calc(4 * (64px + 1rem));
+  overflow-y: auto;
 
   @media (max-width: 480px) {
     // фиксированная сетка на мобилке: 3 в ряд

@@ -5,8 +5,16 @@ import styles from './IconPicker.module.scss'
 import { AccountIcons } from '@/types/account.types'
 
 interface IconPickerProps<T extends string> {
-  icons?: Record<T, React.ComponentType<any>> // Набор иконок (по умолчанию AccountIcons)
+  /**
+   * Набор иконок для выбора
+   * По умолчанию используются AccountIcons
+   */
+  icons?: Record<T, React.ComponentType<any>>
+
+  /** Выбранное имя иконки */
   value?: T
+
+  /** Событие при выборе иконки */
   onChange: (iconName: T) => void
 }
 
@@ -15,6 +23,7 @@ export function IconPicker<T extends string>({
   value,
   onChange
 }: IconPickerProps<T>) {
+  // Преобразуем объект в массив [имя, компонент]
   const iconEntries = Object.entries(icons) as [T, React.ComponentType<any>][]
 
   return (
