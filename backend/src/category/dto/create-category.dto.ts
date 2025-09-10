@@ -1,10 +1,19 @@
-import { IsBoolean, IsEnum, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { CurrencyCode } from '../../common/enums/currency.enum';
 
 export class CreateCategoryDto {
-  @IsString()
+  @IsString({ message: 'Имя должно быть строкой' })
   @IsNotEmpty()
-  @MaxLength(11)
+  @MaxLength(11, { message: 'Имя не должно превышать 11 символов' })
   name: string;
 
   @IsEnum(CurrencyCode)
