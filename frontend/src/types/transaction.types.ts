@@ -5,9 +5,9 @@ import { IBase } from './root.types'
  * Типы транзакций
  */
 export enum TransactionType {
-  INCOME = 1, // Доход
-  EXPENSE = 2, // Расход
-  TRANSFER = 3 // Перевод
+  INCOME = 'INCOME',
+  EXPENSE = 'EXPENSE',
+  TRANSFER = 'TRANSFER'
 }
 
 /**

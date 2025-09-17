@@ -12,7 +12,7 @@ export const getCategoryFields = (category?: ICategory): FieldConfig[] => [
     name: 'name',
     label: 'Название категории',
     type: 'text',
-    placeholder: 'Например: продукты',
+    placeholder: 'Например: Еда',
     required: true,
     defaultValue: category?.name || '',
     validation: (value: string) =>

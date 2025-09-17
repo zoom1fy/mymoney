@@ -87,13 +87,13 @@
   max-height: 100vh;
   display: flex;
   flex-direction: column;
-  
-  .title{
+
+  .title {
     visibility: hidden;
-    font-size: 0.10rem;
+    font-size: 0.1rem;
   }
 
-  .header{
+  .header {
     padding: 0.25rem;
   }
 }
@@ -111,7 +111,7 @@
 
 .title {
   margin: 0;
-  font-size: 1.50rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--primary-light);
   text-align: left;
@@ -261,6 +261,13 @@
   padding-top: 1rem;
   border-top: 1px solid var(--border);
   font-size: 18px;
+}
+
+.topContent {
+  display: flex; // делаем flex-контейнер
+  justify-content: center; // центрируем по горизонтали
+  align-items: center; // при необходимости центрируем по вертикали
+  margin-bottom: 1rem; // отступ от полей формы
 }
 
 // Анимации

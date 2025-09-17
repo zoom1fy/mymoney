@@ -18,7 +18,6 @@ export const Sidebar: FC = () => {
   const [editingAccount, setEditingAccount] = useState<IAccount | undefined>(
     undefined
   )
-
   return (
     <>
       <button
@@ -27,7 +26,6 @@ export const Sidebar: FC = () => {
       >
         <Menu size={24} />
       </button>
-
       <aside className={`${styles.sidebar} ${mobileOpen ? styles.open : ''}`}>
         <h2 className={styles.sidebarTitle}>MyMoney</h2>
         <ButtonPlus
@@ -49,14 +47,17 @@ export const Sidebar: FC = () => {
           {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
           <span>Все счета</span>
         </div>
-
         {!collapsed && (
           <div className={styles.accountsWrapper}>
             <AccountsChapter
               key={refreshKey}
               refreshKey={refreshKey}
-              setEditingAccount={setEditingAccount} // Передаем setEditingAccount
-              setModalOpen={setModalOpen} // Передаем setModalOpen
+              setEditingAccount={setEditingAccount}
+              setModalOpen={setModalOpen}
+              onAccountUpdate={updatedAccount => {
+                // обновляем локальный список accounts в AccountsChapter через callback
+                // увеличивать refreshKey не обязательно
+              }}
             />
           </div>
         )}

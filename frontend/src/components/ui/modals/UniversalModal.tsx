@@ -35,6 +35,7 @@ export interface UniversalModalProps {
   loading?: boolean
   children?: ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl'
+  topContent?: ReactNode
 }
 
 export const UniversalModal: React.FC<UniversalModalProps> = ({
@@ -48,7 +49,8 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
   cancelText = 'Отмена',
   loading = false,
   children,
-  size = 'lg'
+  size = 'lg',
+  topContent
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -147,6 +149,8 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
           onSubmit={handleSubmit}
           className={styles.form}
         >
+          {topContent && <div className={styles.topContent}>{topContent}</div>}
+
           <div className={styles.fields}>
             {fields.map(field => (
               <div

@@ -10,19 +10,12 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { ButtonPlus } from '@/components/ui/buttons/ButtonPlus'
 import { Toggle } from '@/components/ui/buttons/toggle/Toggle'
 import { CategoryBadge } from '@/components/ui/category/CategoryBadge'
+import { TransactionModal } from '@/components/ui/modals/transaction/TransactionModal'
+
+import { COLORS } from '@/constants/categories.color.constants'
 
 import { ICategory } from '@/types/category.types'
 import { ITransaction, TransactionType } from '@/types/transaction.types'
-
-const COLORS = [
-  '#4ADE80',
-  '#F87171',
-  '#60A5FA',
-  '#FACC15',
-  '#A78BFA',
-  '#34D399',
-  '#FB923C'
-]
 
 export function Chart() {
   const [transactions, setTransactions] = useState<ITransaction[]>([])
@@ -30,34 +23,36 @@ export function Chart() {
   const [transactionType, setTransactionType] = useState<
     TransactionType.INCOME | TransactionType.EXPENSE
   >(TransactionType.EXPENSE)
-
   const [isModalOpen, setIsModalOpen] = useState(false)
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const transactionsData = await transactionService.getAll()
-        setTransactions(transactionsData)
-
-        const categoriesData = await categoryService.getAll()
-        setCategories(categoriesData)
-      } catch (error) {
-        console.error('Ошибка загрузки данных:', error)
-      }
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
+  const [transactionMode, setTransactionMode] = useState<
+    'transaction' | 'edit'
+  >('transaction')
+  const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
+    null
+  )
+  // Выносим определение функции loadData за пределы useEffect
+  async function loadData() {
+    try {
+      const transactionsData = await transactionService.getAll()
+      setTransactions(transactionsData)
+      const categoriesData = await categoryService.getAll()
+      setCategories(categoriesData)
+    } catch (error) {
+      console.error('Ошибка загрузки данных:', error)
     }
+  }
+  useEffect(() => {
     loadData()
   }, [])
-
   const chartData = useMemo(() => {
     const filteredCategories = categories.filter(
       c => c.isExpense === (transactionType === TransactionType.EXPENSE)
     )
-
     const grouped: Record<string, number> = {}
     filteredCategories.forEach(category => {
       grouped[category.name] = 0
     })
-
     const filteredTransactions = transactions.filter(
       t => t.type === transactionType
     )
@@ -69,7 +64,6 @@ export function Chart() {
         grouped[categoryName] = (grouped[categoryName] || 0) + amount
       }
     })
-
     return filteredCategories.map((c, index) => ({
       name: c.name,
       value: grouped[c.name] || 0,
@@ -77,13 +71,17 @@ export function Chart() {
       category: c
     }))
   }, [transactions, transactionType, categories])
-
   const total = chartData.reduce((acc, item) => acc + item.value, 0)
-
   const handleCategoryCreated = (newCategory: ICategory) => {
     setCategories(prev => [...prev, newCategory])
   }
-
+  const handleCategoryClick = (category: ICategory) => {
+    setSelectedCategory(category)
+    setIsTransactionModalOpen(true)
+  }
+  const handleTransactionSubmit = () => {
+    loadData()
+  }
   return (
     <div className={styles.chartWrapper}>
       {/* Переключатель */}
@@ -99,7 +97,6 @@ export function Chart() {
           }
         />
       </div>
-
       {/* Контент: диаграмма + легенда */}
       <div className={styles.chartContent}>
         {/* Диаграмма */}
@@ -137,7 +134,6 @@ export function Chart() {
               />
             </PieChart>
           </ResponsiveContainer>
-
           {/* Центр доната */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-xl font-bold">
@@ -150,20 +146,22 @@ export function Chart() {
             </span>
           </div>
         </div>
-
         {/* Легенда справа */}
         <div className={styles.legendContainer}>
           {chartData.map(item => (
-            <CategoryBadge
+            <div
               key={item.name}
-              category={item.category}
-              color={item.color}
-              value={item.value}
-            />
+              onClick={() => handleCategoryClick(item.category)}
+            >
+              <CategoryBadge
+                category={item.category}
+                color={item.color}
+                value={item.value}
+              />
+            </div>
           ))}
         </div>
       </div>
-
       {/* Кнопка создания категории под диаграммой и карточками */}
       <div className={styles.addCategoryWrapper}>
         <ButtonPlus
@@ -175,7 +173,6 @@ export function Chart() {
           Добавить категорию
         </ButtonPlus>
       </div>
-
       {/* Модалка */}
       <CreateCategoryModal
         isOpen={isModalOpen}
@@ -183,6 +180,17 @@ export function Chart() {
         isExpense={transactionType === TransactionType.EXPENSE}
         onCategoryCreated={handleCategoryCreated}
       />
+      {/* Модальное окно транзакции */}
+      {selectedCategory && (
+        <TransactionModal
+          isOpen={isTransactionModalOpen}
+          onClose={() => setIsTransactionModalOpen(false)}
+          category={selectedCategory}
+          onSubmit={handleTransactionSubmit}
+          transactionMode={transactionMode}
+          setTransactionMode={setTransactionMode}
+        />
+      )}
     </div>
   )
 }

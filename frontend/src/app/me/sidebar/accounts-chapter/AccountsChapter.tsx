@@ -12,17 +12,17 @@ import { IAccount } from '@/types/account.types'
 interface CategoryState {
   [key: string]: boolean
 }
-
 interface AccountsChapterProps {
   refreshKey?: number
   setEditingAccount: (account: IAccount | undefined) => void // Обновлённый тип
   setModalOpen: (open: boolean) => void
+  onAccountUpdate?: (account: IAccount) => void
 }
-
 export const AccountsChapter: FC<AccountsChapterProps> = ({
   refreshKey,
   setEditingAccount,
-  setModalOpen
+  setModalOpen,
+  onAccountUpdate
 }) => {
   const [accounts, setAccounts] = useState<IAccount[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,7 +30,6 @@ export const AccountsChapter: FC<AccountsChapterProps> = ({
     '1': false, // Счета
     '2': false // Сбережения
   })
-
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
@@ -42,15 +41,21 @@ export const AccountsChapter: FC<AccountsChapterProps> = ({
     }
     fetchAccounts()
   }, [refreshKey])
-
   const toggleCategory = (categoryId: string) => {
     setCollapsed(prev => ({ ...prev, [categoryId]: !prev[categoryId] }))
   }
-
   const categories = [
     { id: '1', title: 'Мои счета' },
     { id: '2', title: 'Мои сбережения' }
   ]
+
+  const handleAccountUpdate = (updated: IAccount) => {
+    setAccounts(prev =>
+      prev.map(acc => (acc.id === updated.id ? updated : acc))
+    )
+    // если есть внешний callback
+    if (onAccountUpdate) onAccountUpdate(updated)
+  }
 
   return (
     <div className={styles.accountsChapter}>
@@ -59,7 +64,6 @@ export const AccountsChapter: FC<AccountsChapterProps> = ({
           acc => acc.categoryId === Number(cat.id)
         )
         const isCollapsed = collapsed[cat.id]
-
         return (
           <div
             key={cat.id}
@@ -74,14 +78,12 @@ export const AccountsChapter: FC<AccountsChapterProps> = ({
                 {isCollapsed ? '+' : '-'}
               </span>
             </div>
-
             {loading && (
               <div className={styles.loading}>
                 <Loader className={styles.loader} />
                 Загрузка...
               </div>
             )}
-
             {!loading && (
               <div
                 className={`${styles.cardsWrapper} ${!isCollapsed ? styles.expanded : ''}`}
