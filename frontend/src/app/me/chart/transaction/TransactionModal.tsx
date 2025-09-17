@@ -5,14 +5,12 @@ import { transactionService } from '@/services/transaction.services'
 import { useEffect, useState } from 'react'
 
 import { Toggle } from '@/components/ui/buttons/toggle/Toggle'
-import {
-  FieldConfig,
-  UniversalModal
-} from '@/components/ui/modals/UniversalModal'
+import { UniversalModal } from '@/components/ui/modals/UniversalModal'
+import { getTransactionFields } from '@/components/ui/modals/transaction/transaction-fields.config'
 
 import { CurrencyCode, IAccount } from '@/types/account.types'
 import { ICategory } from '@/types/category.types'
-import { ICreateTransaction, TransactionType } from '@/types/transaction.types'
+import { TransactionType } from '@/types/transaction.types'
 
 interface TransactionModalProps {
   isOpen: boolean
@@ -23,6 +21,7 @@ interface TransactionModalProps {
   setTransactionMode: (mode: 'transaction' | 'edit') => void
   onAccountUpdate?: (account: IAccount) => void
 }
+
 export function TransactionModal({
   isOpen,
   onClose,
@@ -34,6 +33,7 @@ export function TransactionModal({
 }: TransactionModalProps) {
   const [accounts, setAccounts] = useState<IAccount[]>([])
   const [loading, setLoading] = useState(false)
+
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
@@ -45,6 +45,7 @@ export function TransactionModal({
     }
     if (isOpen) fetchAccounts()
   }, [isOpen])
+
   const handleSubmit = async (data: any) => {
     try {
       setLoading(true)
@@ -52,7 +53,6 @@ export function TransactionModal({
         const amount = Number(data.amount)
         const accountId = Number(data.accountId)
 
-        // Создаём транзакцию
         const transaction = await transactionService.create({
           amount,
           accountId,
@@ -65,9 +65,9 @@ export function TransactionModal({
         })
 
         const updatedAccount = await accountService.getById(accountId)
-
         onAccountUpdate?.(updatedAccount)
       } else {
+        // Логика для редактирования транзакции
       }
       onSubmit()
       onClose()
@@ -77,30 +77,9 @@ export function TransactionModal({
       setLoading(false)
     }
   }
-  const transactionFields: FieldConfig[] = [
-    {
-      name: 'amount',
-      label: 'Сумма',
-      type: 'number',
-      required: true,
-      defaultValue: ''
-    },
-    {
-      name: 'accountId',
-      label: 'Счет',
-      type: 'select',
-      options: accounts.map(account => ({
-        value: account.id,
-        label: account.name
-      })),
-      required: true
-    },
-    {
-      name: 'description',
-      label: 'Описание',
-      type: 'text'
-    }
-  ]
+
+  const transactionFields = getTransactionFields(accounts)
+
   return (
     <UniversalModal
       isOpen={isOpen}
