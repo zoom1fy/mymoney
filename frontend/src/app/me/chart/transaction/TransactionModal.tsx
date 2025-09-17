@@ -64,12 +64,10 @@ export function TransactionModal({
           currencyCode: CurrencyCode.RUB
         })
 
-        // получаем обновлённый счёт
         const updatedAccount = await accountService.getById(accountId)
 
         onAccountUpdate?.(updatedAccount)
       } else {
-        // Логика для редактирования транзакции
       }
       onSubmit()
       onClose()

@@ -2,7 +2,7 @@
 
 .toggle {
   position: relative;
-  width: 260px;
+  width: 360px;
   height: 52px;
   border-radius: 9999px;
   cursor: pointer;
@@ -22,6 +22,10 @@
     box-shadow:
       0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent),
       var(--shadow-md);
+  }
+
+  @media screen and (max-width: 480px) {
+    width: 270px;
   }
 }
 

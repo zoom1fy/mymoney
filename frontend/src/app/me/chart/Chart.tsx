@@ -2,6 +2,7 @@
 
 import styles from './Chart.module.scss'
 import { CreateCategoryModal } from './categories/CreateCategoryModal'
+import { TransactionModal } from './transaction/TransactionModal'
 import { categoryService } from '@/services/category.service'
 import { transactionService } from '@/services/transaction.services'
 import { FC, useEffect, useMemo, useState } from 'react'
@@ -10,7 +11,6 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { ButtonPlus } from '@/components/ui/buttons/ButtonPlus'
 import { Toggle } from '@/components/ui/buttons/toggle/Toggle'
 import { CategoryBadge } from '@/components/ui/category/CategoryBadge'
-import { TransactionModal } from '@/components/ui/modals/transaction/TransactionModal'
 
 import { COLORS } from '@/constants/categories.color.constants'
 
