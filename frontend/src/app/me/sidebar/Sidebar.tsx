@@ -3,21 +3,26 @@
 import styles from './Sidebar.module.scss'
 import { AccountModal } from './accounts-chapter/AccountModal'
 import { AccountsChapter } from './accounts-chapter/AccountsChapter'
-import { ChevronDown, ChevronRight, Menu, Plus } from 'lucide-react'
+import { ChevronDown, ChevronRight, Menu } from 'lucide-react'
 import { FC, useState } from 'react'
 
 import { ButtonPlus } from '@/components/ui/buttons/ButtonPlus'
 
 import { IAccount } from '@/types/account.types'
 
-export const Sidebar: FC = () => {
+interface SidebarProps {
+  refreshKey: number
+  setRefreshKey: React.Dispatch<React.SetStateAction<number>>
+}
+
+export const Sidebar: FC<SidebarProps> = ({ refreshKey, setRefreshKey }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
   const [editingAccount, setEditingAccount] = useState<IAccount | undefined>(
     undefined
   )
+
   return (
     <>
       <button
@@ -30,7 +35,7 @@ export const Sidebar: FC = () => {
         <h2 className={styles.sidebarTitle}>MyMoney</h2>
         <ButtonPlus
           onClick={() => {
-            setEditingAccount(undefined) // Сбрасываем для создания нового аккаунта
+            setEditingAccount(undefined)
             setModalOpen(true)
           }}
           size="small"
@@ -54,10 +59,7 @@ export const Sidebar: FC = () => {
               refreshKey={refreshKey}
               setEditingAccount={setEditingAccount}
               setModalOpen={setModalOpen}
-              onAccountUpdate={updatedAccount => {
-                // обновляем локальный список accounts в AccountsChapter через callback
-                // увеличивать refreshKey не обязательно
-              }}
+              onAccountUpdate={updatedAccount => {}}
             />
           </div>
         )}
@@ -66,14 +68,14 @@ export const Sidebar: FC = () => {
             isOpen={modalOpen}
             onClose={() => {
               setModalOpen(false)
-              setEditingAccount(undefined) // Сбрасываем при закрытии
+              setEditingAccount(undefined)
             }}
             onSuccess={() => {
-              setRefreshKey(prev => prev + 1) // Триггер перезагрузки списка
+              setRefreshKey(prev => prev + 1)
               setModalOpen(false)
-              setEditingAccount(undefined) // Сбрасываем после успеха
+              setEditingAccount(undefined)
             }}
-            account={editingAccount} // Тип теперь IAccount | undefined
+            account={editingAccount}
           />
         )}
       </aside>

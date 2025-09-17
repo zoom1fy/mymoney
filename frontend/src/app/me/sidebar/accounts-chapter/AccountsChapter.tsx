@@ -53,8 +53,7 @@ export const AccountsChapter: FC<AccountsChapterProps> = ({
     setAccounts(prev =>
       prev.map(acc => (acc.id === updated.id ? updated : acc))
     )
-    // если есть внешний callback
-    if (onAccountUpdate) onAccountUpdate(updated)
+    onAccountUpdate?.(updated)
   }
 
   return (

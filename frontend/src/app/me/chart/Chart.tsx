@@ -4,7 +4,7 @@ import styles from './Chart.module.scss'
 import { CreateCategoryModal } from './categories/CreateCategoryModal'
 import { categoryService } from '@/services/category.service'
 import { transactionService } from '@/services/transaction.services'
-import { useEffect, useMemo, useState } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import { ButtonPlus } from '@/components/ui/buttons/ButtonPlus'
@@ -17,74 +17,77 @@ import { COLORS } from '@/constants/categories.color.constants'
 import { ICategory } from '@/types/category.types'
 import { ITransaction, TransactionType } from '@/types/transaction.types'
 
-export function Chart() {
+interface ChartProps {
+  onTransactionSuccess?: () => void
+}
+
+export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
   const [transactions, setTransactions] = useState<ITransaction[]>([])
   const [categories, setCategories] = useState<ICategory[]>([])
-  const [transactionType, setTransactionType] = useState<
-    TransactionType.INCOME | TransactionType.EXPENSE
-  >(TransactionType.EXPENSE)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false)
-  const [transactionMode, setTransactionMode] = useState<
-    'transaction' | 'edit'
-  >('transaction')
+  const [transactionType, setTransactionType] = useState<TransactionType>(
+    TransactionType.EXPENSE
+  )
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
     null
   )
-  // Выносим определение функции loadData за пределы useEffect
-  async function loadData() {
+  const [transactionMode, setTransactionMode] = useState<
+    'transaction' | 'edit'
+  >('transaction')
+  const [modalCategoryOpen, setModalCategoryOpen] = useState(false)
+
+  const loadData = async () => {
     try {
-      const transactionsData = await transactionService.getAll()
+      const [transactionsData, categoriesData] = await Promise.all([
+        transactionService.getAll(),
+        categoryService.getAll()
+      ])
       setTransactions(transactionsData)
-      const categoriesData = await categoryService.getAll()
       setCategories(categoriesData)
     } catch (error) {
       console.error('Ошибка загрузки данных:', error)
     }
   }
+
   useEffect(() => {
     loadData()
   }, [])
+
   const chartData = useMemo(() => {
     const filteredCategories = categories.filter(
       c => c.isExpense === (transactionType === TransactionType.EXPENSE)
     )
     const grouped: Record<string, number> = {}
-    filteredCategories.forEach(category => {
-      grouped[category.name] = 0
-    })
-    const filteredTransactions = transactions.filter(
-      t => t.type === transactionType
-    )
-    filteredTransactions.forEach(t => {
-      const category = filteredCategories.find(c => c.id === t.categoryId)
-      const categoryName = category?.name || 'Без категории'
-      const amount = Number(t.amount) || 0
-      if (category && categoryName !== 'Без категории') {
-        grouped[categoryName] = (grouped[categoryName] || 0) + amount
-      }
-    })
-    return filteredCategories.map((c, index) => ({
+    filteredCategories.forEach(c => (grouped[c.name] = 0))
+
+    transactions
+      .filter(t => t.type === transactionType)
+      .forEach(t => {
+        const category = filteredCategories.find(c => c.id === t.categoryId)
+        if (category) grouped[category.name] += Number(t.amount) || 0
+      })
+
+    return filteredCategories.map((c, i) => ({
       name: c.name,
       value: grouped[c.name] || 0,
-      color: COLORS[index % COLORS.length],
+      color: COLORS[i % COLORS.length],
       category: c
     }))
-  }, [transactions, transactionType, categories])
+  }, [transactions, categories, transactionType])
+
   const total = chartData.reduce((acc, item) => acc + item.value, 0)
-  const handleCategoryCreated = (newCategory: ICategory) => {
+
+  const handleCategoryCreated = (newCategory: ICategory) =>
     setCategories(prev => [...prev, newCategory])
-  }
-  const handleCategoryClick = (category: ICategory) => {
+  const handleCategoryClick = (category: ICategory) =>
     setSelectedCategory(category)
-    setIsTransactionModalOpen(true)
-  }
   const handleTransactionSubmit = () => {
     loadData()
+    onTransactionSuccess?.()
+    setSelectedCategory(null)
   }
+
   return (
     <div className={styles.chartWrapper}>
-      {/* Переключатель */}
       <div className={styles.chartHeader}>
         <Toggle
           leftText="Расходы"
@@ -97,9 +100,8 @@ export function Chart() {
           }
         />
       </div>
-      {/* Контент: диаграмма + легенда */}
+
       <div className={styles.chartContent}>
-        {/* Диаграмма */}
         <div className={styles.chartContainer}>
           <ResponsiveContainer
             width="100%"
@@ -113,9 +115,9 @@ export function Chart() {
                 dataKey="value"
                 paddingAngle={2}
               >
-                {chartData.map((entry, index) => (
+                {chartData.map((entry, i) => (
                   <Cell
-                    key={`cell-${index}`}
+                    key={i}
                     fill={entry.color}
                   />
                 ))}
@@ -123,7 +125,7 @@ export function Chart() {
               <Tooltip
                 contentStyle={{ background: 'transparent' }}
                 content={({ payload }) => {
-                  if (!payload || !payload[0]) return null
+                  if (!payload?.[0]) return null
                   const { name, value } = payload[0].payload
                   return (
                     <div className={styles.tooltip}>
@@ -134,7 +136,6 @@ export function Chart() {
               />
             </PieChart>
           </ResponsiveContainer>
-          {/* Центр доната */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-xl font-bold">
               {total.toLocaleString()} ₽
@@ -146,7 +147,7 @@ export function Chart() {
             </span>
           </div>
         </div>
-        {/* Легенда справа */}
+
         <div className={styles.legendContainer}>
           {chartData.map(item => (
             <div
@@ -162,29 +163,29 @@ export function Chart() {
           ))}
         </div>
       </div>
-      {/* Кнопка создания категории под диаграммой и карточками */}
+
       <div className={styles.addCategoryWrapper}>
         <ButtonPlus
           size="small"
           variant="outline"
           iconPosition="left"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setModalCategoryOpen(true)}
         >
           Добавить категорию
         </ButtonPlus>
       </div>
-      {/* Модалка */}
+
       <CreateCategoryModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={modalCategoryOpen}
+        onClose={() => setModalCategoryOpen(false)}
         isExpense={transactionType === TransactionType.EXPENSE}
         onCategoryCreated={handleCategoryCreated}
       />
-      {/* Модальное окно транзакции */}
+
       {selectedCategory && (
         <TransactionModal
-          isOpen={isTransactionModalOpen}
-          onClose={() => setIsTransactionModalOpen(false)}
+          isOpen={true}
+          onClose={() => setSelectedCategory(null)}
           category={selectedCategory}
           onSubmit={handleTransactionSubmit}
           transactionMode={transactionMode}
