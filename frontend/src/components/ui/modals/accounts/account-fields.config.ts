@@ -61,7 +61,7 @@ export const getAccountFields = (account?: IAccount): FieldConfig[] => [
     label: 'Баланс',
     type: 'number',
     placeholder: '0.00',
-    defaultValue: account?.currentBalance || 0,
+    defaultValue: account?.currentBalance || '',
     validation: (value: number) =>
       value < 0 ? 'Баланс не может быть отрицательным' : null
   }

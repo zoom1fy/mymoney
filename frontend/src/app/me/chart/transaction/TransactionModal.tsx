@@ -1,15 +1,23 @@
 'use client'
 
 import { accountService } from '@/services/account.service'
+import { categoryService } from '@/services/category.service'
 import { transactionService } from '@/services/transaction.services'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import { Toggle } from '@/components/ui/buttons/toggle/Toggle'
+import { IconPicker } from '@/components/ui/modals/IconPicker'
 import { UniversalModal } from '@/components/ui/modals/UniversalModal'
+import { getCategoryFields } from '@/components/ui/modals/categories/category-fields.config'
 import { getTransactionFields } from '@/components/ui/modals/transaction/transaction-fields.config'
 
 import { CurrencyCode, IAccount } from '@/types/account.types'
-import { ICategory } from '@/types/category.types'
+import {
+  CategoryIconName,
+  CategoryIcons,
+  ICategory
+} from '@/types/category.types'
 import { TransactionType } from '@/types/transaction.types'
 
 interface TransactionModalProps {
@@ -33,31 +41,44 @@ export function TransactionModal({
 }: TransactionModalProps) {
   const [accounts, setAccounts] = useState<IAccount[]>([])
   const [loading, setLoading] = useState(false)
+  const [selectedIcon, setSelectedIcon] = useState<CategoryIconName>(
+    category?.icon || 'Circle'
+  )
 
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
         const data = await accountService.getAll()
         setAccounts(data)
-      } catch (error) {
+      } catch (error: any) {
         console.error('Ошибка загрузки счетов:', error)
+        toast.error(
+          error?.response?.data?.message || 'Не удалось загрузить счета'
+        )
       }
     }
     if (isOpen) fetchAccounts()
   }, [isOpen])
 
+  useEffect(() => {
+    setSelectedIcon(category?.icon || 'Circle')
+  }, [category])
+
   const handleSubmit = async (data: any) => {
+    if (!category) return
     try {
       setLoading(true)
+
       if (transactionMode === 'transaction') {
+        // Создание транзакции
         const amount = Number(data.amount)
         const accountId = Number(data.accountId)
 
-        const transaction = await transactionService.create({
+        await transactionService.create({
           amount,
           accountId,
-          categoryId: category?.id,
-          type: category?.isExpense
+          categoryId: category.id,
+          type: category.isExpense
             ? TransactionType.EXPENSE
             : TransactionType.INCOME,
           description: data.description || '',
@@ -67,18 +88,28 @@ export function TransactionModal({
         const updatedAccount = await accountService.getById(accountId)
         onAccountUpdate?.(updatedAccount)
       } else {
-        // Логика для редактирования транзакции
+        // Редактирование категории с выбором иконки
+        await categoryService.update(category.id, {
+          name: data.name,
+          isExpense: category.isExpense,
+          icon: selectedIcon
+        })
       }
+
       onSubmit()
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ошибка:', error)
+      toast.error(error?.response?.data?.message || 'Произошла ошибка')
     } finally {
       setLoading(false)
     }
   }
 
   const transactionFields = getTransactionFields(accounts)
+  const categoryFields = category
+    ? getCategoryFields(category).filter(f => f.name !== 'icon')
+    : []
 
   return (
     <UniversalModal
@@ -89,7 +120,9 @@ export function TransactionModal({
           ? 'Выполнить транзакцию'
           : 'Редактировать категорию'
       }
-      fields={transactionFields}
+      fields={
+        transactionMode === 'transaction' ? transactionFields : categoryFields
+      }
       onSubmit={handleSubmit}
       submitText={transactionMode === 'transaction' ? 'Выполнить' : 'Сохранить'}
       loading={loading}
@@ -103,6 +136,19 @@ export function TransactionModal({
           }
         />
       }
-    ></UniversalModal>
+    >
+      {transactionMode === 'edit' && category && (
+        <div style={{ marginTop: '1rem' }}>
+          <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>
+            Иконка категории
+          </div>
+          <IconPicker<CategoryIconName>
+            icons={CategoryIcons}
+            value={selectedIcon}
+            onChange={setSelectedIcon}
+          />
+        </div>
+      )}
+    </UniversalModal>
   )
 }
