@@ -3,9 +3,11 @@
 import { accountService } from '@/services/account.service'
 import { categoryService } from '@/services/category.service'
 import { transactionService } from '@/services/transaction.services'
+import { confirmDialog } from '@/utils/confirm-dialog.utils'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+import { DeleteButton } from '@/components/ui/buttons/DeleteButton'
 import { Toggle } from '@/components/ui/buttons/toggle/Toggle'
 import { IconPicker } from '@/components/ui/modals/IconPicker'
 import { UniversalModal } from '@/components/ui/modals/UniversalModal'
@@ -88,12 +90,13 @@ export function TransactionModal({
         const updatedAccount = await accountService.getById(accountId)
         onAccountUpdate?.(updatedAccount)
       } else {
-        // Редактирование категории с выбором иконки
+        // Редактирование категории
         await categoryService.update(category.id, {
           name: data.name,
           isExpense: category.isExpense,
           icon: selectedIcon
         })
+        toast.success('Категория обновлена ✅')
       }
 
       onSubmit()
@@ -101,6 +104,31 @@ export function TransactionModal({
     } catch (error: any) {
       console.error('Ошибка:', error)
       toast.error(error?.response?.data?.message || 'Произошла ошибка')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!category) return
+    const result = await confirmDialog({
+      title: 'Удалить категорию?',
+      text: 'Все связанные транзакции сохранятся, но категория будет удалена.',
+      confirmText: 'Удалить',
+      cancelText: 'Отмена'
+    })
+    if (!result.isConfirmed) return
+
+    try {
+      setLoading(true)
+      await categoryService.delete(category.id)
+      toast.success('Категория удалена 🗑️')
+      onSubmit()
+      onClose()
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || 'Не удалось удалить категорию'
+      )
     } finally {
       setLoading(false)
     }
@@ -126,6 +154,17 @@ export function TransactionModal({
       onSubmit={handleSubmit}
       submitText={transactionMode === 'transaction' ? 'Выполнить' : 'Сохранить'}
       loading={loading}
+      headerActions={
+        transactionMode === 'edit' &&
+        category && (
+          <DeleteButton
+            onClick={handleDelete}
+            disabled={loading}
+          >
+            Удалить
+          </DeleteButton>
+        )
+      }
       topContent={
         <Toggle
           leftText="Транзакция"

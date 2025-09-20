@@ -110,7 +110,7 @@
   @media (max-width: 768px) {
     grid-template-columns: repeat(auto-fit, minmax(80px, auto));
     justify-content: center; // на мобилке центрируем
-    max-height: 220px;
+    max-height: 300px;
     width: 100%;
     order: 2;
   }
