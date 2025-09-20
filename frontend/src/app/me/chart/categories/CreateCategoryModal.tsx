@@ -50,7 +50,6 @@ export function CreateCategoryModal({
       const message =
         error?.response?.data?.message ||
         'Произошла ошибка при создании категории'
-      // Вызываем тостер (например, sonner)
       import('sonner').then(({ toast }) => toast.error(message))
     } finally {
       setLoading(false)

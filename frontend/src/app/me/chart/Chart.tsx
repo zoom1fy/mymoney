@@ -21,6 +21,28 @@ interface ChartProps {
   onTransactionSuccess?: () => void
 }
 
+function buildChartData(
+  transactions: ITransaction[],
+  categories: ICategory[],
+  isExpense: boolean
+) {
+  const filteredCategories = categories.filter(c => c.isExpense === isExpense)
+  const grouped: Record<string, number> = {}
+  filteredCategories.forEach(c => (grouped[c.name] = 0))
+
+  transactions.forEach(t => {
+    const category = filteredCategories.find(c => c.id === t.categoryId)
+    if (category) grouped[category.name] += Number(t.amount) || 0
+  })
+
+  return filteredCategories.map((c, i) => ({
+    name: c.name,
+    value: grouped[c.name] || 0,
+    color: COLORS[i % COLORS.length],
+    category: c
+  }))
+}
+
 export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
   const [transactions, setTransactions] = useState<ITransaction[]>([])
   const [categories, setCategories] = useState<ICategory[]>([])
@@ -35,6 +57,13 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
   >('transaction')
   const [modalCategoryOpen, setModalCategoryOpen] = useState(false)
 
+  const [expenseTransactions, setExpenseTransactions] = useState<
+    ITransaction[]
+  >([])
+  const [incomeTransactions, setIncomeTransactions] = useState<ITransaction[]>(
+    []
+  )
+
   const loadData = async () => {
     try {
       const [transactionsData, categoriesData] = await Promise.all([
@@ -43,6 +72,13 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
       ])
       setTransactions(transactionsData)
       setCategories(categoriesData)
+
+      setExpenseTransactions(
+        transactionsData.filter(t => t.type === TransactionType.EXPENSE)
+      )
+      setIncomeTransactions(
+        transactionsData.filter(t => t.type === TransactionType.INCOME)
+      )
     } catch (error) {
       console.error('Ошибка загрузки данных:', error)
     }
@@ -52,34 +88,29 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
     loadData()
   }, [])
 
-  const chartData = useMemo(() => {
-    const filteredCategories = categories.filter(
-      c => c.isExpense === (transactionType === TransactionType.EXPENSE)
-    )
-    const grouped: Record<string, number> = {}
-    filteredCategories.forEach(c => (grouped[c.name] = 0))
+  // Строим данные только один раз на изменение данных
+  const expenseChartData = useMemo(
+    () => buildChartData(expenseTransactions, categories, true),
+    [expenseTransactions, categories]
+  )
+  const incomeChartData = useMemo(
+    () => buildChartData(incomeTransactions, categories, false),
+    [incomeTransactions, categories]
+  )
 
-    transactions
-      .filter(t => t.type === transactionType)
-      .forEach(t => {
-        const category = filteredCategories.find(c => c.id === t.categoryId)
-        if (category) grouped[category.name] += Number(t.amount) || 0
-      })
-
-    return filteredCategories.map((c, i) => ({
-      name: c.name,
-      value: grouped[c.name] || 0,
-      color: COLORS[i % COLORS.length],
-      category: c
-    }))
-  }, [transactions, categories, transactionType])
+  const chartData =
+    transactionType === TransactionType.EXPENSE
+      ? expenseChartData
+      : incomeChartData
 
   const total = chartData.reduce((acc, item) => acc + item.value, 0)
 
   const handleCategoryCreated = (newCategory: ICategory) =>
     setCategories(prev => [...prev, newCategory])
+
   const handleCategoryClick = (category: ICategory) =>
     setSelectedCategory(category)
+
   const handleTransactionSubmit = () => {
     loadData()
     onTransactionSuccess?.()
@@ -114,6 +145,7 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
                 outerRadius="100%"
                 dataKey="value"
                 paddingAngle={2}
+                animationDuration={700}
               >
                 {chartData.map((entry, i) => (
                   <Cell
