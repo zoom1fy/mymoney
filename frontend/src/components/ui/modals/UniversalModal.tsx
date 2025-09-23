@@ -21,6 +21,7 @@ export interface FieldConfig {
   options?: Array<{ value: string | number; label: string }>
   defaultValue?: any
   validation?: (value: any) => string | null
+  onChange?: (value: any) => void
 }
 
 export interface UniversalModalProps {
@@ -58,12 +59,25 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return
-    const initialData: Record<string, any> = {}
+
+    const newFormData = { ...formData }
+
     fields.forEach(field => {
-      initialData[field.name] = field.defaultValue ?? ''
+      // Обновляем только если поле ещё не было заполнено пользователем
+      if (
+        field.defaultValue !== undefined &&
+        newFormData[field.name] === undefined
+      ) {
+        newFormData[field.name] = field.defaultValue
+      }
+      // Или обновляем только конкретное поле, например accountId
+      if (field.name === 'accountId' && field.defaultValue !== undefined) {
+        newFormData[field.name] = field.defaultValue
+      }
     })
-    setFormData(initialData)
-  }, [isOpen])
+
+    setFormData(newFormData)
+  }, [isOpen, fields])
 
   useEffect(() => {
     const checkScreen = () => setIsMobile(window.innerWidth < 768)
@@ -85,7 +99,17 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
 
   const handleChange = (name: string, value: any, type?: string) => {
     const newValue = type === 'number' ? Number(value) : value
+
+    // 1. Обновляем внутреннее состояние, как и раньше
     setFormData(prev => ({ ...prev, [name]: newValue }))
+
+    // 2. Находим конфигурацию для поля, которое изменилось
+    const fieldConfig = fields.find(f => f.name === name)
+
+    // 3. Если у этого поля есть своя функция onChange, вызываем её!
+    if (fieldConfig && fieldConfig.onChange) {
+      fieldConfig.onChange(newValue)
+    }
     if (errors[name]) {
       const fieldConfig = fields.find(f => f.name === name)
       if (fieldConfig?.validation) {

@@ -1,9 +1,11 @@
 'use client'
 
+import styles from './TransactionModal.module.scss'
 import { accountService } from '@/services/account.service'
 import { categoryService } from '@/services/category.service'
 import { transactionService } from '@/services/transaction.services'
 import { confirmDialog } from '@/utils/confirm-dialog.utils'
+import { ArrowRight, CircleQuestionMark } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -14,7 +16,12 @@ import { UniversalModal } from '@/components/ui/modals/UniversalModal'
 import { getCategoryFields } from '@/components/ui/modals/categories/category-fields.config'
 import { getTransactionFields } from '@/components/ui/modals/transaction/transaction-fields.config'
 
-import { CurrencyCode, IAccount } from '@/types/account.types'
+import {
+  AccountIconName,
+  AccountIcons,
+  CurrencyCode,
+  IAccount
+} from '@/types/account.types'
 import {
   CategoryIconName,
   CategoryIcons,
@@ -46,6 +53,9 @@ export function TransactionModal({
   const [selectedIcon, setSelectedIcon] = useState<CategoryIconName>(
     category?.icon || 'Circle'
   )
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(
+    null
+  )
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -62,20 +72,25 @@ export function TransactionModal({
     if (isOpen) fetchAccounts()
   }, [isOpen])
 
+  // Сброс состояния при открытии/закрытии окна
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedAccountId(null)
+    }
+  }, [isOpen])
+
+  // Обновление иконки и сброс состояния при изменении категории или режима
   useEffect(() => {
     setSelectedIcon(category?.icon || 'Circle')
-  }, [category])
+  }, [category, transactionMode])
 
   const handleSubmit = async (data: any) => {
     if (!category) return
     try {
       setLoading(true)
-
       if (transactionMode === 'transaction') {
-        // Создание транзакции
         const amount = Number(data.amount)
         const accountId = Number(data.accountId)
-
         await transactionService.create({
           amount,
           accountId,
@@ -86,11 +101,9 @@ export function TransactionModal({
           description: data.description || '',
           currencyCode: CurrencyCode.RUB
         })
-
         const updatedAccount = await accountService.getById(accountId)
         onAccountUpdate?.(updatedAccount)
       } else {
-        // Редактирование категории
         await categoryService.update(category.id, {
           name: data.name,
           isExpense: category.isExpense,
@@ -98,7 +111,6 @@ export function TransactionModal({
         })
         toast.success('Категория обновлена ✅')
       }
-
       onSubmit()
       onClose()
     } catch (error: any) {
@@ -118,7 +130,6 @@ export function TransactionModal({
       cancelText: 'Отмена'
     })
     if (!result.isConfirmed) return
-
     try {
       setLoading(true)
       await categoryService.delete(category.id)
@@ -134,9 +145,24 @@ export function TransactionModal({
     }
   }
 
-  const transactionFields = getTransactionFields(accounts)
+  const transactionFields = getTransactionFields(accounts).map(field =>
+    field.name === 'accountId'
+      ? {
+          ...field,
+          defaultValue: selectedAccountId ?? '',
+          onChange: (val: string) => setSelectedAccountId(Number(val))
+        }
+      : field
+  )
+
   const categoryFields = category
-    ? getCategoryFields(category).filter(f => f.name !== 'icon')
+    ? getCategoryFields(category)
+        .map(field =>
+          field.name === 'name'
+            ? { ...field, defaultValue: category.name }
+            : field
+        )
+        .filter(f => f.name !== 'icon')
     : []
 
   return (
@@ -166,14 +192,66 @@ export function TransactionModal({
         )
       }
       topContent={
-        <Toggle
-          leftText="Транзакция"
-          rightText="Редактировать"
-          isActive={transactionMode === 'edit'}
-          onToggle={isActive =>
-            setTransactionMode(isActive ? 'edit' : 'transaction')
-          }
-        />
+        <div className={styles.topContent}>
+          <div className={styles.toggleWrapper}>
+            <Toggle
+              leftText="Транзакция"
+              rightText="Редактировать"
+              isActive={transactionMode === 'edit'}
+              onToggle={isActive =>
+                setTransactionMode(isActive ? 'edit' : 'transaction')
+              }
+            />
+          </div>
+          {transactionMode === 'transaction' && category && (
+            <div className={styles.transactionFlow}>
+              <div className={styles.iconWrapper}>
+                {(() => {
+                  const account = accounts.find(a => a.id === selectedAccountId)
+                  const Icon = account?.icon
+                    ? AccountIcons[account.icon as AccountIconName]
+                    : null
+                  return (
+                    <>
+                      <div className={styles.iconCircle}>
+                        {Icon ? (
+                          <Icon size={40} />
+                        ) : (
+                          <CircleQuestionMark size={40} />
+                        )}
+                      </div>
+                      <span className={styles.iconLabel}>
+                        {account?.name || 'Выберите'}
+                      </span>
+                    </>
+                  )
+                })()}
+              </div>
+              <ArrowRight
+                className={`${styles.arrow} ${
+                  !category.isExpense ? styles.incomeArrow : ''
+                }`}
+              />
+              <div className={styles.iconWrapper}>
+                {(() => {
+                  const Icon = CategoryIcons[selectedIcon]
+                  return (
+                    <>
+                      <div className={styles.iconCircle}>
+                        {Icon ? (
+                          <Icon size={40} />
+                        ) : (
+                          <CircleQuestionMark size={40} />
+                        )}
+                      </div>
+                      <span className={styles.iconLabel}>{category.name}</span>
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
       }
     >
       {transactionMode === 'edit' && category && (

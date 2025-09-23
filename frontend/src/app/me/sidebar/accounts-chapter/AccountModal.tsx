@@ -115,8 +115,7 @@ export const AccountModal: FC<AccountModalProps> = ({
       onClose={onClose}
     >
       <UniversalModal
-        key={isOpen ? 'open' : 'closed'}
-        isOpen={true}
+        isOpen={isOpen}
         onClose={onClose}
         title={account ? 'Редактировать счет' : 'Создать новый счет'}
         headerActions={

@@ -7,6 +7,7 @@ export const getTransactionFields = (accounts: IAccount[]): FieldConfig[] => [
     name: 'amount',
     label: 'Сумма',
     type: 'number',
+    placeholder: '0.00',
     required: true,
     defaultValue: ''
   },
@@ -23,6 +24,8 @@ export const getTransactionFields = (accounts: IAccount[]): FieldConfig[] => [
   {
     name: 'description',
     label: 'Описание',
-    type: 'text'
+    type: 'text',
+    placeholder: 'Введите описание',
+    defaultValue: ''
   }
 ]
