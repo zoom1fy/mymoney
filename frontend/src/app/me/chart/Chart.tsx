@@ -21,25 +21,37 @@ interface ChartProps {
   onTransactionSuccess?: () => void
 }
 
+// форматируем валюту
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'RUB',
+    maximumFractionDigits: 0
+  }).format(value)
+
 function buildChartData(
   transactions: ITransaction[],
   categories: ICategory[],
   isExpense: boolean
 ) {
   const filteredCategories = categories.filter(c => c.isExpense === isExpense)
-  const grouped: Record<string, number> = {}
-  filteredCategories.forEach(c => (grouped[c.name] = 0))
+  const grouped: Record<number, number> = {}
+
+  filteredCategories.forEach(c => (grouped[c.id] = 0))
+
+  const categoryMap = new Map(filteredCategories.map(c => [c.id, c]))
 
   transactions.forEach(t => {
-    const category = filteredCategories.find(c => c.id === t.categoryId)
-    if (category) grouped[category.name] += Number(t.amount) || 0
+    if (t.categoryId !== undefined && grouped[t.categoryId] !== undefined) {
+      grouped[t.categoryId] += Number(t.amount) || 0
+    }
   })
 
   return filteredCategories.map((c, i) => ({
     name: c.name,
-    value: grouped[c.name] || 0,
+    value: grouped[c.id] || 0,
     color: COLORS[i % COLORS.length],
-    category: c
+    category: categoryMap.get(c.id)!
   }))
 }
 
@@ -57,13 +69,6 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
   >('transaction')
   const [modalCategoryOpen, setModalCategoryOpen] = useState(false)
 
-  const [expenseTransactions, setExpenseTransactions] = useState<
-    ITransaction[]
-  >([])
-  const [incomeTransactions, setIncomeTransactions] = useState<ITransaction[]>(
-    []
-  )
-
   const loadData = async () => {
     try {
       const [transactionsData, categoriesData] = await Promise.all([
@@ -72,13 +77,6 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
       ])
       setTransactions(transactionsData)
       setCategories(categoriesData)
-
-      setExpenseTransactions(
-        transactionsData.filter(t => t.type === TransactionType.EXPENSE)
-      )
-      setIncomeTransactions(
-        transactionsData.filter(t => t.type === TransactionType.INCOME)
-      )
     } catch (error) {
       console.error('Ошибка загрузки данных:', error)
     }
@@ -88,14 +86,14 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
     loadData()
   }, [])
 
-  // Строим данные только один раз на изменение данных
+  // мемоизация данных для графиков
   const expenseChartData = useMemo(
-    () => buildChartData(expenseTransactions, categories, true),
-    [expenseTransactions, categories]
+    () => buildChartData(transactions, categories, true),
+    [transactions, categories]
   )
   const incomeChartData = useMemo(
-    () => buildChartData(incomeTransactions, categories, false),
-    [incomeTransactions, categories]
+    () => buildChartData(transactions, categories, false),
+    [transactions, categories]
   )
 
   const chartData =
@@ -155,13 +153,19 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ background: 'transparent' }}
+                contentStyle={{
+                  background: 'rgba(0,0,0,0.7)',
+                  borderRadius: '8px',
+                  padding: '6px 10px',
+                  border: 'none'
+                }}
+                itemStyle={{ color: '#fff' }}
                 content={({ payload }) => {
                   if (!payload?.[0]) return null
                   const { name, value } = payload[0].payload
                   return (
                     <div className={styles.tooltip}>
-                      <strong>{name}</strong>: {value.toLocaleString()} ₽
+                      <strong>{name}</strong>: {formatCurrency(value)}
                     </div>
                   )
                 }}
@@ -169,9 +173,7 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-xl font-bold">
-              {total.toLocaleString()} ₽
-            </span>
+            <span className="text-xl font-bold">{formatCurrency(total)}</span>
             <span className="text-sm opacity-70">
               {transactionType === TransactionType.EXPENSE
                 ? 'Расходы'
@@ -183,8 +185,13 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
         <div className={styles.legendContainer}>
           {chartData.map(item => (
             <div
-              key={item.name}
+              key={item.category.id}
               onClick={() => handleCategoryClick(item.category)}
+              className={`cursor-pointer ${
+                selectedCategory?.id === item.category.id
+                  ? 'font-bold opacity-100'
+                  : 'opacity-80 hover:opacity-100'
+              }`}
             >
               <CategoryBadge
                 category={item.category}
