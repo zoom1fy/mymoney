@@ -1,7 +1,7 @@
 'use client'
 
 import { categoryService } from '@/services/category.service'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { IconPicker } from '@/components/ui/modals/IconPicker'
 import { UniversalModal } from '@/components/ui/modals/UniversalModal'
@@ -19,7 +19,7 @@ interface CreateCategoryModalProps {
   onClose: () => void
   isExpense: boolean
   onCategoryCreated: (category: ICategory) => void
-  category?: ICategory // если нужно редактировать
+  category?: ICategory
 }
 
 export function CreateCategoryModal({
@@ -33,6 +33,13 @@ export function CreateCategoryModal({
   const [selectedIcon, setSelectedIcon] = useState<CategoryIconName>(
     category?.icon || 'Circle'
   )
+
+  // Сброс состояния при открытии окна
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedIcon(category?.icon || 'Circle')
+    }
+  }, [isOpen, category])
 
   const handleSubmit = async (data: any) => {
     try {
@@ -56,7 +63,16 @@ export function CreateCategoryModal({
     }
   }
 
-  const fields = getCategoryFields(category)
+  // Поля формы с актуальными defaultValue
+  const fields = category
+    ? getCategoryFields(category)
+        .map(field =>
+          field.name === 'name'
+            ? { ...field, defaultValue: category.name }
+            : field
+        )
+        .filter(f => f.name !== 'icon')
+    : getCategoryFields().filter(f => f.name !== 'icon')
 
   return (
     <UniversalModal
@@ -64,12 +80,11 @@ export function CreateCategoryModal({
       onClose={onClose}
       title={category ? 'Редактировать категорию' : 'Создать новую категорию'}
       loading={loading}
-      fields={fields.filter(f => f.name !== 'icon')} // убираем поле иконки, т.к. IconPicker
+      fields={fields}
       onSubmit={handleSubmit}
       submitText={category ? 'Сохранить изменения' : 'Добавить'}
       cancelText="Отмена"
     >
-      {/* Иконка через IconPicker */}
       <div style={{ marginTop: '1rem' }}>
         <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>
           Иконка категории

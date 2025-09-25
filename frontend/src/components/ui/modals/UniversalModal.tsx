@@ -1,10 +1,8 @@
 'use client'
-
 import { Button } from '../buttons/Button'
 import styles from './UniversalModal.module.scss'
 import { X } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
-
 export interface FieldConfig {
   name: string
   label: string
@@ -23,7 +21,6 @@ export interface FieldConfig {
   validation?: (value: any) => string | null
   onChange?: (value: any) => void
 }
-
 export interface UniversalModalProps {
   isOpen: boolean
   onClose: () => void
@@ -38,7 +35,6 @@ export interface UniversalModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
   topContent?: ReactNode
 }
-
 export const UniversalModal: React.FC<UniversalModalProps> = ({
   isOpen,
   onClose,
@@ -56,36 +52,32 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isMobile, setIsMobile] = useState(false)
-
   useEffect(() => {
     if (!isOpen) return
-
     const newFormData = { ...formData }
-
     fields.forEach(field => {
-      // Обновляем только если поле ещё не было заполнено пользователем
       if (
         field.defaultValue !== undefined &&
         newFormData[field.name] === undefined
       ) {
         newFormData[field.name] = field.defaultValue
       }
-      // Или обновляем только конкретное поле, например accountId
-      if (field.name === 'accountId' && field.defaultValue !== undefined) {
+      // По аналогии с accountId: всегда перезаписываем для 'name', чтобы очищать при создании
+      if (
+        (field.name === 'accountId' || field.name === 'name') &&
+        field.defaultValue !== undefined
+      ) {
         newFormData[field.name] = field.defaultValue
       }
     })
-
     setFormData(newFormData)
   }, [isOpen, fields])
-
   useEffect(() => {
     const checkScreen = () => setIsMobile(window.innerWidth < 768)
     checkScreen()
     window.addEventListener('resize', checkScreen)
     return () => window.removeEventListener('resize', checkScreen)
   }, [])
-
   useEffect(() => {
     if (!isOpen) return
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -96,16 +88,12 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
-
   const handleChange = (name: string, value: any, type?: string) => {
     const newValue = type === 'number' ? Number(value) : value
-
     // 1. Обновляем внутреннее состояние, как и раньше
     setFormData(prev => ({ ...prev, [name]: newValue }))
-
     // 2. Находим конфигурацию для поля, которое изменилось
     const fieldConfig = fields.find(f => f.name === name)
-
     // 3. Если у этого поля есть своя функция onChange, вызываем её!
     if (fieldConfig && fieldConfig.onChange) {
       fieldConfig.onChange(newValue)
@@ -118,7 +106,6 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
       }
     }
   }
-
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
     fields.forEach(field => {
@@ -134,7 +121,6 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
@@ -144,9 +130,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
       console.error('Ошибка при отправке формы:', error)
     }
   }
-
   if (!isOpen) return null
-
   return (
     <div
       className={styles.overlay}
@@ -174,7 +158,6 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
           className={styles.form}
         >
           {topContent && <div className={styles.topContent}>{topContent}</div>}
-
           <div className={styles.fields}>
             {fields.map(field => (
               <div
