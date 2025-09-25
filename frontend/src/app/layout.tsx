@@ -23,7 +23,9 @@ export const metadata: Metadata = {
   },
   description: 'Web app for financial accountin',
   icons: {
-    icon: '/favicon.ico'
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png'
   }
 }
 
