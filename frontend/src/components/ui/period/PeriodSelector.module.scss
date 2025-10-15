@@ -1,0 +1,118 @@
+.periodSelector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  position: relative;
+  flex-wrap: wrap; // Для мобильных устройств
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  background: color-mix(in srgb, var(--surface) 70%, var(--background));
+  backdrop-filter: blur(6px);
+  padding: 0.4rem;
+  border-radius: 9999px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none; // Убираем дефолтную рамку
+  transition: all 0.25s ease;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.active {
+  background: var(--primary);
+  color: var(--primary-foreground); // Используем переменные из shadcn
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+}
+
+// Стиль для кастомной кнопки, когда она активна
+.customActive {
+  // shadcn использует ring для фокуса, можно переопределить
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.periodToggle {
+  position: relative;
+  width: 420px;
+  height: 52px;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  user-select: none;
+  transition: all 0.2s ease;
+
+  @media screen and (max-width: 480px) {
+    width: 270px;
+    margin-bottom: 1rem;
+  }
+}
+
+.track {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--surface) 70%, var(--background));
+  backdrop-filter: blur(6px);
+  z-index: 0;
+}
+
+.thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% / 4); // 4 периода
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.15),
+    inset 0 0 10px rgba(255, 255, 255, 0.2);
+  transition: transform 0.25s ease-in-out;
+  z-index: 1;
+}
+
+.label {
+  position: relative;
+  flex: 1;
+  z-index: 2;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.labelActive {
+  color: var(--light-text);
+}

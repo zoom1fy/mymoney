@@ -1,8 +1,10 @@
 'use client'
+
 import { Button } from '../buttons/Button'
 import styles from './UniversalModal.module.scss'
 import { X } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
+
 export interface FieldConfig {
   name: string
   label: string

@@ -5,12 +5,13 @@ import { CreateCategoryModal } from './categories/CreateCategoryModal'
 import { TransactionModal } from './transaction/TransactionModal'
 import { categoryService } from '@/services/category.service'
 import { transactionService } from '@/services/transaction.services'
-import { FC, useEffect, useMemo, useState } from 'react'
+import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import { ButtonPlus } from '@/components/ui/buttons/ButtonPlus'
 import { Toggle } from '@/components/ui/buttons/toggle/Toggle'
 import { CategoryBadge } from '@/components/ui/category/CategoryBadge'
+import { PeriodSelector } from '@/components/ui/period/PeriodSelector'
 
 import { COLORS } from '@/constants/categories.color.constants'
 
@@ -68,6 +69,9 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
     'transaction' | 'edit'
   >('transaction')
   const [modalCategoryOpen, setModalCategoryOpen] = useState(false)
+  const [filteredTransactions, setFilteredTransactions] = useState<
+    ITransaction[]
+  >([])
 
   const loadData = async () => {
     try {
@@ -77,6 +81,8 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
       ])
       setTransactions(transactionsData)
       setCategories(categoriesData)
+      setTransactions(transactionsData)
+      setFilteredTransactions(transactionsData)
     } catch (error) {
       console.error('Ошибка загрузки данных:', error)
     }
@@ -88,12 +94,12 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
 
   // мемоизация данных для графиков
   const expenseChartData = useMemo(
-    () => buildChartData(transactions, categories, true),
-    [transactions, categories]
+    () => buildChartData(filteredTransactions, categories, true),
+    [filteredTransactions, categories]
   )
   const incomeChartData = useMemo(
-    () => buildChartData(transactions, categories, false),
-    [transactions, categories]
+    () => buildChartData(filteredTransactions, categories, false),
+    [filteredTransactions, categories]
   )
 
   const chartData =
@@ -115,6 +121,24 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
     setSelectedCategory(null)
   }
 
+  const handlePeriodChange = useCallback(
+    ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => {
+      if (!startDate || !endDate) {
+        return
+      }
+
+      const filtered = transactions.filter(t => {
+        const date = new Date(t.transactionDate)
+        if (isNaN(date.getTime())) return false
+
+        return date >= startDate && date <= endDate
+      })
+
+      setFilteredTransactions(filtered)
+    },
+    [transactions]
+  )
+
   return (
     <div className={styles.chartWrapper}>
       <div className={styles.chartHeader}>
@@ -128,6 +152,11 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
             )
           }
         />
+      </div>
+
+      {/* Новый фильтр периода */}
+      <div className="mt-3">
+        <PeriodSelector onChange={handlePeriodChange} />
       </div>
 
       <div className={styles.chartContent}>

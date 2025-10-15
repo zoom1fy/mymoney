@@ -21,12 +21,15 @@ export interface ICreateTransaction {
   description?: string
   type: TransactionType
   currencyCode: CurrencyCode
+  transactionDate?: string // ✅ добавляем дату транзакции
 }
 
 /**
  * Полная транзакция (бэк → фронт)
  */
-export interface ITransaction extends ICreateTransaction, IBase {}
+export interface ITransaction extends ICreateTransaction, IBase {
+  transactionDate: string // ✅ делаем обязательным для полученных с бэка транзакций
+}
 
 /**
  * Интерфейс обновления транзакции (частичное обновление)
