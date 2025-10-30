@@ -54,32 +54,30 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isMobile, setIsMobile] = useState(false)
+
   useEffect(() => {
     if (!isOpen) return
-    const newFormData = { ...formData }
-    fields.forEach(field => {
-      if (
-        field.defaultValue !== undefined &&
-        newFormData[field.name] === undefined
-      ) {
-        newFormData[field.name] = field.defaultValue
-      }
-      // По аналогии с accountId: всегда перезаписываем для 'name', чтобы очищать при создании
-      if (
-        (field.name === 'accountId' || field.name === 'name') &&
-        field.defaultValue !== undefined
-      ) {
-        newFormData[field.name] = field.defaultValue
-      }
+    setFormData(prev => {
+      const newData = { ...prev }
+      fields.forEach(field => {
+        if (
+          newData[field.name] === undefined &&
+          field.defaultValue !== undefined
+        ) {
+          newData[field.name] = field.defaultValue
+        }
+      })
+      return newData
     })
-    setFormData(newFormData)
   }, [isOpen, fields])
+
   useEffect(() => {
     const checkScreen = () => setIsMobile(window.innerWidth < 768)
     checkScreen()
     window.addEventListener('resize', checkScreen)
     return () => window.removeEventListener('resize', checkScreen)
   }, [])
+
   useEffect(() => {
     if (!isOpen) return
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -90,6 +88,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
+
   const handleChange = (name: string, value: any, type?: string) => {
     const newValue = type === 'number' ? Number(value) : value
     // 1. Обновляем внутреннее состояние, как и раньше
@@ -108,6 +107,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
       }
     }
   }
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
     fields.forEach(field => {
@@ -123,6 +123,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
@@ -132,6 +133,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
       console.error('Ошибка при отправке формы:', error)
     }
   }
+
   if (!isOpen) return null
   return (
     <div
