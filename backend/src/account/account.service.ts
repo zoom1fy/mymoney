@@ -13,6 +13,7 @@ export class AccountService {
       where: {
         userId,
         name: dto.name,
+        isDeleted: false,
       },
     });
 
@@ -37,6 +38,7 @@ export class AccountService {
         typeId: dto.typeId,
         currencyCode: dto.currencyCode,
         currentBalance: balance,
+        isDeleted: false,
       },
     });
   }
@@ -74,6 +76,7 @@ export class AccountService {
         where: {
           userId,
           name: dto.name,
+          isDeleted: false,
           NOT: { id },
         },
       });
