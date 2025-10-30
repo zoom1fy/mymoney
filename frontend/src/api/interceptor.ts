@@ -4,6 +4,7 @@ import {
 } from '../services/auth-token.service'
 import { authService } from '../services/auth.service'
 import { errorCatch } from './error'
+import { DASHBOARD_PAGES } from '@/config/pages-url.config'
 import axios, { CreateAxiosDefaults } from 'axios'
 
 const options: CreateAxiosDefaults = {
@@ -15,66 +16,54 @@ const options: CreateAxiosDefaults = {
 const axiosClassic = axios.create(options)
 const axiosWithAuth = axios.create(options)
 
+// Лог запросов
 axiosClassic.interceptors.request.use(config => {
   console.log('➡️ Sending request to:', (config.baseURL || '') + config.url)
   return config
 })
 
+// Лог ответов
 axiosClassic.interceptors.response.use(
-  response => {
-    console.log('✅ Response:', response.status, response.data)
-    return response
-  },
+  response => response,
   error => {
-    if (error.response) {
-      // Сервер ответил с ошибкой (4xx/5xx)
-      console.error(
-        '❌ Server Error:',
-        error.response.status,
-        error.response.data
-      )
-    } else if (error.request) {
-      // Запрос был отправлен, ответа нет
-      console.error('❌ No response received:', error.request)
-    } else {
-      // Ошибка в настройке запроса
-      console.error('❌ Axios Error:', error.message)
-    }
+    console.error('❌ Axios Classic Error:', error)
     throw error
   }
 )
 
+// Добавление токена в каждый запрос
 axiosWithAuth.interceptors.request.use(config => {
   const accessToken = getAccessToken()
-
-  console.log('➡️ Sending request to:', (config.baseURL || '') + config.url)
-  console.log('➡️ Data:', config.data)
-
-  if (config?.headers && accessToken) {
+  if (config.headers && accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`
   }
-
   return config
 })
 
+// Обработка ошибок
 axiosWithAuth.interceptors.response.use(
-  config => config,
+  response => response,
   async error => {
     const originalRequest = error.config
 
-    if (
-      (error.response.status === 401 ||
+    const shouldRetry =
+      !originalRequest._isRetry &&
+      (error.response?.status === 401 ||
         errorCatch(error) === 'jwt expired' ||
-        errorCatch(error) === 'jwt must be provided') &&
-      error.config &&
-      !error.config._isRetry
-    ) {
+        errorCatch(error) === 'jwt must be provided')
+
+    if (shouldRetry) {
       originalRequest._isRetry = true
       try {
+        // Попробовать обновить токены
         await authService.getNewTokens()
+        // Повторить исходный запрос с новым токеном
         return axiosWithAuth.request(originalRequest)
-      } catch (error) {
-        if (errorCatch(error) === 'jwt expired') removeTokenStorage()
+      } catch (refreshError) {
+        // Если обновление не удалось, чистим токены и редирект
+        removeTokenStorage()
+        window.location.href = DASHBOARD_PAGES.AUTH
+        return
       }
     }
 
