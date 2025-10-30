@@ -14,7 +14,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger
-} from '@/components/ui/popover/popover'
+} from '@/components/ui/popover/Popover'
 
 interface PeriodSelectorProps {
   // eslint-disable-next-line no-unused-vars
@@ -140,20 +140,18 @@ export const PeriodSelector: FC<PeriodSelectorProps> = ({ onChange }) => {
         <PopoverTrigger asChild>
           <Button
             id="date"
-            variant={'outline'}
+            variant="outline"
             className={cn(
-              'w-[260px] justify-start text-left font-normal',
-              !date && 'text-muted-foreground',
-              // Подсвечиваем, если активен кастомный период
-              !selectedPeriod ? styles.customActive : ''
+              styles.calendarButton,
+              !selectedPeriod && styles.active // активен кастомный диапазон
             )}
-            // Блокируем кнопку, пока не установлен начальный диапазон (SSR/монтирование)
             disabled={!isMounted}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="h-4 w-4" />
             {buttonContent}
           </Button>
         </PopoverTrigger>
+
         <PopoverContent
           className="w-auto p-0"
           align="center"

@@ -49,6 +49,65 @@
   outline-offset: 2px;
 }
 
+.calendarButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 52px;
+  padding: 0 1.2rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--surface) 70%, var(--background));
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    color: var(--text-primary);
+    background: color-mix(in srgb, var(--surface) 80%, var(--background));
+  }
+
+  svg {
+    opacity: 0.8;
+    transition: opacity 0.25s ease;
+  }
+
+  &:hover svg {
+    opacity: 1;
+  }
+
+  &.active {
+    color: var(--primary-foreground);
+    background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+    box-shadow:
+      0 6px 18px rgba(0, 0, 0, 0.15),
+      inset 0 0 10px rgba(255, 255, 255, 0.25);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+}
+
+/* 👇 Плавное "дыхание" свечения */
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 6px 18px rgba(0, 0, 0, 0.15),
+      inset 0 0 10px rgba(255, 255, 255, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 6px 22px rgba(0, 0, 0, 0.2),
+      inset 0 0 14px rgba(255, 255, 255, 0.35);
+  }
+}
+
 .periodToggle {
   position: relative;
   width: 420px;
