@@ -43,14 +43,13 @@ export class AccountService {
 
   async findAll(userId: string) {
     const accounts = await this.prisma.account.findMany({
-      where: { userId },
+      where: { userId, isDeleted: false }, // 🟢 только активные
       orderBy: { createdAt: 'desc' },
     });
 
-    // Convert Decimal to number for JSON serialization
     return accounts.map((account) => ({
       ...account,
-      currentBalance: Number(account.currentBalance), // Convert Decimal to number
+      currentBalance: Number(account.currentBalance),
     }));
   }
 
@@ -96,8 +95,11 @@ export class AccountService {
   }
 
   async remove(userId: string, id: number) {
-    await this.findOne(userId, id); // проверка доступа и существования
+    await this.findOne(userId, id); // проверка доступа
 
-    return this.prisma.account.delete({ where: { id } });
+    return this.prisma.account.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
   }
 }

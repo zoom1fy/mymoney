@@ -59,8 +59,10 @@ model Account {
   name           String         @db.VarChar(100)
   icon           String         @default("default") @db.VarChar(50)
   currentBalance Decimal        @default(0.00) @db.Decimal(15, 2)
+  isDeleted      Boolean        @default(false)
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
+
   user           User           @relation("UserAccounts", fields: [userId], references: [id], onDelete: Cascade)
   category       AccountCategory @relation("AccountCategory", fields: [categoryId], references: [id])
   type           AccountType    @relation("AccountType", fields: [typeId], references: [id])
