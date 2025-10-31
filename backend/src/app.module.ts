@@ -11,7 +11,9 @@ import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true, // чтобы process.env был доступен в любом модуле
+    }),
     AuthModule,
     UserModule,
     AccountModule,
