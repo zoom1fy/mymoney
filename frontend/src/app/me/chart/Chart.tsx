@@ -72,6 +72,10 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
   const [filteredTransactions, setFilteredTransactions] = useState<
     ITransaction[]
   >([])
+  const [currentPeriod, setCurrentPeriod] = useState<{
+    startDate?: Date
+    endDate?: Date
+  }>({})
 
   const loadData = async () => {
     try {
@@ -81,8 +85,21 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
       ])
       setTransactions(transactionsData)
       setCategories(categoriesData)
-      setTransactions(transactionsData)
-      setFilteredTransactions(transactionsData)
+
+      // если уже есть выбранный диапазон, фильтруем по нему
+      if (currentPeriod.startDate && currentPeriod.endDate) {
+        const filtered = transactionsData.filter(t => {
+          const date = new Date(t.transactionDate)
+          if (isNaN(date.getTime())) return false
+          return (
+            date >= currentPeriod.startDate! && date <= currentPeriod.endDate!
+          )
+        })
+        setFilteredTransactions(filtered)
+      } else {
+        // если фильтра нет — показываем все
+        setFilteredTransactions(transactionsData)
+      }
     } catch (error) {
       console.error('Ошибка загрузки данных:', error)
     }
@@ -123,14 +140,13 @@ export const Chart: FC<ChartProps> = ({ onTransactionSuccess }) => {
 
   const handlePeriodChange = useCallback(
     ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => {
-      if (!startDate || !endDate) {
-        return
-      }
+      setCurrentPeriod({ startDate, endDate })
+
+      if (!startDate || !endDate) return
 
       const filtered = transactions.filter(t => {
         const date = new Date(t.transactionDate)
         if (isNaN(date.getTime())) return false
-
         return date >= startDate && date <= endDate
       })
 
