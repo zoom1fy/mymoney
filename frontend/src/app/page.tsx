@@ -3,14 +3,14 @@ import { ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react'
 import Link from 'next/link'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
-import { Button } from '@/components/ui/buttons/button'
-import { Card } from '@/components/ui/cards/card'
+import { Button } from '@/components/ui/shadui/button'
+import { Card } from '@/components/ui/shadui/card'
 import { GlassBadge } from '@/components/ui/cards/glass-badge'
 import { GlassCard } from '@/components/ui/cards/glass-card'
 
 export default function HomePage() {
   return (
-    <main className="relative overflow-hidden bg-background text-foreground">
+    <main className="relative overflow-hidden text-foreground">
       {/* ================= HERO ================= */}
       <section className="relative">
         {/* background */}
@@ -18,7 +18,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-muted/60 to-background" />
           <div
             className="
-              absolute left-1/2 top-[-320px]
+              absolute left-1/2
               h-[720px] w-[720px]
               -translate-x-1/2
               rounded-full
