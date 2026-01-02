@@ -1,30 +1,30 @@
-# FROM node:18
-# WORKDIR /app
-# COPY package*.json ./
-# RUN npm install
-# COPY . .
-# CMD ["npm", "run", "dev"]
-
-# Этап сборки
-FROM node:18 AS builder
+FROM node:18
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm ci
-
+RUN npm install
 COPY . .
-RUN npm run build
+CMD ["npm", "run", "dev"]
 
-# Production-этап
-FROM node:18-alpine AS production
-WORKDIR /app
+# # Этап сборки
+# FROM node:18 AS builder
+# WORKDIR /app
 
-ENV NODE_ENV=production
+# COPY package*.json ./
+# RUN npm ci
 
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package*.json ./
+# COPY . .
+# RUN npm run build
 
-EXPOSE 3000
-CMD ["npm", "run", "start"]
+# # Production-этап
+# FROM node:18-alpine AS production
+# WORKDIR /app
+
+# ENV NODE_ENV=production
+
+# COPY --from=builder /app/.next ./.next
+# COPY --from=builder /app/node_modules ./node_modules
+# COPY --from=builder /app/public ./public
+# COPY --from=builder /app/package*.json ./
+
+# EXPOSE 3000
+# CMD ["npm", "run", "start"]
