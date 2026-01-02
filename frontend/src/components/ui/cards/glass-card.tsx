@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-import { Card } from '@/components/ui/cards/card'
+import { Card } from '@/components/ui/shadui/card'
 
 interface GlassCardProps extends React.ComponentPropsWithoutRef<typeof Card> {
   className?: string

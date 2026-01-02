@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-import { Button } from '@/components/ui/buttons/button'
+import { Button } from '@/components/ui/shadui/button'
 
 interface AccentButtonProps
   extends React.ComponentPropsWithoutRef<typeof Button> {
