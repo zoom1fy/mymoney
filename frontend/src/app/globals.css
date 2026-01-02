@@ -72,8 +72,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: Inter, system-ui, sans-serif;
-    /* Или Montserrat, если хотите */
+    font-family: Montserrat, system-ui, sans-serif;
   }
 
   h1 {
