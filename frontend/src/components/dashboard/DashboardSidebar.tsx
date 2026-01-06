@@ -1,15 +1,12 @@
 'use client'
 
+import { ScrollArea } from '../ui/shadui/scroll-area'
+import { CreateAccountModal } from './CreateAccountModal'
 import { cn } from '@/lib/utils'
-import { accountService } from '@/services/account.service'
-import { useQuery } from '@tanstack/react-query'
 import { Plus, Wallet } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Avatar, AvatarFallback } from '@/components/ui/shadui/avatar'
-import { Button } from '@/components/ui/shadui/button'
-import { ScrollArea } from '@/components/ui/shadui/scroll-area'
 import {
   Sidebar,
   SidebarContent,
@@ -25,42 +22,49 @@ import {
 } from '@/components/ui/shadui/sidebar'
 
 import {
+  AccountCategoryEnum,
   AccountCategoryNameMap,
   AccountIcons,
-  CurrencyCode
+  CurrencyCode,
+  IAccount
 } from '@/types/account.types'
 
+import { useAccounts } from '@/hooks/useAccounts'
+
 const currencySymbols: Record<CurrencyCode, string> = {
-  [CurrencyCode.RUB]: '₽',
-  [CurrencyCode.USD]: '$',
-  [CurrencyCode.EUR]: '€',
-  [CurrencyCode.BTC]: '₿'
+  RUB: '₽',
+  USD: '$',
+  EUR: '€',
+  BTC: '₿'
 }
 
 export function DashboardSidebar() {
+  const { accounts, isLoading } = useAccounts()
   const pathname = usePathname()
 
-  const { data: accounts = [], isLoading } = useQuery({
-    queryKey: ['accounts'],
-    queryFn: () => accountService.getAll(),
-    staleTime: 1000 * 60 // 1 минута
-  })
+  const ACCOUNT_CATEGORIES: AccountCategoryEnum[] = [
+    AccountCategoryEnum.ACCOUNTS,
+    AccountCategoryEnum.SAVINGS
+  ]
 
   // Группировка по категориям
-  const groupedAccounts = accounts.reduce(
+  const groupedAccounts = accounts.reduce<
+    Record<AccountCategoryEnum, IAccount[]>
+  >(
     (acc, account) => {
       const category = account.categoryId
-      if (!acc[category]) acc[category] = []
+
       acc[category].push(account)
       return acc
     },
-    {} as Record<number, typeof accounts>
+    {
+      [AccountCategoryEnum.ACCOUNTS]: [],
+      [AccountCategoryEnum.SAVINGS]: []
+    }
   )
 
-  const IconComponent = (iconName?: string) => {
-    if (!iconName || !AccountIcons[iconName]) return Wallet
-    return AccountIcons[iconName]
-  }
+  const IconComponent = (iconName?: string) =>
+    AccountIcons[iconName || 'Wallet'] || Wallet
 
   return (
     <Sidebar>
@@ -78,22 +82,25 @@ export function DashboardSidebar() {
 
       <SidebarContent>
         <ScrollArea className="flex-1 px-3 py-2">
-          {Object.entries(groupedAccounts).map(([categoryId, accounts]) => {
-            const categoryName =
-              AccountCategoryNameMap[
-                Number(categoryId) as keyof typeof AccountCategoryNameMap
-              ]
+          {ACCOUNT_CATEGORIES.map(category => {
+            const accountsInCategory = groupedAccounts[category]
+
+            if (!accountsInCategory || accountsInCategory.length === 0)
+              return null
+
+            const categoryName = AccountCategoryNameMap[category]
 
             return (
               <SidebarGroup
-                key={categoryId}
+                key={category}
                 className="py-2"
               >
                 <SidebarGroupLabel className="px-3 text-base font-semibold text-foreground/80">
-                  {categoryName + 'ы'}
+                  {categoryName}
                 </SidebarGroupLabel>
+
                 <SidebarGroupContent className="grid gap-2 mt-2">
-                  {accounts.map(account => {
+                  {accountsInCategory.map(account => {
                     const Icon = IconComponent(account.icon)
                     const symbol = currencySymbols[account.currencyCode]
 
@@ -113,8 +120,6 @@ export function DashboardSidebar() {
                             <Icon className="h-6 w-6 text-accent" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            {' '}
-                            {/* min-w-0 для обрезки текста */}
                             <p className="font-medium text-base truncate">
                               {account.name}
                             </p>
@@ -131,18 +136,6 @@ export function DashboardSidebar() {
               </SidebarGroup>
             )
           })}
-
-          {isLoading && (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              Загрузка счетов...
-            </div>
-          )}
-
-          {accounts.length === 0 && !isLoading && (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              Пока нет счетов
-            </div>
-          )}
         </ScrollArea>
       </SidebarContent>
 
@@ -151,12 +144,7 @@ export function DashboardSidebar() {
       <SidebarFooter className="border-t border-border/50 bg-background/70 backdrop-blur-sm">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/dashboard/accounts/new">
-                <Plus className="h-5 w-5" />
-                <span>Добавить счёт</span>
-              </Link>
-            </SidebarMenuButton>
+            <CreateAccountModal />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
