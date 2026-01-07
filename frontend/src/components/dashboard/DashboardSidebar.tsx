@@ -71,7 +71,7 @@ export function DashboardSidebar() {
       <SidebarHeader className="border-b border-border/50 bg-background/70 backdrop-blur-sm">
         <div className="flex items-center gap-3 px-4 py-5">
           <div className="rounded-full bg-accent/20 p-3">
-            <Wallet className="h-6 w-6 text-accent" />
+            <Wallet className="size-6 text-accent" />
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight">MyMoney</h2>
@@ -121,7 +121,7 @@ export function DashboardSidebar() {
                           >
                             <div className="flex items-center gap-3">
                               <div className="rounded-lg bg-accent/10 p-2.5">
-                                <Icon className="h-6 w-6 text-accent" />
+                                <Icon className="size-6 text-accent" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-base truncate">
@@ -145,6 +145,17 @@ export function DashboardSidebar() {
             )
           })}
         </ScrollArea>
+        {isLoading && (
+          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+            Загрузка счетов...
+          </div>
+        )}
+
+        {accounts.length === 0 && !isLoading && (
+          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+            Пока нет счетов
+          </div>
+        )}
       </SidebarContent>
 
       <SidebarSeparator />

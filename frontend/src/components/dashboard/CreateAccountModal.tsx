@@ -130,13 +130,13 @@ export function CreateAccountModal({
             variant="outline"
             className="w-full justify-center cursor-pointer hover:[&_svg]:rotate-90 [&_svg]:transition-transform [&_svg]:duration-500"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="size-5" />
             <span className="text-base">Добавить счёт</span>
           </Button>
         )}
       </DialogTrigger>
 
-      <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 border-0 bg-transparent max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl border-0 bg-transparent p-0 max-h-[90vh] overflow-y-auto">
         <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl">
           <DialogHeader className="text-center mb-10">
             <DialogTitle className="text-4xl md:text-5xl font-bold tracking-tight">

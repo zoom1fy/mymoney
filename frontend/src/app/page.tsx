@@ -50,7 +50,7 @@ export default function HomePage() {
             <AccentButton asChild>
               <Link href={DASHBOARD_PAGES.HOME}>
                 Начать бесплатно
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 size-4" />
               </Link>
             </AccentButton>
 
@@ -172,7 +172,7 @@ function FeatureCard({
     >
       <div
         className="
-          flex h-12 w-12 items-center justify-center
+          flex size-12 items-center justify-center
           rounded-xl
           bg-foreground/5
           transition
@@ -181,7 +181,7 @@ function FeatureCard({
       >
         <div
           className="
-            h-6 w-6
+            size-6
             text-foreground
             transition
             group-hover:text-accent
