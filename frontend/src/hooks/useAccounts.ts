@@ -45,7 +45,13 @@ export function useAccounts() {
       )
       toast.success('Счёт обновлён!')
     },
-    onError: () => toast.error('Ошибка обновления')
+
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message || error?.message || 'Ошибка обновления'
+
+      toast.error(message)
+    }
   })
 
   const deleteMutation = useMutation({
