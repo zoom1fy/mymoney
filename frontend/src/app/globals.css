@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import "tw-animate-css"; /* Это заменит всё, что мы мудрили раньше */
 
 /* Dark mode по class (next-themes) */
 @custom-variant dark (&:where(.dark, .dark *));
