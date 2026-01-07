@@ -105,31 +105,39 @@ export function DashboardSidebar() {
                     const symbol = currencySymbols[account.currencyCode]
 
                     return (
-                      <Link
+                      <CreateAccountModal
                         key={account.id}
-                        href={`/dashboard/accounts/${account.id}`}
-                        className={cn(
-                          'block rounded-xl border bg-card/40 backdrop-blur-sm p-4 transition-all',
-                          'hover:bg-card/70 hover:shadow-md hover:border-accent/30',
-                          pathname === `/dashboard/accounts/${account.id}` &&
-                            'ring-2 ring-accent/50 bg-card/60 border-accent/40'
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-accent/10 p-2.5">
-                            <Icon className="h-6 w-6 text-accent" />
+                        mode="edit"
+                        account={account}
+                        trigger={
+                          <div
+                            className={cn(
+                              'block rounded-xl border bg-card/40 backdrop-blur-sm p-4 transition-all cursor-pointer',
+                              'hover:bg-card/70 hover:shadow-md hover:border-accent/30',
+                              pathname ===
+                                `/dashboard/accounts/${account.id}` &&
+                                'ring-2 ring-accent/50 bg-card/60 border-accent/40'
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="rounded-lg bg-accent/10 p-2.5">
+                                <Icon className="h-6 w-6 text-accent" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-base truncate">
+                                  {account.name}
+                                </p>
+                                <p className="text-lg font-bold text-foreground mt-0.5">
+                                  {account.currentBalance.toLocaleString(
+                                    'ru-RU'
+                                  )}{' '}
+                                  {symbol}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-base truncate">
-                              {account.name}
-                            </p>
-                            <p className="text-lg font-bold text-foreground mt-0.5">
-                              {account.currentBalance.toLocaleString('ru-RU')}{' '}
-                              {symbol}
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
+                        }
+                      />
                     )
                   })}
                 </SidebarGroupContent>
