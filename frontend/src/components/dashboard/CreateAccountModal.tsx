@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { Plus, Trash2 } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { NumericFormat } from 'react-number-format'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
@@ -158,7 +159,7 @@ export function CreateAccountModal({
       </DialogTrigger>
 
       <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto">
-        <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl">
+        <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl transition-all duration-700">
           <DialogHeader className="mb-8">
             <div className="flex items-center justify-between gap-3">
               <DialogTitle className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight">
@@ -202,20 +203,22 @@ export function CreateAccountModal({
 
               <div className="space-y-4">
                 <Label className="text-lg font-medium">Баланс</Label>
-                <Input
-                  type="number"
-                  min={0}
+                <NumericFormat
+                  // Базовые настройки отображения
+                  thousandSeparator=" "
+                  decimalScale={2}
+                  allowNegative={false}
                   placeholder="0.00"
+                  // Интеграция со стилями Shadcn
+                  customInput={Input}
                   className="h-14 text-lg px-6"
-                  onKeyDown={preventMinus}
-                  {...register('currentBalance', {
-                    valueAsNumber: true,
-                    min: {
-                      value: 0,
-                      message: 'Баланс не может быть меньше 0'
-                    },
-                    required: 'Обязательное поле'
-                  })}
+                  // Интеграция с react-hook-form
+                  onValueChange={values => {
+                    // Сохраняем в форму чистое число (number), а не строку с пробелами
+                    setValue('currentBalance', values.floatValue || 0)
+                  }}
+                  // Передаем значение из формы обратно для визуализации
+                  value={watch('currentBalance')}
                 />
                 {errors.currentBalance && (
                   <p className="text-destructive text-sm">

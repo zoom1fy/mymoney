@@ -30,6 +30,7 @@ import {
 } from '@/types/account.types'
 
 import { useAccounts } from '@/hooks/useAccounts'
+import { formatCurrency } from '@/lib/format'
 
 const currencySymbols: Record<CurrencyCode, string> = {
   RUB: '₽',
@@ -128,9 +129,7 @@ export function DashboardSidebar() {
                                   {account.name}
                                 </p>
                                 <p className="text-lg font-bold text-foreground mt-0.5">
-                                  {account.currentBalance.toLocaleString(
-                                    'ru-RU'
-                                  )}{' '}
+                                  {formatCurrency(account.currentBalance)}{' '}
                                   {symbol}
                                 </p>
                               </div>
