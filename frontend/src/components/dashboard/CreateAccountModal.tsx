@@ -1,7 +1,8 @@
 'use client'
 
+import { ConfirmAlert } from '../ui/dialogs/confirm-alert'
 import { cn } from '@/lib/utils'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -53,9 +54,29 @@ export function CreateAccountModal({
 }: Props) {
   const isEdit = mode === 'edit'
 
-  const { createAccount, updateAccount, isCreating, isUpdating } = useAccounts()
+  const {
+    createAccount,
+    updateAccount,
+    deleteAccount,
+    isCreating,
+    isUpdating,
+    isDeleting
+  } = useAccounts()
 
   const [open, setOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const handleDelete = async () => {
+    if (!account) return
+
+    try {
+      await deleteAccount(account.id)
+      setConfirmOpen(false)
+      setOpen(false) // закрываем основную модалку
+    } catch {
+      // toast уже есть
+    }
+  }
 
   const {
     register,
@@ -105,7 +126,7 @@ export function CreateAccountModal({
 
   const selectedIcon = watch('icon')
 
-  const isLoading = isEdit ? isUpdating : isCreating
+  const isLoading = isCreating || isUpdating || isDeleting
 
   const preventMinus: React.KeyboardEventHandler<HTMLInputElement> = e => {
     if (
@@ -136,12 +157,27 @@ export function CreateAccountModal({
         )}
       </DialogTrigger>
 
-      <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl border-0 bg-transparent p-0 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto">
         <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl">
-          <DialogHeader className="text-center mb-10">
-            <DialogTitle className="text-4xl md:text-5xl font-bold tracking-tight">
-              {isEdit ? 'Редактировать счёт' : 'Новый счёт'}
-            </DialogTitle>
+          <DialogHeader className="mb-8">
+            <div className="flex items-center justify-between gap-3">
+              <DialogTitle className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+                {isEdit ? 'Редактировать счёт' : 'Новый счёт'}
+              </DialogTitle>
+
+              {isEdit && account && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={isLoading}
+                  className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 p-6"
+                >
+                  <Trash2 className="size-5 sm:size-6" />
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           <form
@@ -286,6 +322,23 @@ export function CreateAccountModal({
                 Отмена
               </AccentButton>
             </div>
+
+            <ConfirmAlert
+              open={confirmOpen}
+              onOpenChange={setConfirmOpen}
+              title="Удалить счёт?"
+              description={
+                <>
+                  Счёт <b>«{account?.name}»</b> будет удалён навсегда.
+                  <br />
+                  Это действие нельзя отменить.
+                </>
+              }
+              confirmText="Удалить"
+              cancelText="Отмена"
+              loading={isDeleting}
+              onConfirm={handleDelete}
+            />
           </form>
         </GlassCard>
       </DialogContent>
