@@ -290,13 +290,13 @@ export function CreateAccountModal({
                       type="button"
                       onClick={() => setValue('icon', icon)}
                       className={cn(
-                        'flex h-16 w-16 items-center justify-center rounded-xl border-2 transition-all cursor-pointer',
+                        'flex size-16 items-center justify-center rounded-xl border-2 transition-all cursor-pointer',
                         active
                           ? 'border-accent bg-accent/20 shadow-xl scale-110'
                           : 'border-transparent hover:border-accent/50 hover:bg-accent/10 hover:scale-105'
                       )}
                     >
-                      <Icon className="h-8 w-8" />
+                      <Icon className="size-8" />
                     </button>
                   )
                 })}
