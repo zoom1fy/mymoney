@@ -1,5 +1,7 @@
 import { Metadata } from 'next'
 
+import { CategoriesPanel } from '@/components/dashboard/categories/CategoriesPanel'
+
 import { NO_INDEX_PAGE } from '@/constants/seo.constants'
 
 export const metadata: Metadata = {
@@ -18,11 +20,17 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Здесь позже будет общая статистика, графики и т.д. */}
-      <div className="rounded-2xl border bg-card/50 backdrop-blur-sm p-10 text-center">
-        <p className="text-2xl font-medium text-muted-foreground">
-          Выберите счёт в боковом меню, чтобы начать
-        </p>
+      {/* Контент */}
+      <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
+        {/* Диаграмма */}
+        <div className="flex-1 rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
+          {/* Chart */}
+        </div>
+
+        {/* Категории */}
+        <div className="lg:w-[360px]">
+          <CategoriesPanel />
+        </div>
       </div>
     </div>
   )
