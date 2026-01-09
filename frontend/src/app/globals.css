@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import "tw-animate-css"; /* Это заменит всё, что мы мудрили раньше */
+@import "tw-animate-css";
 
 /* Dark mode по class (next-themes) */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -37,6 +37,12 @@
 
     --destructive: hsl(0 84% 60%);
     --destructive-foreground: hsl(0 0% 98%);
+
+    /* Скроллбар - плавный дефолтный стиль */
+    --scrollbar-track: hsl(0 0% 95%);
+    --scrollbar-thumb: hsl(240 5% 70%);
+    --scrollbar-thumb-hover: hsl(240 5% 65%);
+    --scrollbar-border-radius: 8px;
   }
 
   .dark {
@@ -64,15 +70,50 @@
 
     --destructive: hsl(0 62% 30%);
     --destructive-foreground: hsl(0 0% 98%);
+
+    /* Скроллбар для dark - темный плавный */
+    --scrollbar-track: hsla(240, 7%, 18%, 0);
+    --scrollbar-thumb: hsla(267, 85%, 65%, 0.25);
+    --scrollbar-border-radius: 8px;
   }
 
   * {
     @apply border-border;
+    /* Плавный скроллбар для всех элементов */
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  /* Webkit скроллбары */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    @apply bg-[var(--scrollbar-track)];
+    border-radius: var(--scrollbar-border-radius);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    @apply bg-[var(--scrollbar-thumb)] rounded-[var(--scrollbar-border-radius)];
+    border: 1px solid var(--scrollbar-track);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    @apply bg-[var(--scrollbar-thumb-hover)];
+  }
+
+  *::-webkit-scrollbar-corner {
+    @apply bg-transparent;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: Montserrat, system-ui, sans-serif;
+    /* Плавная прокрутка страницы */
+    scroll-behavior: smooth;
   }
 
   h1 {
