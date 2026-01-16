@@ -11,37 +11,45 @@ export function CategoryToggle({ isExpense, onChange }: Props) {
   return (
     <div
       onClick={() => onChange(!isExpense)}
-      className="relative flex h-11 rounded-full border bg-muted/40 backdrop-blur-sm p-1 cursor-pointer select-none overflow-hidden"
+      className={cn(
+        'group relative flex h-11 w-full rounded-full border border-border/40',
+        'bg-muted/30 backdrop-blur-xl overflow-hidden p-1',
+        'shadow-[0_1px_4px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)]',
+        'cursor-pointer select-none'
+      )}
     >
-      {/* Бегунок */}
+      {/* БЕГУНОК */}
       <div
         className={cn(
-          'absolute top-1 bottom-1 w-[calc(50%-0.5rem)] rounded-full',
-          'bg-primary/15 shadow-sm',
-          'transition-[left] duration-300 ease-[cubic-bezier(.22,1,.36,1)]',
-          'hover:scale-',
-          isExpense ? 'left-[calc(50%+0.25rem)]' : 'left-1'
+          'absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full',
+          'bg-primary transition-transform duration-500',
+          'ease-[cubic-bezier(0.2,0.8,0.2,1.1)]',
+          'shadow-[0_2px_8px_rgba(0,0,0,0.14)]',
+          'hover:scale-105 group-active:scale-[0.98]'
         )}
+        style={{
+          transform: isExpense ? 'translateX(99%)' : 'translateX(1%)'
+        }}
       />
 
-      {/* Доходы */}
+      {/* Текст: Доходы */}
       <div className="relative z-10 flex-1 flex items-center justify-center">
         <span
           className={cn(
-            'text-sm font-medium transition-colors',
-            !isExpense ? 'text-foreground' : 'text-muted-foreground'
+            'text-sm font-semibold transition-colors duration-300 delay-75',
+            !isExpense ? 'text-primary-foreground' : 'text-muted-foreground'
           )}
         >
           Доходы
         </span>
       </div>
 
-      {/* Расходы */}
+      {/* Текст: Расходы */}
       <div className="relative z-10 flex-1 flex items-center justify-center">
         <span
           className={cn(
-            'text-sm font-medium transition-colors',
-            isExpense ? 'text-foreground' : 'text-muted-foreground'
+            'text-sm font-semibold transition-colors duration-300 delay-75',
+            isExpense ? 'text-primary-foreground' : 'text-muted-foreground'
           )}
         >
           Расходы
