@@ -2,6 +2,7 @@
 
 import { ScrollArea } from '../ui/shadui/scroll-area'
 import { CreateAccountModal } from './CreateAccountModal'
+import { formatCurrency } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { Plus, Wallet } from 'lucide-react'
 import Link from 'next/link'
@@ -30,7 +31,6 @@ import {
 } from '@/types/account.types'
 
 import { useAccounts } from '@/hooks/useAccounts'
-import { formatCurrency } from '@/lib/format'
 
 const currencySymbols: Record<CurrencyCode, string> = {
   RUB: '₽',
@@ -100,10 +100,12 @@ export function DashboardSidebar() {
                   {categoryName}
                 </SidebarGroupLabel>
 
-                <SidebarGroupContent className="grid gap-2 mt-2">
+                <SidebarGroupContent className="grid gap-3 mt-2">
                   {accountsInCategory.map(account => {
                     const Icon = IconComponent(account.icon)
                     const symbol = currencySymbols[account.currencyCode]
+                    const isActive =
+                      pathname === `/dashboard/accounts/${account.id}`
 
                     return (
                       <CreateAccountModal
@@ -113,26 +115,79 @@ export function DashboardSidebar() {
                         trigger={
                           <div
                             className={cn(
-                              'block rounded-xl border bg-card/40 backdrop-blur-sm p-4 transition-all cursor-pointer',
-                              'hover:bg-card/70 hover:shadow-md hover:border-accent/30',
-                              pathname ===
-                                `/dashboard/accounts/${account.id}` &&
-                                'ring-2 ring-accent/50 bg-card/60 border-accent/40'
+                              'group relative overflow-hidden rounded-2xl',
+                              'border border-border/40 bg-card/40 backdrop-blur-xl',
+                              'transition-all duration-500 ease-out',
+                              'cursor-pointer select-none',
+                              // hover
+                              'hover:scale-[1.015] hover:-translate-y-0.5',
+                              // active
+                              'active:scale-[0.99]',
+                              isActive &&
+                                'border-accent/50 bg-card/60 ring-1 ring-accent/30'
                             )}
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="rounded-lg bg-accent/10 p-2.5">
-                                <Icon className="size-6 text-accent" />
+                            {/* subtle gradient wash */}
+                            <div
+                              className={cn(
+                                'absolute inset-0 opacity-0 transition-opacity duration-700',
+                                'bg-gradient-to-br from-accent/5 via-transparent to-transparent',
+                                'group-hover:opacity-80',
+                                isActive && 'opacity-60'
+                              )}
+                            />
+
+                            {/* animated light sweep */}
+                            <div
+                              className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-700"
+                              style={{
+                                background:
+                                  'linear-gradient(120deg, transparent 0%, rgba(var(--accent-rgb),0.06) 40%, transparent 80%)',
+                                transform: 'translateX(-100%)',
+                                animation: 'sweep 1.8s ease-out forwards'
+                              }}
+                            />
+
+                            <div className="relative px-5 py-4 flex items-center gap-4">
+                              {/* Icon */}
+                              <div
+                                className={cn(
+                                  'shrink-0 size-11 rounded-xl',
+                                  'bg-accent/10 border border-accent/10',
+                                  'flex items-center justify-center',
+                                  'transition-all duration-500',
+                                  'group-hover:bg-accent/15 group-hover:border-accent/25 group-hover:scale-110 group-hover:rotate-1'
+                                )}
+                              >
+                                <Icon className="size-5.5 text-accent transition-transform duration-700 group-hover:rotate-6" />
                               </div>
+
+                              {/* Text */}
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-base truncate">
+                                <p
+                                  className={cn(
+                                    'font-medium text-base truncate transition-colors duration-300',
+                                    isActive
+                                      ? 'text-accent'
+                                      : 'text-foreground/90 group-hover:text-foreground'
+                                  )}
+                                >
                                   {account.name}
                                 </p>
-                                <p className="text-lg font-bold text-foreground mt-0.5">
-                                  {formatCurrency(account.currentBalance)}{' '}
-                                  {symbol}
-                                </p>
+
+                                <div className="flex items-baseline gap-1.5 mt-0.5">
+                                  <p className="text-2xl font-semibold tracking-tight text-foreground">
+                                    {formatCurrency(account.currentBalance)}
+                                  </p>
+                                  <span className="text-base font-medium text-muted-foreground/70">
+                                    {symbol}
+                                  </span>
+                                </div>
                               </div>
+
+                              {isActive && (
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 size-1.5 rounded-full bg-accent/80" />
+                              )}
                             </div>
                           </div>
                         }
