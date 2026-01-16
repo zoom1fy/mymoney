@@ -203,7 +203,34 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes ios-wiggle {
+  0% {
+    transform: rotate(-2deg) translateY(0);
+  }
+
+  25% {
+    transform: rotate(2deg) translateY(-1px);
+  }
+
+  50% {
+    transform: rotate(-2deg) translateY(0);
+  }
+
+  75% {
+    transform: rotate(2deg) translateY(1px);
+  }
+
+  100% {
+    transform: rotate(-2deg) translateY(0);
+  }
+}
+
+.animate-ios-wiggle {
+  animation: ios-wiggle 0.35s infinite ease-in-out;
 }
