@@ -1,12 +1,13 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { Plus } from 'lucide-react'
-import { ReactNode, useState } from 'react'
+import { Plus, Trash2 } from 'lucide-react'
+import { ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
+import { ConfirmAlert } from '@/components/ui/dialogs/confirm-alert'
 import { Button } from '@/components/ui/shadui/button'
 import {
   Dialog,
@@ -23,6 +24,7 @@ import { CurrencyCode } from '@/types/account.types'
 import {
   CategoryIconName,
   CategoryIcons,
+  ICategory,
   ICreateCategory
 } from '@/types/category.types'
 
@@ -32,12 +34,32 @@ const iconOptions = Object.keys(CategoryIcons) as CategoryIconName[]
 
 interface Props {
   isExpense: boolean
+  mode?: 'create' | 'edit'
+  category?: ICategory
   trigger?: ReactNode
+  onClose?: () => void
 }
 
-export function CreateCategoryModal({ isExpense, trigger }: Props) {
-  const { createCategory, isCreating } = useCategories(isExpense)
+export function CreateCategoryModal({
+  isExpense,
+  mode = 'create',
+  category,
+  trigger,
+  onClose
+}: Props) {
+  const {
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    isCreating,
+    isUpdating,
+    isDeleting
+  } = useCategories(isExpense)
+
   const [open, setOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const isEdit = mode === 'edit'
+  const isLoading = isCreating || isUpdating || isDeleting
 
   const {
     register,
@@ -54,44 +76,99 @@ export function CreateCategoryModal({ isExpense, trigger }: Props) {
     }
   })
 
+  useEffect(() => {
+    if (mode === 'edit' && category) {
+      setOpen(true)
+    }
+  }, [mode, category])
+
+  useEffect(() => {
+    if (open && isEdit && category) {
+      reset({
+        name: category.name,
+        icon: category.icon,
+        isExpense: category.isExpense
+      })
+    }
+  }, [open, isEdit, category, reset])
+
   const selectedIcon = watch('icon')
 
   const onSubmit = async (data: ICreateCategory) => {
     try {
-      await createCategory({
-        ...data,
-        isExpense,
-        currencyCode: CurrencyCode.RUB
-      })
+      if (isEdit && category) {
+        await updateCategory({
+          id: category.id,
+          data
+        })
+      } else {
+        await createCategory({
+          ...data,
+          isExpense,
+          currencyCode: CurrencyCode.RUB
+        })
+      }
 
       setOpen(false)
       reset()
     } catch {}
   }
 
+  const handleDelete = async () => {
+    if (!category) return
+
+    try {
+      await deleteCategory(category.id)
+      setConfirmOpen(false)
+      setOpen(false)
+    } catch {}
+  }
+
   return (
     <Dialog
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={v => {
+        setOpen(v)
+        if (!v && mode === 'edit') {
+          onClose?.()
+        }
+      }}
     >
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button
-            variant="outline"
-            className="w-full justify-center gap-2"
-          >
-            <Plus className="size-4" />
-            Добавить категорию
-          </Button>
-        )}
-      </DialogTrigger>
+      {mode === 'create' && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button
+              variant="outline"
+              className="w-full justify-center gap-2"
+            >
+              <Plus className="size-4" />
+              Добавить категорию
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
 
       <DialogContent className="w-[95vw] max-w-3xl p-0">
         <GlassCard className="rounded-3xl p-10">
           <DialogHeader className="mb-8">
-            <DialogTitle className="text-3xl font-bold tracking-tight">
-              Новая категория
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-3xl font-bold tracking-tight">
+                {isEdit ? 'Редактировать' : 'Новая категория'}
+              </DialogTitle>
+
+              {isEdit && category && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={isLoading}
+                  className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 p-6"
+                >
+                  <Trash2 className="size-5 sm:size-6" />
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           <form
@@ -140,21 +217,21 @@ export function CreateCategoryModal({ isExpense, trigger }: Props) {
             </ScrollArea>
 
             {/* Кнопки */}
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
               <AccentButton
                 type="submit"
                 size="lg"
-                className="flex-1 h-14"
-                disabled={isCreating}
+                className="h-14 sm:flex-1"
+                disabled={isLoading}
               >
-                Создать
+                {isEdit ? 'Сохранить' : 'Создать'}
               </AccentButton>
 
               <AccentButton
                 type="button"
                 variant="ghost"
                 size="lg"
-                className="flex-1 h-14"
+                className="h-14 sm:flex-1"
                 onClick={() => setOpen(false)}
               >
                 Отмена
@@ -163,6 +240,22 @@ export function CreateCategoryModal({ isExpense, trigger }: Props) {
           </form>
         </GlassCard>
       </DialogContent>
+      <ConfirmAlert
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Удалить категорию?"
+        description={
+          <>
+            Категория <b>«{category?.name}»</b> будет удалена навсегда.
+            <br />
+            Это действие нельзя отменить.
+          </>
+        }
+        confirmText="Удалить"
+        cancelText="Отмена"
+        loading={isDeleting}
+        onConfirm={handleDelete}
+      />
     </Dialog>
   )
 }
