@@ -5,8 +5,9 @@ export enum EnumTokens {
   REFRESH_TOKEN = 'refresh_token'
 }
 
-const COOKIE_DOMAIN = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || 'localhost'
-
+const COOKIE_DOMAIN = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || 
+  (typeof window !== 'undefined' ? window.location.hostname : 'localhost')
+  
 export const getAccessToken = () => {
   const accessToken = Cookies.get(EnumTokens.ACCESS_TOKEN)
   return accessToken || null
