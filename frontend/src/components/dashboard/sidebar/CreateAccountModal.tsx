@@ -1,6 +1,6 @@
 'use client'
 
-import { ConfirmAlert } from '../ui/dialogs/confirm-alert'
+import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
 import { cn } from '@/lib/utils'
 import { Plus, Trash2 } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'

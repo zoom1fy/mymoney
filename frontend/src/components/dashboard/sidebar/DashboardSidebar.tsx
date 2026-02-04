@@ -1,6 +1,6 @@
 'use client'
 
-import { ScrollArea } from '../ui/shadui/scroll-area'
+import { ScrollArea } from '../../ui/shadui/scroll-area'
 import { CreateAccountModal } from './CreateAccountModal'
 import { formatCurrency } from '@/lib/format'
 import { cn } from '@/lib/utils'
