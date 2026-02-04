@@ -14,6 +14,7 @@ frontend/node_modules/
 # Игнорировать сборочные артефакты
 backend/dist/
 frontend/.next/
+frontend/package-lock.json
 
 # Игнорировать временные файлы и логи
 *.log
@@ -33,4 +34,3 @@ backend/prisma/migrations/
 
 # Игнорировать кэш Docker (если используется buildkit)
 .docker/
-frontend/package-lock.json
