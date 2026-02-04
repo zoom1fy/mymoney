@@ -234,3 +234,22 @@
 .animate-ios-wiggle {
   animation: ios-wiggle 0.35s infinite ease-in-out;
 }
+
+.recharts-wrapper *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+@media (max-width: 756px) {
+
+  /* Главный контейнер, где лежат [Пресеты | Календари] */
+  .ant-picker-dropdown .ant-picker-range-wrapper {
+    flex-direction: column !important;
+  }
+
+  /* Убираем лишние отступы у панелей календаря */
+  .ant-picker-panels {
+    flex-direction: column !important;
+  }
+}

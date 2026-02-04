@@ -62,7 +62,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="w-[360px] lg:w-[460px]">
+        <div className="w-full lg:w-[460px] max-w-[460px]">
           <CategoriesPanel
             isExpense={isExpense}
             onExpenseChange={setIsExpense}
