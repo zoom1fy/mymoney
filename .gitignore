@@ -33,3 +33,4 @@ backend/prisma/migrations/
 
 # Игнорировать кэш Docker (если используется buildkit)
 .docker/
+frontend/package-lock.json
