@@ -7,40 +7,43 @@ import { useState } from 'react'
 
 import { useCategories } from '@/hooks/useCategories'
 
-export function CategoriesPanel() {
-  const [isExpense, setIsExpense] = useState(true)
-  const [editMode, setEditMode] = useState(false)
+interface Props {
+  isExpense: boolean
+  onExpenseChange: (value: boolean) => void
+  donutData?: any[]
+}
 
+export function CategoriesPanel({ 
+  isExpense, 
+  onExpenseChange, 
+  donutData      // ← добавьте сюда
+}: Props) {
+  const [editMode, setEditMode] = useState(false)
   const { categories, isLoading } = useCategories(isExpense)
 
   return (
-    <div className="w-[360px] shrink-0">
+    <div className="w-[360px] lg:w-[460px] shrink-0">
       <div className="rounded-2xl border bg-card/50 backdrop-blur-sm p-6 space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <CategoryToggle
               isExpense={isExpense}
-              onChange={setIsExpense}
+              onChange={onExpenseChange}
             />
           </div>
-
           <EditModeButton
             active={editMode}
             onToggle={() => setEditMode(v => !v)}
           />
         </div>
 
-        {isLoading ? (
-          <p className="text-center text-sm text-muted-foreground">
-            Загрузка категорий...
-          </p>
-        ) : (
-          <CategoryGrid
-            categories={categories}
-            isExpense={isExpense}
-            editMode={editMode}
-          />
-        )}
+        <CategoryGrid
+          categories={categories}
+          isExpense={isExpense}
+          editMode={editMode}
+          donutData={donutData}
+          loading={isLoading}
+        />
       </div>
     </div>
   )
