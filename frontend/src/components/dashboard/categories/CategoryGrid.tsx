@@ -21,7 +21,7 @@ export function CategoryGrid({
   isExpense,
   editMode,
   donutData,
-  loading = false,
+  loading
 }: Props) {
   const rootCategories = categories.filter(c => !c.parentId)
 
@@ -31,45 +31,45 @@ export function CategoryGrid({
 
   const [editCategory, setEditCategory] = useState<ICategory | null>(null)
 
-  const isLoading = loading || categories.length === 0
   const skeletonCount = 9
 
   return (
     <>
       <div className="h-[560px] overflow-y-auto pr-2 pt-1">
         <div className="grid grid-cols-3 gap-6">
-          {isLoading ? (
-            // Скелетоны вместо категорий
-            Array.from({ length: skeletonCount }).map((_, index) => (
-              <CategoryItemSkeleton key={`skeleton-${index}`} />
-            ))
-          ) : (
-            // Реальные категории
-            rootCategories.map(cat => {
-              const info = dataMap.get(cat.id) || { amount: 0, color: undefined }
+          {loading
+            ? // Скелетоны вместо категорий
+              Array.from({ length: skeletonCount }).map((_, index) => (
+                <CategoryItemSkeleton key={`skeleton-${index}`} />
+              ))
+            : // Реальные категории
+              rootCategories.map(cat => {
+                const info = dataMap.get(cat.id) || {
+                  amount: 0,
+                  color: undefined
+                }
 
-              return (
-                <CategoryItem
-                  key={cat.id}
-                  name={cat.name}
-                  icon={cat.icon}
-                  editMode={editMode}
-                  amount={info.amount}
-                  color={info.color}
-                  onClick={() => {
-                    if (editMode) {
-                      setEditCategory(cat)
-                    } else {
-                      console.log('Добавить операцию', cat.id)
-                    }
-                  }}
-                />
-              )
-            })
-          )}
+                return (
+                  <CategoryItem
+                    key={cat.id}
+                    name={cat.name}
+                    icon={cat.icon}
+                    editMode={editMode}
+                    amount={info.amount}
+                    color={info.color}
+                    onClick={() => {
+                      if (editMode) {
+                        setEditCategory(cat)
+                      } else {
+                        console.log('Добавить операцию', cat.id)
+                      }
+                    }}
+                  />
+                )
+              })}
 
           {/* Кнопка "Добавить" показываем ТОЛЬКО когда НЕ загружаемся */}
-          {!isLoading && (
+          {!loading && (
             <CreateCategoryModal
               isExpense={isExpense}
               trigger={

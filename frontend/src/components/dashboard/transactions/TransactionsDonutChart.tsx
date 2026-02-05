@@ -22,14 +22,11 @@ export function TransactionsDonutChart({
   onRangeChange,
   loading
 }: Props) {
-  
-const isLoading = loading; // true, если идёт загрузка
-const hasData = donutData && donutData.length > 0; // true, если массив не пуст
 
   return (
     <div className="space-y-6">
       <div className="flex justify-center">
-        {isLoading  ? (
+        {loading  ? (
           <DateRangePickerSkeleton />
         ) : (
           <DateRangePicker
@@ -40,7 +37,7 @@ const hasData = donutData && donutData.length > 0; // true, если масси�
       </div>
 
       <div className="relative h-[300px] sm:h-[500px] w-full">
-        {isLoading  ? (
+        {loading  ? (
           <TransactionsDonutChartSkeleton />
         ) : (
           <>

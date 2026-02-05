@@ -67,6 +67,7 @@ export default function DashboardPage() {
             isExpense={isExpense}
             onExpenseChange={setIsExpense}
             donutData={donutData}
+            loading={loading}
           />
         </div>
       </div>

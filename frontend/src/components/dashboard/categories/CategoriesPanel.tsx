@@ -11,15 +11,17 @@ interface Props {
   isExpense: boolean
   onExpenseChange: (value: boolean) => void
   donutData?: any[]
+  loading?: boolean
 }
 
-export function CategoriesPanel({ 
-  isExpense, 
-  onExpenseChange, 
-  donutData      // ← добавьте сюда
+export function CategoriesPanel({
+  isExpense,
+  onExpenseChange,
+  donutData,
+  loading
 }: Props) {
   const [editMode, setEditMode] = useState(false)
-  const { categories, isLoading } = useCategories(isExpense)
+  const { categories } = useCategories(isExpense)
 
   return (
     <div className="w-[360px] lg:w-[460px] shrink-0">
@@ -42,7 +44,7 @@ export function CategoriesPanel({
           isExpense={isExpense}
           editMode={editMode}
           donutData={donutData}
-          loading={isLoading}
+          loading={loading}
         />
       </div>
     </div>
