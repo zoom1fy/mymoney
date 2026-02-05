@@ -1,8 +1,8 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
-
 import { CategoryIconName, CategoryIcons } from '@/types/category.types'
 
 interface Props {
@@ -20,12 +20,12 @@ export function CategoryItem({
   editMode = false,
   onClick,
   amount = 0,
-  color = 'hsl(var(--primary))',
+  color = 'hsl(var(--primary))'
 }: Props) {
-  const Icon = CategoryIcons[icon]
-  const [isHovered, setIsHovered] = useState(false)
-
+  const IconComponent = CategoryIcons[icon]
+  const [isHovered, setIsHovered] = useState(false) // ✅ false вместо true
   const displayAmount = amount ?? 0
+  const showErrorIcon = !IconComponent
 
   return (
     <div
@@ -36,27 +36,42 @@ export function CategoryItem({
         'flex flex-col items-center gap-2.5 cursor-pointer select-none transition-all duration-300 group',
         editMode && 'animate-ios-wiggle'
       )}
-      style={editMode ? { animationDelay: `${Math.random() * 0.15}s` } : undefined}
+      style={
+        editMode ? { animationDelay: `${Math.random() * 0.15}s` } : undefined
+      }
     >
       <div
         className={cn(
           'size-16 sm:size-18 rounded-full border border-border flex items-center justify-center transition-all duration-300',
           'group-hover:scale-105 group-hover:shadow-lg',
-          editMode && 'animate-pulse-slow'
+          editMode && 'animate-pulse-slow',
+          showErrorIcon && 'border-destructive/50 bg-destructive/10'
         )}
         style={{
           borderColor: isHovered ? color : undefined,
           backgroundColor: isHovered ? `${color}15` : undefined,
-          boxShadow: isHovered ? `0 0 10px ${color}30` : undefined,
+          boxShadow: isHovered ? `0 0 10px ${color}30` : undefined
         }}
       >
-        <Icon
-          className="size-7 sm:size-8 transition-all duration-300"
-          style={{
-            color: color,
-            filter: isHovered ? `drop-shadow(0 0 8px ${color}50)` : 'none',
-          }}
-        />
+        {showErrorIcon ? (
+          <AlertCircle
+            className="size-7 sm:size-8 transition-all duration-300"
+            style={{
+              color: 'hsl(var(--destructive))',
+              filter: isHovered
+                ? 'drop-shadow(0 0 8px hsl(var(--destructive))50)'
+                : 'none'
+            }}
+          />
+        ) : (
+          <IconComponent
+            className="size-7 sm:size-8 transition-all duration-300"
+            style={{
+              color: color,
+              filter: isHovered ? `drop-shadow(0 0 8px ${color}50)` : 'none'
+            }}
+          />
+        )}
       </div>
 
       <div className="flex flex-col items-center -space-y-0.5">
