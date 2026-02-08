@@ -6,6 +6,8 @@ import { CreateCategoryModal } from './CreateCategoryModal'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
+import { CreateTransactionModal } from '@/components/dashboard/transactions/CreateTransactionModal'
+
 import { ICategory } from '@/types/category.types'
 
 interface Props {
@@ -23,13 +25,16 @@ export function CategoryGrid({
   donutData,
   loading
 }: Props) {
-  const rootCategories = categories.filter(c => !c.parentId)
+  const filteredCategories = categories.filter(c => c.isExpense === isExpense)
+  const rootCategories = filteredCategories.filter(c => !c.parentId)
 
   const dataMap = new Map(
     donutData?.map(d => [d.id, { amount: d.value, color: d.color }]) || []
   )
 
   const [editCategory, setEditCategory] = useState<ICategory | null>(null)
+  const [transactionCategory, setTransactionCategory] =
+    useState<ICategory | null>(null)
 
   const skeletonCount = 9
 
@@ -61,7 +66,7 @@ export function CategoryGrid({
                       if (editMode) {
                         setEditCategory(cat)
                       } else {
-                        console.log('Добавить операцию', cat.id)
+                        setTransactionCategory(cat)
                       }
                     }}
                   />
@@ -93,6 +98,15 @@ export function CategoryGrid({
           category={editCategory}
           isExpense={isExpense}
           onClose={() => setEditCategory(null)}
+        />
+      )}
+
+      {transactionCategory && (
+        <CreateTransactionModal
+          open={!!transactionCategory}
+          category={transactionCategory}
+          isExpense={isExpense}
+          onClose={() => setTransactionCategory(null)}
         />
       )}
     </>

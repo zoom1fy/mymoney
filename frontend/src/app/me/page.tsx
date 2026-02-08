@@ -1,9 +1,6 @@
 'use client'
 
 import { buildDonutData } from '@/lib/transactions-donut'
-import { Category } from '@/lib/transactions-donut'
-import { categoryService } from '@/services/category.service'
-import { transactionService } from '@/services/transaction.services'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -12,6 +9,9 @@ import { TransactionsDonutChart } from '@/components/dashboard/transactions/Tran
 
 import { ITransaction, TransactionType } from '@/types/transaction.types'
 
+import { useCategories } from '@/hooks/useCategories'
+import { useTransactions } from '@/hooks/useTransactions'
+
 export default function DashboardPage() {
   const [isExpense, setIsExpense] = useState(true)
   const [range, setRange] = useState({
@@ -19,17 +19,10 @@ export default function DashboardPage() {
     to: endOfMonth(new Date())
   })
 
-  const [transactions, setTransactions] = useState<ITransaction[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
+  const { transactions, isLoading: txLoading } = useTransactions()
+  const { categories, isLoading: catLoading } = useCategories(isExpense)
 
-  useEffect(() => {
-    setLoading(true)
-    Promise.all([
-      transactionService.getAll().then(setTransactions),
-      categoryService.getAll().then(setCategories)
-    ]).finally(() => setLoading(false))
-  }, [])
+  const loading = txLoading || catLoading
 
   const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
 
