@@ -63,7 +63,7 @@ export function TransactionPreview({
             <motion.div
               whileHover={{ scale: 1.05 }}
               className={cn(
-                'size-20 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-sm',
+                'size-20 rounded-2xl flex items-center justify-center border-2 transition-all shadow-sm',
                 selectedAccount
                   ? 'bg-background border-primary/40 shadow-primary/10'
                   : 'bg-muted/30 border-muted/40'
@@ -86,7 +86,7 @@ export function TransactionPreview({
             <div className="p-3 rounded-full bg-background border border-border shadow-sm">
               <ArrowRight
                 className={cn(
-                  'size-7 transition-all duration-700 ease-in-out',
+                  'size-7 transition-all duration-500 ease-in-out',
                   isExpense
                     ? 'text-destructive rotate-90 md:rotate-0'
                     : 'text-success -rotate-90 md:rotate-180'

@@ -147,7 +147,6 @@ export function CreateTransactionModal({
       onClose()
     } catch (err) {
       console.error('Ошибка при создании транзакции:', err)
-      toast.error('Не удалось добавить транзакцию')
     }
   }
 
