@@ -21,7 +21,7 @@ export interface ICreateTransaction {
   description?: string
   type: TransactionType
   currencyCode: CurrencyCode
-  transactionDate?: string // ✅ добавляем дату транзакции
+  transactionDate?: string
 }
 
 /**

@@ -88,7 +88,7 @@ export function useCategories(isExpense: boolean) {
 
   return {
     /** данные */
-    categories: categories.filter(c => c.isExpense === isExpense),
+    categories,
     isLoading,
 
     /** create */

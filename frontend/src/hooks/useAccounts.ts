@@ -66,13 +66,20 @@ export function useAccounts() {
   })
 
   return {
+    /** данные */
     accounts,
     isLoading,
+
+    /** create */
     createAccount: createMutation.mutateAsync,
-    updateAccount: updateMutation.mutateAsync,
-    deleteAccount: deleteMutation.mutateAsync,
     isCreating: createMutation.isPending,
+
+    /** update */
+    updateAccount: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
+
+    /** delete */
+    deleteAccount: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending
   }
 }
