@@ -5,7 +5,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Импорты */
-@import "react-day-picker/dist/style.css";
+/* @import "react-day-picker/dist/style.css"; */
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap");
 
 /* Shadcn-совместимые переменные в :root и .dark */
@@ -34,6 +34,10 @@
 
     --secondary: hsl(240 4.8% 95.9%);
     --secondary-foreground: hsl(240 10% 3.9%);
+
+    /* Success - приятный зеленый для светлой темы */
+    --success: hsl(142 76% 36%);
+    --success-foreground: hsl(0 0% 98%);
 
     --destructive: hsl(0 84% 60%);
     --destructive-foreground: hsl(0 0% 98%);
@@ -67,6 +71,10 @@
 
     --secondary: hsl(240 5% 12%);
     --secondary-foreground: hsl(0 0% 98%);
+
+    /* Success - более яркий зеленый для темной темы */
+    --success: hsl(142 70% 45%);
+    --success-foreground: hsl(144 61% 10%);
 
     --destructive: hsl(0 62% 30%);
     --destructive-foreground: hsl(0 0% 98%);
@@ -159,6 +167,9 @@
 
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
 
   --color-border: var(--border);
   --color-ring: var(--ring);
