@@ -48,6 +48,10 @@ interface Props {
   trigger?: ReactNode
 }
 
+const FIELD_CLASSES =
+  '!h-14 w-full text-xl px-6 rounded-xl bg-background border-2'
+const CONTAINER_CLASSES = 'w-full space-y-3'
+
 export function CreateAccountModal({
   mode = 'create',
   account,
@@ -96,7 +100,7 @@ export function CreateAccountModal({
     }
   })
 
-  /** 🔹 При открытии edit — заполняем форму */
+  /* При открытии edit — заполняем форму */
   useEffect(() => {
     if (open && isEdit && account) {
       reset({
@@ -126,20 +130,7 @@ export function CreateAccountModal({
   }
 
   const selectedIcon = watch('icon')
-
   const isLoading = isCreating || isUpdating || isDeleting
-
-  const preventMinus: React.KeyboardEventHandler<HTMLInputElement> = e => {
-    if (
-      e.code === 'Minus' ||
-      e.key === '-' ||
-      e.key === 'e' ||
-      e.key === 'E' ||
-      e.key === '+'
-    ) {
-      e.preventDefault()
-    }
-  }
 
   return (
     <Dialog
@@ -162,7 +153,7 @@ export function CreateAccountModal({
         <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl transition-all duration-700">
           <DialogHeader className="mb-8">
             <div className="flex items-center justify-between gap-3">
-              <DialogTitle className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+              <DialogTitle className="text-3xl font-bold tracking-tight">
                 {isEdit ? 'Редактировать счёт' : 'Новый счёт'}
               </DialogTitle>
 
@@ -188,36 +179,38 @@ export function CreateAccountModal({
             {/* Название и баланс */}
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-4">
-                <Label className="text-lg font-medium">Название</Label>
-                <Input
-                  placeholder="Тинькофф Black"
-                  className="h-14 text-xl px-6"
-                  {...register('name', { required: 'Обязательное поле' })}
-                />
-                {errors.name && (
-                  <p className="text-destructive text-sm">
-                    {errors.name.message}
-                  </p>
-                )}
+                <div className={CONTAINER_CLASSES}>
+                  <Label className="text-lg font-medium ml-1">Название</Label>
+                  <Input
+                    placeholder="Зарплатная карта"
+                    className={cn(FIELD_CLASSES)}
+                    {...register('name', { required: 'Обязательное поле' })}
+                  />
+                  {errors.name && (
+                    <p className="text-destructive text-sm">
+                      {errors.name.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-4">
                 <Label className="text-lg font-medium">Баланс</Label>
                 <NumericFormat
-                  // Базовые настройки отображения
                   thousandSeparator=" "
                   decimalScale={2}
+                  decimalSeparator=","
                   allowNegative={false}
-                  placeholder="0.00"
-                  // Интеграция со стилями Shadcn
+                  placeholder="0,00"
                   customInput={Input}
-                  className="h-14 text-lg px-6"
-                  // Интеграция с react-hook-form
+                  className={cn(
+                    FIELD_CLASSES,
+                    'text-2xl font-bold border-2 focus-visible:ring-offset-0',
+                    errors.currentBalance && 'border-destructive'
+                  )}
                   onValueChange={values => {
-                    // Сохраняем в форму чистое число (number), а не строку с пробелами
                     setValue('currentBalance', values.floatValue || 0)
                   }}
-                  // Передаем значение из формы обратно для визуализации
                   value={watch('currentBalance')}
                 />
                 {errors.currentBalance && (
@@ -230,51 +223,77 @@ export function CreateAccountModal({
 
             {/* Категория / Тип / Валюта */}
             <div className="grid gap-8 md:grid-cols-3">
-              <Select
-                value={watch('categoryId')?.toString()}
-                onValueChange={v =>
-                  setValue('categoryId', Number(v) as AccountCategoryEnum)
-                }
-              >
-                <SelectTrigger className="text-xl p-6 w-1xs bg-background border rounded-xl">
-                  <SelectValue placeholder="Категория" />
-                </SelectTrigger>
-                <SelectContent className="bg-background w-2xs backdrop-blur-none border shadow-xl rounded-xl text-xl">
-                  <SelectItem value="1">Счёт</SelectItem>
-                  <SelectItem value="2">Сберегательный</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={watch('typeId')?.toString()}
-                onValueChange={v =>
-                  setValue('typeId', Number(v) as AccountTypeEnum)
-                }
-              >
-                <SelectTrigger className="text-xl p-6 w-1xs bg-background border rounded-xl">
-                  <SelectValue placeholder="Тип" />
-                </SelectTrigger>
-                <SelectContent className="bg-background w-2xs backdrop-blur-none border shadow-xl rounded-xl text-xl">
-                  <SelectItem value="1">Наличные</SelectItem>
-                  <SelectItem value="2">Карта</SelectItem>
-                  <SelectItem value="3">Крипто</SelectItem>
-                  <SelectItem value="4">Накопительный</SelectItem>
-                  <SelectItem value="5">Депозит</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={watch('currencyCode')}
-                disabled={isEdit}
-                onValueChange={v => setValue('currencyCode', v as CurrencyCode)}
-              >
-                <SelectTrigger className="text-xl p-6 w-1xs bg-background border rounded-xl">
-                  <SelectValue placeholder="Валюта" />
-                </SelectTrigger>
-                <SelectContent className="bg-background w-2xs backdrop-blur-none border shadow-xl rounded-xl text-xl">
-                  <SelectItem value={CurrencyCode.RUB}>₽ Рубль</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className={CONTAINER_CLASSES}>
+                <Select
+                  value={watch('categoryId')?.toString()}
+                  onValueChange={v =>
+                    setValue('categoryId', Number(v) as AccountCategoryEnum)
+                  }
+                >
+                  <SelectTrigger
+                    className={cn(
+                      FIELD_CLASSES,
+                      'flex items-center justify-between cursor-pointer',
+                      errors.categoryId && 'border-destructive'
+                    )}
+                  >
+                    <SelectValue placeholder="Категория" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-background">
+                    <SelectItem value="1">Счёт</SelectItem>
+                    <SelectItem value="2">Сберегательный</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={CONTAINER_CLASSES}>
+                {' '}
+                <Select
+                  value={watch('typeId')?.toString()}
+                  onValueChange={v =>
+                    setValue('typeId', Number(v) as AccountTypeEnum)
+                  }
+                >
+                  <SelectTrigger
+                    className={cn(
+                      FIELD_CLASSES,
+                      'flex items-center justify-between cursor-pointer',
+                      errors.typeId && 'border-destructive'
+                    )}
+                  >
+                    <SelectValue placeholder="Тип" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-background">
+                    <SelectItem value="1">Наличные</SelectItem>
+                    <SelectItem value="2">Карта</SelectItem>
+                    <SelectItem value="3">Крипто</SelectItem>
+                    <SelectItem value="4">Накопительный</SelectItem>
+                    <SelectItem value="5">Депозит</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={CONTAINER_CLASSES}>
+                {' '}
+                <Select
+                  value={watch('currencyCode')}
+                  disabled={isEdit}
+                  onValueChange={v =>
+                    setValue('currencyCode', v as CurrencyCode)
+                  }
+                >
+                  <SelectTrigger
+                    className={cn(
+                      FIELD_CLASSES,
+                      'flex items-center justify-between cursor-pointer',
+                      errors.currencyCode && 'border-destructive'
+                    )}
+                  >
+                    <SelectValue placeholder="Валюта" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-background">
+                    <SelectItem value={CurrencyCode.RUB}>₽ Рубль</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Иконки */}
@@ -307,6 +326,7 @@ export function CreateAccountModal({
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
               <AccentButton
                 type="submit"
+                variant="outline"
                 size="lg"
                 disabled={isLoading}
                 className="h-14 sm:flex-1"
@@ -316,7 +336,7 @@ export function CreateAccountModal({
 
               <AccentButton
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="lg"
                 className="h-14 sm:flex-1"
                 onClick={() => setOpen(false)}
