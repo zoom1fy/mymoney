@@ -212,6 +212,12 @@ export function CreateAccountModal({
                     setValue('currentBalance', values.floatValue || 0)
                   }}
                   value={watch('currentBalance')}
+                  isAllowed={values => {
+                    const { value } = values // это строка без форматирования
+                    // оставляем только цифры и ограничиваем длину до 10
+                    const digits = value.replace(/\D/g, '')
+                    return digits.length <= 10
+                  }}
                 />
                 {errors.currentBalance && (
                   <p className="text-destructive text-sm">

@@ -198,18 +198,25 @@ export function CreateTransactionModal({
                         allowNegative={false}
                         placeholder="0,00"
                         customInput={Input}
+                        value={field.value}
                         className={cn(
                           FIELD_CLASSES,
                           'text-2xl font-bold border-2 focus-visible:ring-offset-0',
                           errors.amount && 'border-destructive'
                         )}
-                        value={field.value}
                         onValueChange={values =>
                           field.onChange(values.floatValue ?? '')
                         }
+                        isAllowed={values => {
+                          const { value } = values // это строка без форматирования
+                          // оставляем только цифры и ограничиваем длину до 10
+                          const digits = value.replace(/\D/g, '')
+                          return digits.length <= 10
+                        }}
                       />
                     )}
                   />
+
                   {errors.amount && (
                     <p className="text-destructive text-sm mt-1">
                       {errors.amount.message}
