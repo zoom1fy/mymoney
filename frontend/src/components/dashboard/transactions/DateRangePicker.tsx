@@ -98,19 +98,28 @@ export function DateRangePicker({ value, onChange }: Props) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
         {/* Presets */}
         <div className="flex gap-2">
-          {PRESETS.map(p => (
-            <button
-              key={p.key}
-              className={`px-2 w-17 lg:px-4 lg:w-24 py-1 rounded-md text-sm border cursor-pointer transition ${
-                currentPreset === p.key
-                  ? 'bg-primary text-white border-primary'
-                  : 'border-border hover:bg-muted'
-              }`}
-              onClick={() => applyPreset(p.key as any)}
-            >
-              {p.label}
-            </button>
-          ))}
+          {PRESETS.map(p => {
+            const isActive = currentPreset === p.key
+
+            return (
+              <Button
+                key={p.key}
+                onClick={() => applyPreset(p.key as any)}
+                type={isActive ? 'primary' : 'default'}
+                className={`
+          h-9 px-4 rounded-lg text-sm font-medium
+          border transition-all
+          ${
+            isActive
+              ? 'bg-primary text-primary-foreground border-primary shadow-md'
+              : 'bg-muted/40 border-border hover:bg-accent/10 hover:border-accent/40'
+          }
+        `}
+              >
+                {p.label}
+              </Button>
+            )
+          })}
         </div>
 
         {/* Arrows + Picker */}
