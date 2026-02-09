@@ -92,7 +92,7 @@ export function TransactionsDonutChart({
               <p className="text-base text-muted-foreground uppercase tracking-widest">
                 {isExpense ? 'Расходы' : 'Доходы'}
               </p>
-              <p className="text-4xl font-black mt-2 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+              <p className="text-2xl md:text-3xl lg:text-4xl font-black mt-2 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
                 {total.toLocaleString('ru-RU')} ₽
               </p>
               {/* "Данных нет" показываем только если массив реально пустой И загрузка завершена */}
