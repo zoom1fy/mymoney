@@ -76,7 +76,7 @@
     --success: hsl(142 70% 45%);
     --success-foreground: hsl(144 61% 10%);
 
-    --destructive: hsl(0 62% 30%);
+    --destructive: hsl(0 84% 60%);
     --destructive-foreground: hsl(0 0% 98%);
 
     /* Скроллбар для dark - темный плавный */
