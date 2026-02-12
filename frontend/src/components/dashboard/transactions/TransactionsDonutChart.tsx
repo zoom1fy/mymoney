@@ -22,11 +22,10 @@ export function TransactionsDonutChart({
   onRangeChange,
   loading
 }: Props) {
-
   return (
     <div className="space-y-6">
       <div className="flex justify-center">
-        {loading  ? (
+        {loading ? (
           <DateRangePickerSkeleton />
         ) : (
           <DateRangePicker
@@ -37,11 +36,14 @@ export function TransactionsDonutChart({
       </div>
 
       <div className="relative h-[300px] sm:h-[500px] w-full">
-        {loading  ? (
+        {loading ? (
           <TransactionsDonutChartSkeleton />
         ) : (
           <>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
               <PieChart>
                 <Pie
                   data={
@@ -92,13 +94,12 @@ export function TransactionsDonutChart({
               <p className="text-base text-muted-foreground uppercase tracking-widest">
                 {isExpense ? 'Расходы' : 'Доходы'}
               </p>
+
               <p className="text-2xl md:text-3xl lg:text-4xl font-black mt-2 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
-                {total.toLocaleString('ru-RU')} ₽
+                {(!donutData || donutData.length === 0) && !loading
+                  ? 'Данных нет'
+                  : `${total.toLocaleString('ru-RU')} ₽`}
               </p>
-              {/* "Данных нет" показываем только если массив реально пустой И загрузка завершена */}
-              {(!donutData || donutData.length === 0) && !loading && (
-                <p className="text-sm text-muted-foreground mt-1">Данных нет</p>
-              )}
             </div>
           </>
         )}

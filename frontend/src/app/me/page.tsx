@@ -2,12 +2,14 @@
 
 import { buildDonutData } from '@/lib/transactions-donut'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { CategoriesPanel } from '@/components/dashboard/categories/CategoriesPanel'
 import { TransactionsDonutChart } from '@/components/dashboard/transactions/TransactionsDonutChart'
+import { TransactionsListModal } from '@/components/dashboard/transactions/TransactionsListModal'
+import { Button } from '@/components/ui/shadui/button'
 
-import { ITransaction, TransactionType } from '@/types/transaction.types'
+import { TransactionType } from '@/types/transaction.types'
 
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactions } from '@/hooks/useTransactions'
@@ -18,6 +20,7 @@ export default function DashboardPage() {
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date())
   })
+  const [showTxList, setShowTxList] = useState(false)
 
   const { transactions, isLoading: txLoading } = useTransactions()
   const { categories, isLoading: catLoading } = useCategories(isExpense)
@@ -39,8 +42,16 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Обзор финансов</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
+          Обзор финансов
+        </h1>
+        <Button
+          className="w-full cursor-pointer sm:w-auto"
+          onClick={() => setShowTxList(true)}
+        >
+          Открыть список транзакций
+        </Button>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
@@ -64,6 +75,14 @@ export default function DashboardPage() {
           />
         </div>
       </div>
+
+      {/* Модалка */}
+      <TransactionsListModal
+        transactions={transactions}
+        categories={categories}
+        open={showTxList}
+        onClose={() => setShowTxList(false)}
+      />
     </div>
   )
 }
