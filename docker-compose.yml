@@ -1,6 +1,7 @@
 services:
   db:
     image: mysql:8.0
+    platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -11,10 +12,10 @@ services:
       - db_data:/var/lib/mysql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD && mysql -h localhost -u root -p$$MYSQL_ROOT_PASSWORD -e \"SELECT 1 FROM mysql.user WHERE user='root'\"" ]
-      interval: 5s
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
+      interval: 10s
       timeout: 5s
-      retries: 30
+      retries: 10
       start_period: 30s
     networks:
       - app-network
@@ -55,6 +56,7 @@ services:
       - app-network
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
+    platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
     restart: always
     environment:
       PMA_HOST: db
