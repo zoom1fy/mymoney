@@ -46,7 +46,7 @@ export class AccountService {
   async findAll(userId: string) {
     const accounts = await this.prisma.account.findMany({
       where: { userId, isDeleted: false }, // 🟢 только активные
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
 
     return accounts.map((account) => ({

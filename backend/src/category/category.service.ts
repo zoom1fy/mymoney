@@ -34,7 +34,7 @@ export class CategoryService {
   async findAll(userId: string) {
     return this.prisma.category.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
   }
 
