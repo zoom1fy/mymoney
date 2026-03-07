@@ -119,8 +119,13 @@ export function TransactionPreview({
               key="forecast"
               initial={{ height: 0, opacity: 0, y: -10 }}
               animate={{ height: 'auto', opacity: 1, y: 0 }}
-              exit={{ height: 0, opacity: 0, y: -10 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              exit={{ height: 0, opacity: 0, y: 100 }}
+              transition={{
+                type: 'spring',
+                stiffness: 120, // Уменьшили с 300 (меньше сопротивления)
+                damping: 20, // Увеличили (плавное затухание без лишних колебаний)
+                mass: 0.8 // Сделали элемент чуть легче
+              }}
               className="overflow-hidden w-full md:w-auto"
             >
               <div className="mt-2 p-4 rounded-2xl bg-background/80 backdrop-blur-sm border border-border shadow-xl">

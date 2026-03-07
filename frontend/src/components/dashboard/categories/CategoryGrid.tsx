@@ -1,12 +1,11 @@
 'use client'
 
+import { TransactionModal } from '../transactions/TransactionModal'
 import { CategoryItem } from './CategoryItem'
 import { CategoryItemSkeleton } from './CategoryItemSkeleton'
 import { CreateCategoryModal } from './CreateCategoryModal'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
-
-import { CreateTransactionModal } from '@/components/dashboard/transactions/CreateTransactionModal'
 
 import { ICategory } from '@/types/category.types'
 
@@ -102,11 +101,14 @@ export function CategoryGrid({
       )}
 
       {transactionCategory && (
-        <CreateTransactionModal
+        <TransactionModal
+          mode="create"
           open={!!transactionCategory}
+          onOpenChange={open => {
+            if (!open) setTransactionCategory(null)
+          }}
           category={transactionCategory}
           isExpense={isExpense}
-          onClose={() => setTransactionCategory(null)}
         />
       )}
     </>

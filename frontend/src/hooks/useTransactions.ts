@@ -119,13 +119,46 @@ export function useTransactions() {
     }
   })
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: ICreateTransaction }) =>
+      transactionService.update(id, data),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      toast.success('Транзакция обновлена')
+    },
+
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Ошибка обновления')
+    }
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => transactionService.delete(id),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      toast.success('Транзакция удалена')
+    },
+
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Ошибка удаления')
+    }
+  })
+
   return {
     transactions: query.data ?? [],
     isLoading: query.isLoading,
 
-    // Mutation
     createTransaction: createMutation.mutateAsync,
+    updateTransaction: updateMutation.mutateAsync,
+    deleteTransaction: deleteMutation.mutateAsync,
+
     isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
 
     refetch: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
   }
