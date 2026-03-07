@@ -3,7 +3,7 @@
 import { TransactionModal } from '../transactions/TransactionModal'
 import { CategoryItem } from './CategoryItem'
 import { CategoryItemSkeleton } from './CategoryItemSkeleton'
-import { CreateCategoryModal } from './CreateCategoryModal'
+import { CategoryModal } from './CategoryModal'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
@@ -74,7 +74,7 @@ export function CategoryGrid({
 
           {/* Кнопка "Добавить" показываем ТОЛЬКО когда НЕ загружаемся */}
           {!loading && (
-            <CreateCategoryModal
+            <CategoryModal
               isExpense={isExpense}
               trigger={
                 <button className="flex flex-col items-center gap-2 group cursor-pointer">
@@ -92,7 +92,7 @@ export function CategoryGrid({
       </div>
 
       {editCategory && (
-        <CreateCategoryModal
+        <CategoryModal
           mode="edit"
           category={editCategory}
           isExpense={isExpense}

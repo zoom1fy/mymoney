@@ -40,7 +40,7 @@ interface Props {
   onClose?: () => void
 }
 
-export function CreateCategoryModal({
+export function CategoryModal({
   isExpense,
   mode = 'create',
   category,
@@ -180,7 +180,7 @@ export function CreateCategoryModal({
               <Label className="text-lg">Название</Label>
               <Input
                 placeholder="Продукты"
-                className="h-14 text-lg px-6"
+                className="h-14 text-lg px-6 bg-background"
                 {...register('name', { required: 'Введите название' })}
               />
               {errors.name && (
