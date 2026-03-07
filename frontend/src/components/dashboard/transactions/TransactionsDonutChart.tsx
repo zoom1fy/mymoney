@@ -1,8 +1,8 @@
 'use client'
 
 import { DateRangePicker } from './DateRangePicker'
-import { DateRangePickerSkeleton } from './DateRangePickerSkeleton'
-import { TransactionsDonutChartSkeleton } from './TransactionsDonutChartSkeleton'
+import { DateRangePickerSkeleton } from './skeletons/DateRangePickerSkeleton'
+import { TransactionsDonutChartSkeleton } from './skeletons/TransactionsDonutChartSkeleton'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 interface Props {
