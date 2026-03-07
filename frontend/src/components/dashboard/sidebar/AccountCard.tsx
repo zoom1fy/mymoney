@@ -1,6 +1,6 @@
 'use client'
 
-import { CreateAccountModal } from './CreateAccountModal'
+import { AccountModal } from './AccountModal'
 import { formatCurrency } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { Wallet } from 'lucide-react'
@@ -22,7 +22,7 @@ export function AccountCard({ account }: Props) {
     { RUB: '₽', USD: '$', EUR: '€', BTC: '₿' }[account.currencyCode] || '₽'
 
   return (
-    <CreateAccountModal
+    <AccountModal
       mode="edit"
       account={account}
       trigger={

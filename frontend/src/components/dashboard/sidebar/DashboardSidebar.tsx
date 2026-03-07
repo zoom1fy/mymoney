@@ -2,9 +2,7 @@
 
 import { ScrollArea } from '../../ui/shadui/scroll-area'
 import { AccountCard } from './AccountCard'
-import { CreateAccountModal } from './CreateAccountModal'
-import { formatCurrency } from '@/lib/format'
-import { cn } from '@/lib/utils'
+import { AccountModal } from './AccountModal'
 import { Wallet } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
@@ -24,18 +22,10 @@ import {
   AccountCategoryEnum,
   AccountCategoryNameMap,
   AccountIcons,
-  CurrencyCode,
   IAccount
 } from '@/types/account.types'
 
 import { useAccounts } from '@/hooks/useAccounts'
-
-const currencySymbols: Record<CurrencyCode, string> = {
-  RUB: '₽',
-  USD: '$',
-  EUR: '€',
-  BTC: '₿'
-}
 
 export function DashboardSidebar() {
   const { accounts, isLoading } = useAccounts()
@@ -126,7 +116,7 @@ export function DashboardSidebar() {
       <SidebarFooter className="border-t border-border/50 bg-background/70 backdrop-blur-sm">
         <SidebarMenu>
           <SidebarMenuItem>
-            <CreateAccountModal />
+            <AccountModal />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

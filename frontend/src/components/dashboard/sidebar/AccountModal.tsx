@@ -52,7 +52,7 @@ const FIELD_CLASSES =
   '!h-14 w-full text-xl px-6 rounded-xl bg-background border-2'
 const CONTAINER_CLASSES = 'w-full space-y-3'
 
-export function CreateAccountModal({
+export function AccountModal({
   mode = 'create',
   account,
   trigger
