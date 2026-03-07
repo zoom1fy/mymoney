@@ -34,7 +34,7 @@ export function TransactionFilters({
 }: TransactionFiltersProps) {
   return (
     <div className="space-y-4 pt-2">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {/* Тип операции */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
@@ -44,7 +44,7 @@ export function TransactionFilters({
             value={filterType}
             onValueChange={setFilterType}
           >
-            <SelectTrigger className="bg-background">
+            <SelectTrigger className="bg-background w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-background">
@@ -66,7 +66,7 @@ export function TransactionFilters({
               setFilterCategory(v === 'all' ? 'all' : Number(v))
             }
           >
-            <SelectTrigger className="bg-background">
+            <SelectTrigger className="bg-background w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-[200px] bg-background">
