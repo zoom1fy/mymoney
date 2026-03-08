@@ -4,6 +4,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { CurrencyService } from '../currency/currency.service';
 import { TransactionType } from './enums/transaction-type.enum';
+import { GetTransactionsDto } from './dto/get-transactions.dto';
 
 @Injectable()
 export class TransactionService {
@@ -108,17 +109,73 @@ export class TransactionService {
     return this.prisma.$transaction(updates);
   }
 
-  async findAll(userId: string) {
-    const transaction = await this.prisma.transaction.findMany({
-      where: {
-        account: { userId },
+  // --- Вспомогательные методы для findAll ---
+
+  private buildDateFilter(from?: string, to?: string) {
+    if (!from && !to) return undefined;
+
+    const dateFilter: any = {};
+    if (from) dateFilter.gte = new Date(from);
+    if (to) dateFilter.lte = new Date(to);
+
+    return dateFilter;
+  }
+
+  private buildWhereClause(userId: string, query: GetTransactionsDto) {
+    const { accountId, type, from, to } = query;
+    const where: any = { userId };
+
+    if (accountId) where.accountId = accountId;
+    if (type) where.type = type;
+
+    const dateFilter = this.buildDateFilter(from, to);
+    if (dateFilter) where.transactionDate = dateFilter;
+
+    return where;
+  }
+
+  private async applyPagination<T>(
+    queryBuilder: Promise<T[]>,
+    take: number,
+    cursor?: number
+  ): Promise<{ data: T[]; nextCursor: number | null }> {
+    const results = await queryBuilder;
+    let nextCursor: number | null = null;
+
+    if (results.length > take) {
+      const nextItem = results.pop();
+      nextCursor = (nextItem as any).id;
+    }
+
+    return { data: results, nextCursor };
+  }
+
+  // --- Основной метод findAll ---
+  async findAll(userId: string, query: GetTransactionsDto) {
+    const take = Number(query.take ?? 20);
+    const cursor = query.cursor ? Number(query.cursor) : undefined;
+
+    const where = this.buildWhereClause(userId, query);
+
+    const transactionsQuery = this.prisma.transaction.findMany({
+      take: take + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      where,
+      orderBy: { id: 'desc' },
+      select: {
+        id: true,
+        amount: true,
+        type: true,
+        description: true,
+        transactionDate: true,
+        currencyCode: true,
+        accountId: true,
+        categoryId: true,
       },
-      orderBy: { createdAt: 'desc' },
     });
 
-    if (!transaction) throw new NotFoundException('Транзакции не найдены');
-
-    return transaction;
+    return this.applyPagination(transactionsQuery, take, cursor);
   }
 
   async findOne(userId: string, id: number) {

@@ -2,6 +2,7 @@ import { axiosWithAuth } from '../api/interceptor'
 import {
   ICreateTransaction,
   ITransaction,
+  ITransactionResponse,
   IUpdateTransaction,
   TransactionType
 } from '../types/transaction.types'
@@ -15,13 +16,44 @@ export const transactionService = {
     return response.data
   },
 
-  async getAll() {
-    const response = await axiosWithAuth.get<ITransaction[]>('/transactions')
-    // Преобразуем данные с сервера
-    return response.data.map(transaction => ({
-      ...transaction,
-      type: mapTransactionType(transaction.type), // Преобразуем строку в число
-      amount: Number(transaction.amount) // Преобразуем строку в число
+  async getAll(cursor?: number, options?: { from?: Date; to?: Date }) {
+    const response = await axiosWithAuth.get<ITransactionResponse>(
+      '/transactions',
+      {
+        params: {
+          take: 20,
+          cursor,
+          from: options?.from?.toISOString(),
+          to: options?.to?.toISOString()
+        }
+      }
+    )
+
+    return {
+      ...response.data,
+      data: response.data.data.map(tx => ({
+        ...tx,
+        amount: Number(tx.amount),
+        type: mapTransactionType(tx.type)
+      }))
+    }
+  },
+  async getForPeriod(from: Date, to: Date) {
+    const response = await axiosWithAuth.get<ITransactionResponse>(
+      '/transactions',
+      {
+        params: {
+          take: 1000,
+          from: from.toISOString(),
+          to: to.toISOString()
+        }
+      }
+    )
+
+    return response.data.data.map(tx => ({
+      ...tx,
+      amount: Number(tx.amount),
+      type: mapTransactionType(tx.type)
     }))
   },
 

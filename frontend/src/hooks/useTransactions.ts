@@ -1,20 +1,48 @@
 'use client'
 
 import { transactionService } from '@/services/transaction.services'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient
+} from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { IAccount } from '@/types/account.types'
-import { ICreateTransaction, TransactionType } from '@/types/transaction.types'
+import {
+  ICreateTransaction,
+  ITransaction,
+  ITransactionResponse,
+  TransactionType
+} from '@/types/transaction.types'
+
+export function useTransactionsForPeriod(from: Date, to: Date) {
+  return useQuery<ITransaction[]>({
+    queryKey: ['transactions-period', from.toISOString(), to.toISOString()],
+    queryFn: () => transactionService.getForPeriod(from, to),
+    staleTime: 1000 * 60
+  })
+}
 
 export function useTransactions() {
   const queryClient = useQueryClient()
 
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey: ['transactions'],
-    queryFn: () => transactionService.getAll(),
+
+    queryFn: ({ pageParam }) =>
+      transactionService.getAll(pageParam as number | undefined),
+
+    initialPageParam: undefined as number | undefined,
+
+    getNextPageParam: lastPage => lastPage.nextCursor ?? undefined,
+
     staleTime: 1000 * 30
   })
+
+  const transactions = query.data?.pages.flatMap(page => page.data) ?? []
 
   const createMutation = useMutation({
     mutationFn: (data: ICreateTransaction) => transactionService.create(data),
@@ -29,18 +57,34 @@ export function useTransactions() {
 
       // 3. ОПТИМИСТИЧНОЕ ОБНОВЛЕНИЕ ТРАНЗАКЦИЙ
       const tempId = Date.now() // Временный ID
-      const optimisticTransaction = {
+      const optimisticTransaction: ITransaction = {
         ...newTransactionData,
         id: tempId,
-        transactionDate: newTransactionData.transactionDate, // Важно: сохраняем дату!
+        transactionDate:
+          newTransactionData.transactionDate ?? new Date().toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
 
-      queryClient.setQueryData(['transactions'], (old: any[] = []) => [
-        ...old,
-        optimisticTransaction
-      ])
+      queryClient.setQueryData<InfiniteData<ITransactionResponse>>(
+        ['transactions'],
+        old => {
+          if (!old) return old
+
+          return {
+            ...old,
+            pages: old.pages.map((page, index) => {
+              if (index === 0) {
+                return {
+                  ...page,
+                  data: [optimisticTransaction, ...page.data]
+                }
+              }
+              return page
+            })
+          }
+        }
+      )
 
       // 4. ОПТИМИСТИЧНОЕ ОБНОВЛЕНИЕ БАЛАНСА СЧЕТА
       queryClient.setQueryData(['accounts'], (old: IAccount[] = []) =>
@@ -86,21 +130,29 @@ export function useTransactions() {
       toast.error(errorMessage)
     },
     onSuccess: (createdTransaction, variables, context) => {
-      // Заменяем оптимистичную транзакцию на реальную (с правильным ID от сервера)
-      queryClient.setQueryData(['transactions'], (old: any[] = []) =>
-        old.map(item =>
-          item.id === context?.tempId ? createdTransaction : item
-        )
+      queryClient.setQueryData<InfiniteData<ITransactionResponse>>(
+        ['transactions'],
+        old => {
+          if (!old) return old
+
+          return {
+            ...old,
+            pages: old.pages.map(page => ({
+              ...page,
+              data: page.data.map(item =>
+                item.id === context?.tempId ? createdTransaction : item
+              )
+            }))
+          }
+        }
       )
 
-      // ФОРСИРУЕМ ОБНОВЛЕНИЕ ВСЕХ КОМПОНЕНТОВ
-      // Инвалидируем ВСЁ, что зависит от транзакций
       queryClient.invalidateQueries({
         predicate: query => {
           const queryKey = query.queryKey[0]
-          // Инвалидируем любые запросы, которые могут зависеть от транзакций
           return (
             queryKey === 'transactions' ||
+            queryKey === 'transactions-period' ||
             queryKey === 'accounts' ||
             queryKey === 'categories'
           )
@@ -113,7 +165,12 @@ export function useTransactions() {
     onSettled: () => {
       // Дополнительная гарантия актуальности
       queryClient.invalidateQueries({
-        queryKey: ['transactions'],
+        predicate: query => {
+          const queryKey = query.queryKey[0]
+          return (
+            queryKey === 'transactions' || queryKey === 'transactions-period'
+          )
+        },
         refetchType: 'inactive'
       })
     }
@@ -124,8 +181,18 @@ export function useTransactions() {
       transactionService.update(id, data),
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({
+        predicate: query => {
+          const queryKey = query.queryKey[0]
+          return (
+            queryKey === 'transactions' ||
+            queryKey === 'transactions-period' ||
+            queryKey === 'accounts' ||
+            queryKey === 'categories'
+          )
+        },
+        refetchType: 'active'
+      })
       toast.success('Транзакция обновлена')
     },
 
@@ -138,8 +205,18 @@ export function useTransactions() {
     mutationFn: (id: number) => transactionService.delete(id),
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({
+        predicate: query => {
+          const queryKey = query.queryKey[0]
+          return (
+            queryKey === 'transactions' ||
+            queryKey === 'transactions-period' ||
+            queryKey === 'accounts' ||
+            queryKey === 'categories'
+          )
+        },
+        refetchType: 'active'
+      })
       toast.success('Транзакция удалена')
     },
 
@@ -149,8 +226,11 @@ export function useTransactions() {
   })
 
   return {
-    transactions: query.data ?? [],
+    transactions,
     isLoading: query.isLoading,
+
+    fetchNextPage: query.fetchNextPage,
+    hasNextPage: query.hasNextPage,
 
     createTransaction: createMutation.mutateAsync,
     updateTransaction: updateMutation.mutateAsync,
@@ -158,8 +238,6 @@ export function useTransactions() {
 
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
-    isDeleting: deleteMutation.isPending,
-
-    refetch: () => queryClient.invalidateQueries({ queryKey: ['transactions'] })
+    isDeleting: deleteMutation.isPending
   }
 }

@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Query } from '@nestjs/common';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 import { User } from '@/../.prisma/client';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
+import { GetTransactionsDto } from './dto/get-transactions.dto';
 
 @Auth()
 @Controller('transactions')
@@ -17,8 +18,8 @@ export class TransactionController {
   }
 
   @Get()
-  async findAll(@CurrentUser() user: User) {
-    return this.transactionService.findAll(user.id);
+  async findAll(@CurrentUser() user: User, @Query() query: GetTransactionsDto) {
+     return this.transactionService.findAll(user.id, query)
   }
 
   @Get(':id')

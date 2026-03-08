@@ -12,33 +12,32 @@ import { Button } from '@/components/ui/shadui/button'
 import { TransactionType } from '@/types/transaction.types'
 
 import { useCategories } from '@/hooks/useCategories'
-import { useTransactions } from '@/hooks/useTransactions'
+import { useTransactionsForPeriod } from '@/hooks/useTransactions'
 
 export default function DashboardPage() {
   const [isExpense, setIsExpense] = useState(true)
+
   const [range, setRange] = useState({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date())
   })
+
   const [showTxList, setShowTxList] = useState(false)
 
-  const { transactions, isLoading: txLoading } = useTransactions()
+  const { data: transactions = [], isLoading: txLoading } =
+    useTransactionsForPeriod(range.from, range.to)
+
   const { categories, isLoading: catLoading } = useCategories(isExpense)
 
   const loading = txLoading || catLoading
 
-  const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
-
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
-      const date = new Date(t.transactionDate)
-      return date >= range.from && date <= range.to
-    })
-  }, [transactions, range.from, range.to])
+  const type = isExpense
+    ? TransactionType.EXPENSE
+    : TransactionType.INCOME
 
   const donutData = useMemo(() => {
-    return buildDonutData(filteredTransactions, type, categories)
-  }, [filteredTransactions, type, categories])
+    return buildDonutData(transactions, type, categories)
+  }, [transactions, type, categories])
 
   return (
     <div className="space-y-8">

@@ -8,8 +8,6 @@ import theme from 'antd/es/theme'
 import ruRU from 'antd/locale/ru_RU'
 import dayjs, { Dayjs } from 'dayjs'
 import 'dayjs/locale/ru'
-import 'dayjs/locale/ru'
-import { useCallback, useEffect, useState } from 'react'
 
 dayjs.locale('ru')
 
@@ -28,62 +26,84 @@ const PRESETS = [
   { label: 'Неделя', key: 'week', shift: 'week' },
   { label: 'Месяц', key: 'month', shift: 'month' },
   { label: 'Год', key: 'year', shift: 'year' }
-]
+] as const
+
+type PresetKey = (typeof PRESETS)[number]['key']
+
+function getPresetFromRange(from: Dayjs, to: Dayjs): PresetKey | null {
+  if (
+    from.isSame(from.startOf('day')) &&
+    to.isSame(to.endOf('day')) &&
+    from.isSame(to, 'day')
+  ) {
+    return 'day'
+  }
+  if (
+    from.isSame(from.startOf('week')) &&
+    to.isSame(to.endOf('week')) &&
+    from.isSame(to, 'week')
+  ) {
+    return 'week'
+  }
+  if (
+    from.isSame(from.startOf('month')) &&
+    to.isSame(to.endOf('month')) &&
+    from.isSame(to, 'month')
+  ) {
+    return 'month'
+  }
+  if (
+    from.isSame(from.startOf('year')) &&
+    to.isSame(to.endOf('year')) &&
+    from.isSame(to, 'year')
+  ) {
+    return 'year'
+  }
+  return null
+}
 
 export function DateRangePicker({ value, onChange }: Props) {
-  const [currentPreset, setCurrentPreset] = useState<
-    'day' | 'week' | 'month' | 'year'
-  >('month')
+  const fromD = dayjs(value.from)
+  const toD = dayjs(value.to)
 
-  const applyPreset = useCallback(
-    (preset: 'day' | 'week' | 'month' | 'year') => {
-      const now = dayjs()
-      let from: Dayjs
-      let to: Dayjs
+  const currentPreset = getPresetFromRange(fromD, toD)
 
-      switch (preset) {
-        case 'day':
-          from = now.startOf('day')
-          to = now.endOf('day')
-          break
-        case 'week':
-          from = now.startOf('week')
-          to = now.endOf('week')
-          break
-        case 'month':
-          from = now.startOf('month')
-          to = now.endOf('month')
-          break
-        case 'year':
-          from = now.startOf('year')
-          to = now.endOf('year')
-          break
-      }
+  const applyPreset = (preset: PresetKey) => {
+    const now = dayjs()
+    let from: Dayjs
+    let to: Dayjs
 
-      setCurrentPreset(preset)
-      onChange({ from: from.toDate(), to: to.toDate() })
-    },
-    [onChange]
-  )
+    switch (preset) {
+      case 'day':
+        from = now.startOf('day')
+        to = now.endOf('day')
+        break
+      case 'week':
+        from = now.startOf('week')
+        to = now.endOf('week')
+        break
+      case 'month':
+        from = now.startOf('month')
+        to = now.endOf('month')
+        break
+      case 'year':
+        from = now.startOf('year')
+        to = now.endOf('year')
+        break
+    }
+
+    onChange({ from: from.toDate(), to: to.toDate() })
+  }
 
   const shiftRange = (dir: number) => {
-    const from = dayjs(value.from)
-    const to = dayjs(value.to)
-
-    const shiftUnit = currentPreset
-
-    const newFrom = from.add(dir, shiftUnit)
-    const newTo = to.add(dir, shiftUnit)
-
+    const shiftUnit = currentPreset ?? 'month'
+    const newFrom = fromD.add(dir, shiftUnit)
+    const newTo = toD.add(dir, shiftUnit)
     onChange({
       from: newFrom.toDate(),
       to: newTo.toDate()
     })
   }
-
-  useEffect(() => {
-    applyPreset('month')
-  }, [])
 
   return (
     <ConfigProvider
@@ -104,7 +124,7 @@ export function DateRangePicker({ value, onChange }: Props) {
             return (
               <Button
                 key={p.key}
-                onClick={() => applyPreset(p.key as any)}
+                onClick={() => applyPreset(p.key)}
                 type={isActive ? 'primary' : 'default'}
                 className={`
           h-9 px-4 rounded-lg text-sm font-medium
@@ -131,7 +151,7 @@ export function DateRangePicker({ value, onChange }: Props) {
 
           <RangePicker
             allowClear={false}
-            value={[dayjs(value.from), dayjs(value.to)]}
+            value={[fromD, toD]}
             onChange={dates => {
               if (!dates) return
               const [from, to] = dates

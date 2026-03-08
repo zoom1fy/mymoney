@@ -129,12 +129,15 @@ model Transaction {
   description     String?     @db.Text
   type            TransactionType
   createdAt       DateTime    @default(now()) @map("created_at")
+
   user            User        @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
   account         Account     @relation("AccountTransactions", fields: [accountId], references: [id])
   category        Category?   @relation("CategoryTransactions", fields: [categoryId], references: [id])
   currency        Currency    @relation("TransactionCurrency", fields: [currencyCode], references: [code])
 
+  @@index([userId, id])
   @@index([userId, transactionDate])
   @@index([accountId, transactionDate])
+
   @@map("transactions")
 }
