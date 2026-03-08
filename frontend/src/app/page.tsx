@@ -4,7 +4,6 @@ import Link from 'next/link'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { Button } from '@/components/ui/shadui/button'
-import { Card } from '@/components/ui/shadui/card'
 import { GlassBadge } from '@/components/ui/cards/glass-badge'
 import { GlassCard } from '@/components/ui/cards/glass-card'
 
