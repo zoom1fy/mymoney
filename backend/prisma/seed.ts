@@ -18,7 +18,6 @@ async function main() {
   // Сначала удаляем зависимости
   await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS = 0;`;
 
-  await prisma.$executeRaw`DELETE FROM default_categories;`;
   await prisma.$executeRaw`DELETE FROM account_types;`;
   await prisma.$executeRaw`DELETE FROM account_categories;`;
   await prisma.$executeRaw`DELETE FROM currencies;`;
@@ -53,43 +52,8 @@ async function main() {
     (1, 'Наличные'),
     (2, 'Карта'),
     (3, 'Криптовалюта'),
-    (4, 'Накопление'),
-    (5, 'Вклад');
-  `;
-
-  // Добавляем категории по умолчанию
-  console.log('Добавление категорий...');
-
-  // Сначала основные категории
-  await prisma.$executeRaw`
-    INSERT INTO default_categories (name, icon, currency_code, is_expense) VALUES
-    ('Продукты', 'cart', 'RUB', TRUE),
-    ('Транспорт', 'bus', 'RUB', TRUE),
-    ('Жилье', 'house', 'RUB', TRUE),
-    ('Здоровье', 'heart-pulse', 'RUB', TRUE),
-    ('Развлечения', 'film', 'RUB', TRUE),
-    ('Одежда', 'shirt', 'RUB', TRUE),
-    ('Связь', 'phone', 'RUB', TRUE),
-    ('Образование', 'book', 'RUB', TRUE),
-    ('Зарплата', 'wallet', 'RUB', FALSE),
-    ('Фриланс', 'laptop', 'RUB', FALSE),
-    ('Инвестиции', 'chart', 'RUB', FALSE),
-    ('Дивиденды', 'coins', 'RUB', FALSE);
-  `;
-
-  // Добавляем подкатегории для Транспорта
-  console.log('Добавление подкатегорий...');
-
-  // Получаем id транспорта
-  const transport = await prisma.$queryRaw<
-    [{ id: number }]
-  >`SELECT id FROM default_categories WHERE name = 'Транспорт' LIMIT 1;`;
-  const transportId = transport[0].id;
-
-  await prisma.$executeRaw`
-    INSERT INTO default_categories (name, icon, currency_code, is_expense, parent_id) VALUES
-    ('Такси', 'taxi', 'RUB', TRUE, ${transportId}),
-    ('Общественный транспорт', 'bus', 'RUB', TRUE, ${transportId});
+    (4, 'Депозит'),
+    (5, 'Инвестиционный счет');
   `;
 
   console.log('✅ База данных успешно заполнена!');
