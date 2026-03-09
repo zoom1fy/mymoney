@@ -27,6 +27,7 @@ export class CategoryService {
         currencyCode: dto.currencyCode,
         isExpense: dto.isExpense,
         parentId: dto.parentId ?? null,
+        color: dto.color ?? '',
       },
     });
   }

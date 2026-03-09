@@ -1,7 +1,6 @@
 import {
   IsBoolean,
   IsEnum,
-  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -18,6 +17,11 @@ export class CreateCategoryDto {
 
   @IsEnum(CurrencyCode)
   currencyCode: CurrencyCode;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(7)
+  color?: string;
 
   @IsBoolean()
   isExpense: boolean;
