@@ -41,7 +41,12 @@ export function DashboardSidebar() {
     Record<AccountCategoryEnum, IAccount[]>
   >(
     (acc, account) => {
-      const category = account.categoryId
+      const category = account.categoryId as AccountCategoryEnum
+
+      if (!acc[category]) {
+        console.warn('Unknown category:', category, 'for account:', account)
+        return acc
+      }
 
       acc[category].push(account)
       return acc
