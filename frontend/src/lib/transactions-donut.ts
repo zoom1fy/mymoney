@@ -10,6 +10,7 @@ export interface DonutItem {
 export interface Category {
   id: number
   name: string
+  color?: string
 }
 
 const COLORS = [
@@ -27,25 +28,35 @@ export function buildDonutData(
   type: TransactionType,
   categories: Category[]
 ): DonutItem[] {
-  const categoryMap = new Map(categories.map(c => [c.id, c.name]))
+  const categoryMap = new Map(
+    categories.map(c => [c.id, { name: c.name, color: c.color }])
+  )
 
-  const map = new Map<number, { id: number; name: string; value: number }>()
+  const map = new Map<
+    number,
+    { id: number; name: string; value: number; color: string }
+  >()
 
   transactions
     .filter(t => t.type === type)
     .forEach(t => {
       const id = t.categoryId ?? 0
-      const name = categoryMap.get(id) ?? 'Без категории'
+      const category = categoryMap.get(id)
+
+      const name = category?.name ?? 'Без категории'
+
+      // ❗ гарантия корректного цвета
+      const color =
+        category?.color && category.color.startsWith('#')
+          ? category.color
+          : '#cccccc'
 
       if (!map.has(id)) {
-        map.set(id, { id, name, value: 0 })
+        map.set(id, { id, name, value: 0, color })
       }
 
       map.get(id)!.value += t.amount
     })
 
-  return Array.from(map.values()).map((item, i) => ({
-    ...item,
-    color: COLORS[i % COLORS.length]
-  }))
+  return Array.from(map.values())
 }

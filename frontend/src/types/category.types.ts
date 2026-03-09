@@ -79,6 +79,7 @@ export interface ICreateCategory {
   isExpense: boolean
   parentId?: number
   icon?: string
+  color: string
 }
 
 /**

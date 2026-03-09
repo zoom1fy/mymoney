@@ -1,8 +1,10 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { hexWithAlpha } from '@/utils/hex-with-alpha'
 import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
+
 import { CategoryIconName, CategoryIcons } from '@/types/category.types'
 
 interface Props {
@@ -49,8 +51,10 @@ export function CategoryItem({
         )}
         style={{
           borderColor: isHovered ? color : undefined,
-          backgroundColor: isHovered ? `${color}15` : undefined,
-          boxShadow: isHovered ? `0 0 10px ${color}30` : undefined
+          backgroundColor: isHovered ? hexWithAlpha(color, 0.1) : undefined,
+          boxShadow: isHovered
+            ? `0 0 10px ${hexWithAlpha(color, 0.3)}`
+            : undefined
         }}
       >
         {showErrorIcon ? (

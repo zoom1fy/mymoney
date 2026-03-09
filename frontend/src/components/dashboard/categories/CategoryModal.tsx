@@ -3,10 +3,11 @@
 import { cn } from '@/lib/utils'
 import { Plus, Trash2 } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form' // добавил Controller
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
+import { ColorPicker } from '@/components/ui/color-picker/ColorPicker'
 import { ConfirmAlert } from '@/components/ui/dialogs/confirm-alert'
 import { Button } from '@/components/ui/shadui/button'
 import {
@@ -67,12 +68,14 @@ export function CategoryModal({
     setValue,
     watch,
     reset,
+    control, // добавил control
     formState: { errors }
   } = useForm<ICreateCategory>({
     defaultValues: {
       name: '',
       isExpense,
-      icon: 'Circle'
+      icon: 'Circle',
+      color: 'hsl(var(--primary))'
     }
   })
 
@@ -87,7 +90,8 @@ export function CategoryModal({
       reset({
         name: category.name,
         icon: category.icon,
-        isExpense: category.isExpense
+        isExpense: category.isExpense,
+        color: category.color ?? 'hsl(var(--primary))'
       })
     }
   }, [open, isEdit, category, reset])
@@ -105,7 +109,8 @@ export function CategoryModal({
         await createCategory({
           ...data,
           isExpense,
-          currencyCode: CurrencyCode.RUB
+          currencyCode: CurrencyCode.RUB,
+          color: data.color
         })
       }
 
@@ -215,6 +220,18 @@ export function CategoryModal({
                 })}
               </div>
             </ScrollArea>
+
+            {/* ColorPicker с Controller */}
+            <Controller
+              name="color"
+              control={control}
+              render={({ field }) => (
+                <ColorPicker
+                  value={field.value ?? 'hsl(var(--primary))'}
+                  onChange={field.onChange}
+                />
+              )}
+            />
 
             {/* Кнопки */}
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
