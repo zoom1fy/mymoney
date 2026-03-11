@@ -23,7 +23,8 @@ export function TransactionsDonutChart({
   loading
 }: Props) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
+      {' '}
       <div className="flex justify-center">
         {loading ? (
           <DateRangePickerSkeleton />
@@ -34,8 +35,7 @@ export function TransactionsDonutChart({
           />
         )}
       </div>
-
-      <div className="relative h-[300px] sm:h-[500px] w-full">
+      <div className="relative h-[300px] sm:h-[450px] w-full">
         {loading ? (
           <TransactionsDonutChartSkeleton />
         ) : (

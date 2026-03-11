@@ -115,9 +115,10 @@ export function DateRangePicker({ value, onChange }: Props) {
         }
       }}
     >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+      <div className="flex flex-col gap-2 items-center">
         {/* Presets */}
-        <div className="flex gap-2">
+        <div className="grid grid-cols-4 gap-2 w-full sm:w-auto">
+          {' '}
           {PRESETS.map(p => {
             const isActive = currentPreset === p.key
 

@@ -2,42 +2,38 @@
 
 export function DateRangePickerSkeleton() {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 animate-pulse">
+    <div className="flex flex-col items-center gap-3 animate-pulse">
       {/* Presets */}
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-4 gap-2 w-full max-w-md">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
             className={`
-              h-8 px-4 rounded-md
+              h-9 w-full rounded-lg border
               ${
                 i === 2
-                  ? 'w-18 lg:w-24 h-8 bg-primary/25 border border-primary/30'
-                  : 'w-18 lg:w-24 h-8 bg-muted/25 border border-muted/40'
+                  ? 'bg-primary/25 border-primary/30'
+                  : 'bg-muted/25 border-muted/40'
               }
             `}
           />
         ))}
       </div>
 
-      {/* Стрелки + поле */}
-      <div className="flex items-center gap-2">
-        {/* Стрелка влево */}
-        <div className="size-9 rounded-md bg-muted/30 border border-muted/40 flex items-center justify-center">
-          <div className="w-3 h-1 bg-muted/50 rounded" />
-        </div>
+      {/* Arrows + picker */}
+      <div className="flex items-center justify-center gap-2">
+        {/* left arrow */}
+        <div className="size-9 rounded-md bg-muted/30 border border-muted/40" />
 
-        {/* Поле RangePicker */}
-        <div className="h-9 w-[220px] rounded-md bg-muted/25 border border-muted/40 flex items-center px-3">
+        {/* range picker */}
+        <div className="h-9 w-[220px] rounded-md bg-muted/25 border border-muted/40 flex items-center px-3 gap-2">
           <div className="flex-1 h-4 bg-muted/40 rounded" />
-          <div className="w-4 h-4 bg-muted/40 rounded-full mx-2" />
+          <div className="w-3 h-3 bg-muted/40 rounded-full" />
           <div className="flex-1 h-4 bg-muted/40 rounded" />
         </div>
 
-        {/* Стрелка вправо */}
-        <div className="size-9 rounded-md bg-muted/30 border border-muted/40 flex items-center justify-center">
-          <div className="w-4 h-1 bg-muted/50 rounded" />
-        </div>
+        {/* right arrow */}
+        <div className="size-9 rounded-md bg-muted/30 border border-muted/40" />
       </div>
     </div>
   )

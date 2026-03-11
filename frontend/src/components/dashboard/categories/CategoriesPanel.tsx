@@ -24,7 +24,7 @@ export function CategoriesPanel({
   const { categories } = useCategories(isExpense)
 
   return (
-    <div className="w-[360px] lg:w-[460px] shrink-0">
+    <div className="w-full">
       <div className="rounded-2xl border bg-card/50 backdrop-blur-sm p-6 space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex-1">
