@@ -2,12 +2,11 @@
 
 import { buildDonutData } from '@/lib/transactions-donut'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { CategoriesPanel } from '@/components/dashboard/categories/CategoriesPanel'
 import { TransactionsDonutChart } from '@/components/dashboard/transactions/TransactionsDonutChart'
 import { TransactionsListModal } from '@/components/dashboard/transactions/TransactionsListModal'
-import { Button } from '@/components/ui/shadui/button'
 
 import { TransactionType } from '@/types/transaction.types'
 
@@ -31,9 +30,14 @@ export default function DashboardPage() {
 
   const loading = txLoading || catLoading
 
-  const type = isExpense
-    ? TransactionType.EXPENSE
-    : TransactionType.INCOME
+  const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
+
+  useEffect(() => {
+    const open = () => setShowTxList(true)
+
+    window.addEventListener('open-transactions', open)
+    return () => window.removeEventListener('open-transactions', open)
+  }, [])
 
   const donutData = useMemo(() => {
     return buildDonutData(transactions, type, categories)
@@ -41,20 +45,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl">
-          Обзор финансов
-        </h1>
-        <Button
-          className="w-full cursor-pointer sm:w-auto"
-          onClick={() => setShowTxList(true)}
-        >
-          Открыть список транзакций
-        </Button>
-      </div>
-
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
-        <div className="flex-1 rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
+        <div className="flex-1 min-w-0 rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
           <TransactionsDonutChart
             donutData={donutData}
             total={donutData.reduce((s, i) => s + i.value, 0)}
@@ -65,7 +57,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="w-full lg:w-[460px] max-w-[460px]">
+        <div className="w-full lg:w-[460px] shrink-0">
           <CategoriesPanel
             isExpense={isExpense}
             onExpenseChange={setIsExpense}
@@ -75,7 +67,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Модалка */}
       <TransactionsListModal
         transactions={transactions}
         categories={categories}
