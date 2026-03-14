@@ -13,23 +13,32 @@ import { TransactionType } from '@/types/transaction.types'
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactionsForPeriod } from '@/hooks/useTransactions'
 
+const getCurrentMonthRange = () => ({
+  from: startOfMonth(new Date()),
+  to: endOfMonth(new Date())
+})
+
 export default function DashboardPage() {
   const [isExpense, setIsExpense] = useState(true)
 
-  const [range, setRange] = useState({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date())
-  })
+  // диапазон графика
+  const [chartRange, setChartRange] = useState(getCurrentMonthRange())
+
+  // диапазон модалки
+  const [modalRange, setModalRange] = useState(getCurrentMonthRange())
 
   const [showTxList, setShowTxList] = useState(false)
 
-  const { data: transactions = [], isLoading: txLoading } =
-    useTransactionsForPeriod(range.from, range.to)
+  const { data: chartTransactions = [], isLoading: chartLoading } =
+    useTransactionsForPeriod(chartRange.from, chartRange.to)
+
+  const { data: modalTransactions = [], isLoading: modalLoading } =
+    useTransactionsForPeriod(modalRange.from, modalRange.to)
 
   const { categories, isLoading: catLoading } = useCategories(isExpense)
 
-  const loading = txLoading || catLoading
-
+  const loading = chartLoading || catLoading
+  
   const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
 
   useEffect(() => {
@@ -40,8 +49,8 @@ export default function DashboardPage() {
   }, [])
 
   const donutData = useMemo(() => {
-    return buildDonutData(transactions, type, categories)
-  }, [transactions, type, categories])
+    return buildDonutData(chartTransactions, type, categories)
+  }, [chartTransactions, type, categories])
 
   return (
     <div className="space-y-8">
@@ -51,8 +60,8 @@ export default function DashboardPage() {
             donutData={donutData}
             total={donutData.reduce((s, i) => s + i.value, 0)}
             isExpense={isExpense}
-            range={range}
-            onRangeChange={setRange}
+            range={chartRange}
+            onRangeChange={setChartRange}
             loading={loading}
           />
         </div>
@@ -68,8 +77,10 @@ export default function DashboardPage() {
       </div>
 
       <TransactionsListModal
-        transactions={transactions}
+        transactions={modalTransactions}
         categories={categories}
+        range={modalRange}
+        onRangeChange={setModalRange}
         open={showTxList}
         onClose={() => setShowTxList(false)}
       />

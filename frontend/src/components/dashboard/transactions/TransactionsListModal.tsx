@@ -35,6 +35,8 @@ interface Props {
   categories: ICategory[]
   open: boolean
   onClose: () => void
+  range: { from: Date; to: Date }
+  onRangeChange: (range: { from: Date; to: Date }) => void
   pageSize?: number
 }
 
@@ -43,6 +45,8 @@ export function TransactionsListModal({
   categories,
   open,
   onClose,
+  range,
+  onRangeChange,
   pageSize = 20
 }: Props) {
   const [search, setSearch] = useState('')
@@ -51,7 +55,6 @@ export function TransactionsListModal({
     'all'
   )
   const [filterCategory, setFilterCategory] = useState<number | 'all'>('all')
-  const [dateRange, setDateRange] = useState(getCurrentMonthRange)
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilters, setShowFilters] = useState(false)
 
@@ -70,7 +73,7 @@ export function TransactionsListModal({
       setDebouncedSearch('')
       setFilterType('all')
       setFilterCategory('all')
-      setDateRange(getCurrentMonthRange())
+      onRangeChange(getCurrentMonthRange())
       setCurrentPage(1)
     }
     return () => updateDebounced.cancel()
@@ -94,8 +97,7 @@ export function TransactionsListModal({
       const matchesCategory =
         filterCategory === 'all' ? true : tx.categoryId === filterCategory
       const txDate = new Date(tx.transactionDate)
-      const matchesDate = txDate >= dateRange.from && txDate <= dateRange.to
-
+      const matchesDate = txDate >= range.from && txDate <= range.to
       return matchesSearch && matchesType && matchesCategory && matchesDate
     })
   }, [
@@ -104,7 +106,7 @@ export function TransactionsListModal({
     debouncedSearch,
     filterType,
     filterCategory,
-    dateRange
+    range
   ])
 
   const paginatedTransactions = useMemo(() => {
@@ -183,9 +185,9 @@ export function TransactionsListModal({
                     setFilterCategory(v)
                     setCurrentPage(1)
                   }}
-                  dateRange={dateRange}
-                  setDateRange={range => {
-                    setDateRange(range)
+                  dateRange={range}
+                  setDateRange={r => {
+                    onRangeChange(r)
                     setCurrentPage(1)
                   }}
                   categories={categories}

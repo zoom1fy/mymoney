@@ -31,34 +31,18 @@ const PRESETS = [
 type PresetKey = (typeof PRESETS)[number]['key']
 
 function getPresetFromRange(from: Dayjs, to: Dayjs): PresetKey | null {
-  if (
-    from.isSame(from.startOf('day')) &&
-    to.isSame(to.endOf('day')) &&
-    from.isSame(to, 'day')
-  ) {
+  if (from.isSame(from.startOf('day')) && to.isSame(from.endOf('day')))
     return 'day'
-  }
-  if (
-    from.isSame(from.startOf('week')) &&
-    to.isSame(to.endOf('week')) &&
-    from.isSame(to, 'week')
-  ) {
+
+  if (from.isSame(from.startOf('week')) && to.isSame(from.endOf('week')))
     return 'week'
-  }
-  if (
-    from.isSame(from.startOf('month')) &&
-    to.isSame(to.endOf('month')) &&
-    from.isSame(to, 'month')
-  ) {
+
+  if (from.isSame(from.startOf('month')) && to.isSame(from.endOf('month')))
     return 'month'
-  }
-  if (
-    from.isSame(from.startOf('year')) &&
-    to.isSame(to.endOf('year')) &&
-    from.isSame(to, 'year')
-  ) {
+
+  if (from.isSame(from.startOf('year')) && to.isSame(from.endOf('year')))
     return 'year'
-  }
+
   return null
 }
 
@@ -96,9 +80,10 @@ export function DateRangePicker({ value, onChange }: Props) {
   }
 
   const shiftRange = (dir: number) => {
-    const shiftUnit = currentPreset ?? 'month'
-    const newFrom = fromD.add(dir, shiftUnit)
-    const newTo = toD.add(dir, shiftUnit)
+    const preset = currentPreset ?? 'month'
+    const newBase = fromD.add(dir, preset)
+    const newFrom = newBase.startOf(preset)
+    const newTo = newBase.endOf(preset)
     onChange({
       from: newFrom.toDate(),
       to: newTo.toDate()
