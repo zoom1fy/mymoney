@@ -70,6 +70,12 @@ const FIELD_CLASSES =
   '!h-14 w-full text-xl px-6 rounded-xl bg-background border-2'
 const CONTAINER_CLASSES = 'w-full space-y-3'
 
+function normalizeDate(date: Date) {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
 export function TransactionModal({
   mode = 'create',
   transaction,
@@ -110,7 +116,7 @@ export function TransactionModal({
       amount: '',
       description: '',
       accountId: '',
-      date: new Date()
+      date: normalizeDate(new Date())
     }
   })
 
@@ -120,7 +126,7 @@ export function TransactionModal({
         amount: transaction.amount,
         description: transaction.description || '',
         accountId: String(transaction.accountId),
-        date: new Date(transaction.transactionDate)
+        date: normalizeDate(new Date(transaction.transactionDate))
       })
     }
   }, [isEdit, transaction, reset])
@@ -312,7 +318,10 @@ export function TransactionModal({
                         mode="single"
                         selected={watch('date')}
                         onSelect={d =>
-                          d && setValue('date', d, { shouldValidate: true })
+                          d &&
+                          setValue('date', normalizeDate(d), {
+                            shouldValidate: true
+                          })
                         }
                         locale={ru as any}
                         className="p-3"

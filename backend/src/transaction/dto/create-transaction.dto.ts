@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNumber, IsString, IsEnum, IsOptional, IsDateString } from 'class-validator';
 import { TransactionType } from '../enums/transaction-type.enum';
 import { CurrencyCode } from '../../common/enums/currency.enum';
 
@@ -11,6 +11,7 @@ export class CreateTransactionDto {
   targetAccountId?: number;
 
   @IsNumber()
+  @IsOptional()
   categoryId?: number;
 
   @IsNumber()
@@ -25,4 +26,8 @@ export class CreateTransactionDto {
 
   @IsEnum(CurrencyCode)
   currencyCode: CurrencyCode;
+
+  @IsDateString()
+  @IsOptional()
+  transactionDate?: string;
 }

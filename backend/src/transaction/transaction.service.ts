@@ -100,7 +100,7 @@ export class TransactionService {
           amount: value,
           currencyCode,
           description: description ?? null,
-          transactionDate: new Date(),
+          transactionDate: dto.transactionDate ? new Date(dto.transactionDate) : new Date(),
           type,
         },
       })
@@ -162,7 +162,7 @@ export class TransactionService {
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,
       where,
-      orderBy: { id: 'desc' },
+      orderBy: [{ transactionDate: 'desc' }, { id: 'desc' }],
       select: {
         id: true,
         amount: true,
@@ -340,7 +340,9 @@ export class TransactionService {
           currencyCode: dto.currencyCode ?? transaction.currencyCode,
           description: dto.description ?? transaction.description,
           type: newType,
-          transactionDate: new Date(),
+          transactionDate: dto.transactionDate
+            ? new Date(dto.transactionDate)
+            : transaction.transactionDate,
         },
       })
     );
