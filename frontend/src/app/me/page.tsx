@@ -2,16 +2,20 @@
 
 import { buildDonutData } from '@/lib/transactions-donut'
 import { endOfMonth, startOfMonth } from 'date-fns'
+import { MessageSquare } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { CategoriesPanel } from '@/components/dashboard/categories/CategoriesPanel'
 import { TransactionsDonutChart } from '@/components/dashboard/transactions/TransactionsDonutChart'
 import { TransactionsListModal } from '@/components/dashboard/transactions/TransactionsListModal'
 
+import { Button } from '@/components/ui/shadui/button'
+
 import { TransactionType } from '@/types/transaction.types'
 
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactionsForPeriod } from '@/hooks/useTransactions'
+import ChatModal from '@/components/dashboard/chat/ChatModal'
 
 const getCurrentMonthRange = () => ({
   from: startOfMonth(new Date()),
@@ -21,13 +25,11 @@ const getCurrentMonthRange = () => ({
 export default function DashboardPage() {
   const [isExpense, setIsExpense] = useState(true)
 
-  // диапазон графика
   const [chartRange, setChartRange] = useState(getCurrentMonthRange())
-
-  // диапазон модалки
   const [modalRange, setModalRange] = useState(getCurrentMonthRange())
 
   const [showTxList, setShowTxList] = useState(false)
+  const [showChat, setShowChat] = useState(false) // ← новое состояние
 
   const { data: chartTransactions = [], isLoading: chartLoading } =
     useTransactionsForPeriod(chartRange.from, chartRange.to)
@@ -38,12 +40,10 @@ export default function DashboardPage() {
   const { categories, isLoading: catLoading } = useCategories(isExpense)
 
   const loading = chartLoading || catLoading
-  
   const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
 
   useEffect(() => {
     const open = () => setShowTxList(true)
-
     window.addEventListener('open-transactions', open)
     return () => window.removeEventListener('open-transactions', open)
   }, [])
@@ -66,13 +66,23 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="w-full lg:w-[460px] shrink-0">
+        <div className="w-full lg:w-[460px] shrink-0 space-y-4">
           <CategoriesPanel
             isExpense={isExpense}
             onExpenseChange={setIsExpense}
             donutData={donutData}
             loading={loading}
           />
+
+          {/* Кнопка открытия чата */}
+          <Button
+            variant="outline"
+            className="w-full h-14 text-base font-medium border-border/50 bg-card/30 backdrop-blur-sm hover:bg-accent/10 hover:border-accent/30 transition-all duration-300 group"
+            onClick={() => setShowChat(true)} // ← добавили onClick
+          >
+            <MessageSquare className="size-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
+            Спросить у помощника
+          </Button>
         </div>
       </div>
 
@@ -83,6 +93,12 @@ export default function DashboardPage() {
         onRangeChange={setModalRange}
         open={showTxList}
         onClose={() => setShowTxList(false)}
+      />
+
+      {/* Чат-модалка */}
+      <ChatModal
+        open={showChat}
+        onClose={() => setShowChat(false)}
       />
     </div>
   )

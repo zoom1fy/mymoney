@@ -4,13 +4,11 @@ import {
 } from '../services/auth-token.service'
 import { authService } from '../services/auth.service'
 import { errorCatch } from './error'
+import { chatService } from '@/services/chat.service'
 import axios, { CreateAxiosDefaults } from 'axios'
 
 const options: CreateAxiosDefaults = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 
-    (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
-      ? 'http://your-ip:3000/api' 
-      : 'http://localhost:3000/api'),
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true
 }
@@ -72,6 +70,14 @@ axiosWithAuth.interceptors.response.use(
       originalRequest._isRetry = true
       try {
         await authService.getNewTokens()
+        const freshToken = getAccessToken()
+        if (freshToken) {
+          chatService.setToken(freshToken)
+          // Если сокет был подключён, переподключаем с новым токеном
+          if (chatService.isConnected) {
+            chatService.reconnectWithNewToken(freshToken).catch(console.error)
+          }
+        }
         return axiosWithAuth.request(originalRequest)
       } catch (error) {
         if (errorCatch(error) === 'jwt expired') removeTokenStorage()
