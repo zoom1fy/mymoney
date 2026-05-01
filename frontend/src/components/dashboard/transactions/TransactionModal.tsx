@@ -142,7 +142,13 @@ export function TransactionModal({
       description: data.description.trim() || undefined,
       type: transactionType,
       currencyCode: CurrencyCode.RUB,
-      transactionDate: data.date.toISOString()
+      transactionDate: new Date(
+        Date.UTC(
+          data.date.getFullYear(),
+          data.date.getMonth(),
+          data.date.getDate()
+        )
+      ).toISOString()
     }
 
     try {
