@@ -69,8 +69,32 @@ services:
         condition: service_healthy
     networks:
       - app-network
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./Modelfile:/Modelfile:ro # ← твой Modelfile должен лежать в корне проекта
+    restart: always
+    networks:
+      - app-network
+    entrypoint: [ "/bin/sh" ] # ← вот это главное исправление
+    command:
+      - "-c"
+      - |
+        ollama serve &
+        sleep 10
+        echo "=== Скачиваем базовую модель (если нет) ==="
+        ollama pull llama3.1 || true
+        echo "=== Создаём финансовую модель ==="
+        ollama create financial-advisor -f /Modelfile || true
+        echo "=== Ollama готов! ==="
+        tail -f /dev/null
 volumes:
   db_data:
+  ollama_data:
 networks:
   app-network:
     driver: bridge

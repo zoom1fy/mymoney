@@ -1,6 +1,6 @@
 @echo off
 echo [1/2] Stopping and removing old containers...
-docker-compose down -v
+docker-compose down
 
 echo [2/2] Building and starting containers...
 docker-compose up -d --build

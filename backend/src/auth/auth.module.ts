@@ -6,7 +6,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getJwtConfig } from '../config/jwt.config';
-import { TokenConfigModule } from '../config/token.config';  // <-- импортируем модуль
+import { TokenConfigModule } from '../config/token.config';
 
 @Module({
   imports: [
@@ -21,5 +21,6 @@ import { TokenConfigModule } from '../config/token.config';  // <-- импорт
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
+  exports: [JwtModule],
 })
 export class AuthModule {}

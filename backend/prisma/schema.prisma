@@ -17,18 +17,19 @@ model User {
   accounts     Account[]     @relation("UserAccounts")
   categories   Category[]    @relation("UserCategories")
   transactions Transaction[] @relation("UserTransactions")
+  chatMessages ChatMessage[]
 
   @@index([email])
   @@map("users")
 }
 
 model Currency {
-  code              String            @id @db.Char(3)
-  name              String            @db.VarChar(50)
-  symbol            String            @db.VarChar(5)
-  accounts          Account[]         @relation("AccountCurrency")
-  categories        Category[]        @relation("CategoryCurrency")
-  transactions      Transaction[]     @relation("TransactionCurrency")
+  code         String        @id @db.Char(3)
+  name         String        @db.VarChar(50)
+  symbol       String        @db.VarChar(5)
+  accounts     Account[]     @relation("AccountCurrency")
+  categories   Category[]    @relation("CategoryCurrency")
+  transactions Transaction[] @relation("TransactionCurrency")
 
   @@map("currencies")
 }
@@ -73,27 +74,26 @@ model Account {
 }
 
 model Category {
-  id             Int              @id @default(autoincrement()) @db.UnsignedInt
-  userId         String           @map("user_id") @db.Char(36)
-  name           String           @db.VarChar(100)
-  icon           String           @default("default") @db.VarChar(50)
-  currencyCode   String           @map("currency_code") @db.Char(3)
-  color          String?          @default("") @db.VarChar(7)
-  isExpense      Boolean          @map("is_expense")
-  parentId       Int?             @map("parent_id") @db.UnsignedInt
-  createdAt      DateTime         @default(now()) @map("created_at")
-  
-  user           User             @relation("UserCategories", fields: [userId], references: [id], onDelete: Cascade)
-  parent         Category?        @relation("CategoryParent", fields: [parentId], references: [id], onDelete: Cascade)
-  subcategories  Category[]       @relation("CategoryParent")
-  currency       Currency         @relation("CategoryCurrency", fields: [currencyCode], references: [code])
-  transactions   Transaction[]    @relation("CategoryTransactions")
+  id           Int      @id @default(autoincrement()) @db.UnsignedInt
+  userId       String   @map("user_id") @db.Char(36)
+  name         String   @db.VarChar(100)
+  icon         String   @default("default") @db.VarChar(50)
+  currencyCode String   @map("currency_code") @db.Char(3)
+  color        String?  @default("") @db.VarChar(7)
+  isExpense    Boolean  @map("is_expense")
+  parentId     Int?     @map("parent_id") @db.UnsignedInt
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user          User          @relation("UserCategories", fields: [userId], references: [id], onDelete: Cascade)
+  parent        Category?     @relation("CategoryParent", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories Category[]    @relation("CategoryParent")
+  currency      Currency      @relation("CategoryCurrency", fields: [currencyCode], references: [code])
+  transactions  Transaction[] @relation("CategoryTransactions")
 
   @@unique([userId, name])
   @@index([userId, isExpense])
   @@map("categories")
 }
-
 
 enum TransactionType {
   INCOME
@@ -122,4 +122,24 @@ model Transaction {
   @@index([userId, transactionDate, id])
   @@index([accountId, transactionDate])
   @@map("transactions")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model ChatMessage {
+  id      String      @id @default(uuid())
+  userId  String      @db.Char(36)
+  role    MessageRole @default(USER)
+  content String      @db.MediumText // Текст сообщения
+  context Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("chat_messages")
 }
