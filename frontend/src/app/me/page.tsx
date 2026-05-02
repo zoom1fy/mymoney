@@ -6,16 +6,15 @@ import { MessageSquare } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { CategoriesPanel } from '@/components/dashboard/categories/CategoriesPanel'
+import ChatModal from '@/components/dashboard/chat/ChatModal'
 import { TransactionsDonutChart } from '@/components/dashboard/transactions/TransactionsDonutChart'
 import { TransactionsListModal } from '@/components/dashboard/transactions/TransactionsListModal'
-
 import { Button } from '@/components/ui/shadui/button'
 
 import { TransactionType } from '@/types/transaction.types'
 
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactionsForPeriod } from '@/hooks/useTransactions'
-import ChatModal from '@/components/dashboard/chat/ChatModal'
 
 const getCurrentMonthRange = () => ({
   from: startOfMonth(new Date()),
@@ -29,7 +28,7 @@ export default function DashboardPage() {
   const [modalRange, setModalRange] = useState(getCurrentMonthRange())
 
   const [showTxList, setShowTxList] = useState(false)
-  const [showChat, setShowChat] = useState(false) // ← новое состояние
+  const [showChat, setShowChat] = useState(false)
 
   const { data: chartTransactions = [], isLoading: chartLoading } =
     useTransactionsForPeriod(chartRange.from, chartRange.to)
@@ -42,10 +41,18 @@ export default function DashboardPage() {
   const loading = chartLoading || catLoading
   const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
 
+  // === Слушаем события от хедера ===
   useEffect(() => {
-    const open = () => setShowTxList(true)
-    window.addEventListener('open-transactions', open)
-    return () => window.removeEventListener('open-transactions', open)
+    const openTx = () => setShowTxList(true)
+    const openChat = () => setShowChat(true)
+
+    window.addEventListener('open-transactions', openTx)
+    window.addEventListener('open-chat', openChat)
+
+    return () => {
+      window.removeEventListener('open-transactions', openTx)
+      window.removeEventListener('open-chat', openChat)
+    }
   }, [])
 
   const donutData = useMemo(() => {
@@ -73,16 +80,6 @@ export default function DashboardPage() {
             donutData={donutData}
             loading={loading}
           />
-
-          {/* Кнопка открытия чата */}
-          <Button
-            variant="outline"
-            className="w-full h-14 text-base font-medium border-border/50 bg-card/30 backdrop-blur-sm hover:bg-accent/10 hover:border-accent/30 transition-all duration-300 group"
-            onClick={() => setShowChat(true)} // ← добавили onClick
-          >
-            <MessageSquare className="size-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
-            Спросить у помощника
-          </Button>
         </div>
       </div>
 
@@ -95,7 +92,6 @@ export default function DashboardPage() {
         onClose={() => setShowTxList(false)}
       />
 
-      {/* Чат-модалка */}
       <ChatModal
         open={showChat}
         onClose={() => setShowChat(false)}

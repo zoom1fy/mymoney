@@ -1,4 +1,4 @@
-import { DashboardHeader } from './DashboardHeader'
+import { DashboardHeader } from './header'
 
 import { DashboardSidebar } from '@/components/dashboard/sidebar/DashboardSidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/shadui/sidebar'
