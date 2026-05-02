@@ -18,6 +18,7 @@ import { NumericFormat } from 'react-number-format'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
+import { ModalHeader } from '@/components/ui/modal/modal-header'
 import { Button } from '@/components/ui/shadui/button'
 import { Calendar } from '@/components/ui/shadui/calendar'
 import {
@@ -182,28 +183,24 @@ export function TransactionModal({
       onOpenChange={onOpenChange}
     >
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        showCloseButton={false}
+        className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto"
+      >
         <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl transition-all duration-700">
           <DialogHeader className="mb-8">
-            <div className="flex justify-between items-center">
-              <DialogTitle className="text-3xl font-bold tracking-tight">
-                {isEdit
+            <ModalHeader
+              icon={<Wallet className="size-6 text-white" />}
+              title={
+                isEdit
                   ? `Редактировать ${isExpense ? 'расход' : 'доход'}`
-                  : `Новый ${isExpense ? 'расход' : 'доход'}`}
-              </DialogTitle>
-
-              {isEdit && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setConfirmOpen(true)}
-                  disabled={isLoading}
-                  className="text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="size-5" />
-                </Button>
-              )}
-            </div>
+                  : `Новый ${isExpense ? 'расход' : 'доход'}`
+              }
+              onClose={() => onOpenChange?.(false)}
+              onDelete={() => setConfirmOpen(true)}
+              isDeleteLoading={isDeleting}
+              showDelete={isEdit}
+            />
           </DialogHeader>
 
           <TransactionPreview

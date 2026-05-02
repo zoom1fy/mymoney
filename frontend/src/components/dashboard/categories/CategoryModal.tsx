@@ -1,14 +1,17 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
-import { useForm, Controller } from 'react-hook-form' // добавил Controller
+import { Controller, useForm } from 'react-hook-form'
+
+// добавил Controller
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
 import { ColorPicker } from '@/components/ui/color-picker/ColorPicker'
 import { ConfirmAlert } from '@/components/ui/dialogs/confirm-alert'
+import { ModalHeader } from '@/components/ui/modal/modal-header'
 import { Button } from '@/components/ui/shadui/button'
 import {
   Dialog,
@@ -153,27 +156,26 @@ export function CategoryModal({
         </DialogTrigger>
       )}
 
-      <DialogContent className="w-[95vw] max-w-3xl p-0">
+      <DialogContent
+        showCloseButton={false}
+        className="w-[95vw] max-w-3xl p-0"
+      >
         <GlassCard className="rounded-3xl p-10">
           <DialogHeader className="mb-8">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-3xl font-bold tracking-tight">
-                {isEdit ? 'Редактировать' : 'Новая категория'}
-              </DialogTitle>
-
-              {isEdit && category && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setConfirmOpen(true)}
-                  disabled={isLoading}
-                  className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 p-6"
-                >
-                  <Trash2 className="size-5 sm:size-6" />
-                </Button>
-              )}
-            </div>
+            <ModalHeader
+              icon={
+                isEdit ? (
+                  <Pencil className="size-6 text-white" />
+                ) : (
+                  <Plus className="size-6 text-white" />
+                )
+              }
+              title={isEdit ? 'Редактирование категории' : 'Новая категория'}
+              onClose={() => setOpen(false)}
+              onDelete={() => setConfirmOpen(true)}
+              isDeleteLoading={isDeleting}
+              showDelete={isEdit && !!category}
+            />
           </DialogHeader>
 
           <form

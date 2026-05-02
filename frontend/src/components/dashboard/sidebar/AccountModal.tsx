@@ -2,13 +2,14 @@
 
 import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
 import { cn } from '@/lib/utils'
-import { Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, X } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
+import { ModalHeader } from '@/components/ui/modal/modal-header'
 import { Button } from '@/components/ui/shadui/button'
 import {
   Dialog,
@@ -52,11 +53,7 @@ const FIELD_CLASSES =
   '!h-14 w-full text-xl px-6 rounded-xl bg-background border-2'
 const CONTAINER_CLASSES = 'w-full space-y-3'
 
-export function AccountModal({
-  mode = 'create',
-  account,
-  trigger
-}: Props) {
+export function AccountModal({ mode = 'create', account, trigger }: Props) {
   const isEdit = mode === 'edit'
 
   const {
@@ -77,7 +74,7 @@ export function AccountModal({
     try {
       await deleteAccount(account.id)
       setConfirmOpen(false)
-      setOpen(false) // закрываем основную модалку
+      setOpen(false)
     } catch {
       // toast уже есть
     }
@@ -100,7 +97,6 @@ export function AccountModal({
     }
   })
 
-  /* При открытии edit — заполняем форму */
   useEffect(() => {
     if (open && isEdit && account) {
       reset({
@@ -149,27 +145,26 @@ export function AccountModal({
         )}
       </DialogTrigger>
 
-      <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        showCloseButton={false}
+        className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto"
+      >
         <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl transition-all duration-700">
           <DialogHeader className="mb-8">
-            <div className="flex items-center justify-between gap-3">
-              <DialogTitle className="text-3xl font-bold tracking-tight">
-                {isEdit ? 'Редактировать счёт' : 'Новый счёт'}
-              </DialogTitle>
-
-              {isEdit && account && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setConfirmOpen(true)}
-                  disabled={isLoading}
-                  className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 p-6"
-                >
-                  <Trash2 className="size-5 sm:size-6" />
-                </Button>
-              )}
-            </div>
+            <ModalHeader
+              icon={
+                isEdit ? (
+                  <Pencil className="size-6 text-white" />
+                ) : (
+                  <Plus className="size-6 text-white" />
+                )
+              }
+              title={isEdit ? 'Редактирование счёта' : 'Создание нового счёта'}
+              onClose={() => setOpen(false)}
+              onDelete={() => setConfirmOpen(true)}
+              isDeleteLoading={isDeleting}
+              showDelete={isEdit && !!account}
+            />
           </DialogHeader>
 
           <form
@@ -213,8 +208,7 @@ export function AccountModal({
                   }}
                   value={watch('currentBalance')}
                   isAllowed={values => {
-                    const { value } = values // это строка без форматирования
-                    // оставляем только цифры и ограничиваем длину до 10
+                    const { value } = values
                     const digits = value.replace(/\D/g, '')
                     return digits.length <= 10
                   }}
@@ -252,7 +246,6 @@ export function AccountModal({
                 </Select>
               </div>
               <div className={CONTAINER_CLASSES}>
-                {' '}
                 <Select
                   value={watch('typeId')?.toString()}
                   onValueChange={v =>
@@ -278,7 +271,6 @@ export function AccountModal({
                 </Select>
               </div>
               <div className={CONTAINER_CLASSES}>
-                {' '}
                 <Select
                   value={watch('currencyCode')}
                   disabled={isEdit}
