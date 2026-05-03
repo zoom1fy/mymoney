@@ -220,7 +220,7 @@ export function TransactionModal({
               onClose={() => onOpenChange?.(false)}
               onDelete={() => setConfirmOpen(true)}
               isDeleteLoading={isDeleting}
-              showDelete={isEdit && !isFormDisabled} // Скрываем кнопку удаления если форма заблокирована
+              showDelete={isEdit}
             />
           </DialogHeader>
 
