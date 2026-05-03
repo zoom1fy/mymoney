@@ -1,11 +1,43 @@
 'use client'
 
-import { MessageSquare } from 'lucide-react'
+import { LogOut, MessageSquare, User } from 'lucide-react'
 
+import { Avatar, AvatarFallback } from '@/components/ui/shadui/avatar'
 import { Button } from '@/components/ui/shadui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/shadui/dropdown-menu'
 import { SidebarTrigger } from '@/components/ui/shadui/sidebar'
 
+import { useProfile } from '@/hooks/useProfile'
+
 export function DashboardHeader() {
+  const { profile, logout, isLoggingOut } = useProfile()
+
+  const getInitials = () => {
+    if (profile?.name) {
+      return profile.name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    if (profile?.email) {
+      return profile.email.slice(0, 2).toUpperCase()
+    }
+    return 'U'
+  }
+
+  const handleLogout = () => {
+    logout()
+  }
+
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b bg-background/70 backdrop-blur-sm px-4 sm:px-6">
       <SidebarTrigger className="md:hidden" />
@@ -29,6 +61,45 @@ export function DashboardHeader() {
           <span className="hidden sm:inline">ИИ помощник</span>
           <span className="sm:hidden">ИИ помощник</span>
         </Button>
+
+        {/* Dropdown меню профиля */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative h-8 w-8 rounded-full cursor-pointer"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-56 bg-background"
+            align="end"
+            forceMount
+          >
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {profile?.name || 'Пользователь'}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="cursor-pointer text-destructive focus:text-destructive"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              {isLoggingOut ? 'Выход...' : 'Выйти'}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )
