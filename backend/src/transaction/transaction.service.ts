@@ -255,6 +255,27 @@ export class TransactionService {
 
     if (!transaction) throw new NotFoundException('Транзакция не найдена');
 
+    const newAccountId = dto.accountId !== undefined ? dto.accountId : transaction.accountId;
+    const newTargetAccountId =
+      dto.targetAccountId !== undefined ? dto.targetAccountId : transaction.targetAccountId;
+    const accountsToCheck: number[] = [];
+
+    if (newAccountId !== null) accountsToCheck.push(newAccountId);
+    if (newTargetAccountId !== null) accountsToCheck.push(newTargetAccountId);
+
+    // Если нечего проверять — пропускаем
+    if (accountsToCheck.length > 0) {
+      const accounts = await this.prisma.account.findMany({
+        where: { id: { in: accountsToCheck }, userId },
+        select: { id: true, isDeleted: true },
+      });
+
+      const deleted = accounts.find((acc) => acc.isDeleted);
+      if (deleted) {
+        throw new BadRequestException('Нельзя обновить транзакцию: счёт удалён');
+      }
+    }
+
     const updates: any[] = [];
 
     const oldAmount = Number(transaction.amount);
