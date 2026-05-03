@@ -13,20 +13,33 @@ export function useAccounts() {
     queryKey: ['accounts'],
     queryFn: () => accountService.getAll(),
     staleTime: 1000 * 60, // 1 минута
-    select: (data) =>
-      data.map((acc) => ({
+    select: data =>
+      data.map(acc => ({
         ...acc,
-        currentBalance: Number(acc.currentBalance), // Парсим в число
-      })),
+        currentBalance: Number(acc.currentBalance) // Парсим в число
+      }))
   })
+
+  const useAccountById = (id?: string | number) =>
+    useQuery({
+      queryKey: ['account', id],
+      queryFn: () => accountService.getById(Number(id)),
+      enabled: !!id,
+      select: acc => ({
+        ...acc,
+        currentBalance: Number(acc.currentBalance)
+      })
+    })
 
   const createMutation = useMutation({
     mutationFn: (data: ICreateAccount) => accountService.create(data),
 
-    onMutate: async (newData) => {
+    onMutate: async newData => {
       await queryClient.cancelQueries({ queryKey: ['accounts'] })
 
-      const previousAccounts = queryClient.getQueryData<IAccount[]>(['accounts'])
+      const previousAccounts = queryClient.getQueryData<IAccount[]>([
+        'accounts'
+      ])
 
       const tempId = -Date.now()
       const optimisticAccount: IAccount = {
@@ -34,11 +47,12 @@ export function useAccounts() {
         ...newData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        isDeleted: false
       }
 
-      queryClient.setQueryData<IAccount[]>(['accounts'], (old) => [
+      queryClient.setQueryData<IAccount[]>(['accounts'], old => [
         ...(old || []),
-        optimisticAccount,
+        optimisticAccount
       ])
 
       return { previousAccounts, tempId }
@@ -46,40 +60,45 @@ export function useAccounts() {
 
     onError: (error: any, newData, context) => {
       if (context?.previousAccounts) {
-        queryClient.setQueryData<IAccount[]>(['accounts'], context.previousAccounts)
+        queryClient.setQueryData<IAccount[]>(
+          ['accounts'],
+          context.previousAccounts
+        )
       }
       const message =
-        error?.response?.data?.message || error?.message || 'Ошибка создания счёта'
+        error?.response?.data?.message ||
+        error?.message ||
+        'Ошибка создания счёта'
       toast.error(message)
     },
 
     onSuccess: (newAccount, variables, context) => {
-      queryClient.setQueryData<IAccount[]>(['accounts'], (old) =>
-        old?.map((acc) =>
+      queryClient.setQueryData<IAccount[]>(['accounts'], old =>
+        old?.map(acc =>
           acc.id === context?.tempId
             ? {
                 ...acc,
                 ...newAccount,
-                currentBalance: Number(newAccount.currentBalance), // Парсим в число
+                currentBalance: Number(newAccount.currentBalance) // Парсим в число
               }
             : acc
         )
       )
       toast.success('Счёт создан!')
-    },
+    }
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: IUpdateAccount }) =>
       accountService.update(id, data),
-    onSuccess: (updatedAccount) => {
-      queryClient.setQueryData<IAccount[]>(['accounts'], (old) =>
-        old?.map((acc) =>
+    onSuccess: updatedAccount => {
+      queryClient.setQueryData<IAccount[]>(['accounts'], old =>
+        old?.map(acc =>
           acc.id === updatedAccount.id
             ? {
                 ...acc,
                 ...updatedAccount,
-                currentBalance: Number(updatedAccount.currentBalance), // Парсим в число
+                currentBalance: Number(updatedAccount.currentBalance) // Парсим в число
               }
             : acc
         )
@@ -91,23 +110,24 @@ export function useAccounts() {
       const message =
         error?.response?.data?.message || error?.message || 'Ошибка обновления'
       toast.error(message)
-    },
+    }
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => accountService.delete(id),
     onSuccess: (_, id) => {
-      queryClient.setQueryData<IAccount[]>(['accounts'], (old) =>
-        old?.filter((acc) => acc.id !== id)
+      queryClient.setQueryData<IAccount[]>(['accounts'], old =>
+        old?.filter(acc => acc.id !== id)
       )
       toast.success('Счёт удалён!')
     },
-    onError: () => toast.error('Ошибка удаления'),
+    onError: () => toast.error('Ошибка удаления')
   })
 
   return {
     accounts,
     isLoading,
+    useAccountById,
 
     createAccount: createMutation.mutateAsync,
     isCreating: createMutation.isPending,
@@ -116,6 +136,6 @@ export function useAccounts() {
     isUpdating: updateMutation.isPending,
 
     deleteAccount: deleteMutation.mutateAsync,
-    isDeleting: deleteMutation.isPending,
+    isDeleting: deleteMutation.isPending
   }
 }

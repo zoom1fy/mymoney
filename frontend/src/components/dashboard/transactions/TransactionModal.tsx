@@ -9,10 +9,9 @@ import {
   Calendar as CalendarIcon,
   FileText,
   Loader2,
-  Trash2,
   Wallet
 } from 'lucide-react'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
 
@@ -25,7 +24,6 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogTrigger
 } from '@/components/ui/shadui/dialog'
 import { Input } from '@/components/ui/shadui/input'
@@ -43,7 +41,7 @@ import {
   SelectValue
 } from '@/components/ui/shadui/select'
 
-import { CurrencyCode } from '@/types/account.types'
+import { CurrencyCode, IAccount } from '@/types/account.types'
 import { ICategory } from '@/types/category.types'
 import { ITransaction, TransactionType } from '@/types/transaction.types'
 
@@ -69,6 +67,8 @@ interface Props {
 
 const FIELD_CLASSES =
   '!h-14 w-full text-xl px-6 rounded-xl bg-background border-2'
+const FIELD_CLASSES_DISABLED =
+  '!h-14 w-full text-xl px-6 rounded-xl bg-muted border-2 opacity-70 cursor-not-allowed'
 const CONTAINER_CLASSES = 'w-full space-y-3'
 
 function normalizeDate(date: Date) {
@@ -87,7 +87,7 @@ export function TransactionModal({
   onOpenChange
 }: Props) {
   const isEdit = mode === 'edit'
-  const { accounts } = useAccounts()
+  const { accounts, isLoading: accountsLoading, useAccountById } = useAccounts()
   const {
     createTransaction,
     updateTransaction,
@@ -132,10 +132,31 @@ export function TransactionModal({
     }
   }, [isEdit, transaction, reset])
 
-  const selectedAccount = accounts.find(
-    acc => String(acc.id) === watch('accountId')
+  // Смотрим id из формы
+  const accountId = watch('accountId')
+
+  // Если локально не нашли — делаем запрос findOne
+  const { data: remoteAccount } = useAccountById(
+    accountId && !accounts.find(a => a.id === Number(accountId))
+      ? Number(accountId)
+      : undefined
   )
+
+  const selectedAccount = useMemo<IAccount | undefined>(() => {
+    if (accountsLoading) return undefined
+    if (!accountId) return undefined
+
+    const local = accounts.find(a => a.id === Number(accountId))
+    return local || remoteAccount || undefined
+  }, [accounts, accountsLoading, accountId, remoteAccount])
+
+  // Проверяем, заблокирована ли форма (только для редактирования и если счёт удалён)
+  const isFormDisabled = isEdit && selectedAccount?.isDeleted === true
+
   const onSubmit = async (data: ITransactionForm) => {
+    // Дополнительная защита от отправки формы с удалённым счётом
+    if (isFormDisabled) return
+
     const payload = {
       accountId: Number(data.accountId),
       categoryId: category.id,
@@ -199,7 +220,7 @@ export function TransactionModal({
               onClose={() => onOpenChange?.(false)}
               onDelete={() => setConfirmOpen(true)}
               isDeleteLoading={isDeleting}
-              showDelete={isEdit}
+              showDelete={isEdit && !isFormDisabled} // Скрываем кнопку удаления если форма заблокирована
             />
           </DialogHeader>
 
@@ -209,7 +230,18 @@ export function TransactionModal({
             category={category}
             isExpense={isExpense}
             selectedAccount={selectedAccount}
+            originalTransaction={transaction} // Передаём исходную транзакцию
+            isEditMode={isEdit} // Передаём флаг режима редактирования
           />
+
+          {/* Показываем предупреждение, если счёт удалён */}
+          {isFormDisabled && (
+            <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
+              <p className="text-center font-medium">
+                ⚠️ Этот счёт был удалён. Редактирование недоступно.
+              </p>
+            </div>
+          )}
 
           <form
             onSubmit={handleSubmit(onSubmit)}
@@ -233,15 +265,20 @@ export function TransactionModal({
                         placeholder="0,00"
                         customInput={Input}
                         value={field.value}
+                        disabled={isFormDisabled}
                         className={cn(
-                          FIELD_CLASSES,
+                          isFormDisabled
+                            ? FIELD_CLASSES_DISABLED
+                            : FIELD_CLASSES,
                           'text-2xl font-bold border-2 focus-visible:ring-offset-0',
-                          errors.amount && 'border-destructive'
+                          errors.amount &&
+                            !isFormDisabled &&
+                            'border-destructive'
                         )}
                         onValueChange={values =>
+                          !isFormDisabled &&
                           field.onChange(values.floatValue ?? '')
                         }
-                        // Добавил ваше ограничение на 10 цифр
                         isAllowed={values => {
                           const digits = values.value.replace(/\D/g, '')
                           return digits.length <= 10
@@ -255,7 +292,6 @@ export function TransactionModal({
                   <Label className="text-lg font-medium ml-1 flex items-center gap-2">
                     <Wallet className="size-5 opacity-70" /> Счёт
                   </Label>
-                  {/* Оставил ваш контроллер для точности работы Select */}
                   <Controller
                     control={control}
                     name="accountId"
@@ -263,29 +299,52 @@ export function TransactionModal({
                     render={({ field }) => (
                       <Select
                         value={field.value}
-                        onValueChange={field.onChange}
+                        onValueChange={val => {
+                          if (isFormDisabled) return
+                          const acc = accounts.find(a => a.id === Number(val))
+                          if (acc?.isDeleted) return
+                          field.onChange(val)
+                        }}
+                        disabled={isFormDisabled}
                       >
                         <SelectTrigger
-                          className={cn(FIELD_CLASSES, 'cursor-pointer')}
+                          className={cn(
+                            isFormDisabled
+                              ? FIELD_CLASSES_DISABLED
+                              : FIELD_CLASSES,
+                            'cursor-pointer'
+                          )}
                         >
                           <SelectValue placeholder="Выберите счёт" />
                         </SelectTrigger>
+
                         <SelectContent className="rounded-xl bg-background">
-                          {accounts.map(acc => (
-                            <SelectItem
-                              key={acc.id}
-                              value={String(acc.id)}
-                              className="text-lg py-3 cursor-pointer"
-                            >
-                              <div className="flex items-center justify-between w-full gap-4">
-                                <span>{acc.name}</span>
-                                <span className="text-muted-foreground font-medium">
-                                  {acc.currentBalance.toLocaleString('ru-RU')}{' '}
-                                  {acc.currencyCode}
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {/* Показываем только активные счета */}
+                          {accounts
+                            .filter(acc => !acc.isDeleted)
+                            .map(acc => (
+                              <SelectItem
+                                key={acc.id}
+                                value={String(acc.id)}
+                                className="text-lg py-3 cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between w-full gap-4">
+                                  <span>{acc.name}</span>
+                                  <span className="text-muted-foreground font-medium">
+                                    {acc.currentBalance.toLocaleString('ru-RU')}{' '}
+                                    {acc.currencyCode}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))}
+
+                          {/* Если нет активных счетов */}
+                          {accounts.filter(acc => !acc.isDeleted).length ===
+                            0 && (
+                            <div className="text-center py-6 text-muted-foreground">
+                              Нет доступных счетов
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
                     )}
@@ -300,11 +359,17 @@ export function TransactionModal({
                     <CalendarIcon className="size-5 opacity-70" /> Дата
                   </Label>
                   <Popover>
-                    <PopoverTrigger asChild>
+                    <PopoverTrigger
+                      asChild
+                      disabled={isFormDisabled}
+                    >
                       <Button
                         variant="outline"
+                        disabled={isFormDisabled}
                         className={cn(
-                          FIELD_CLASSES,
+                          isFormDisabled
+                            ? FIELD_CLASSES_DISABLED
+                            : FIELD_CLASSES,
                           'justify-start font-normal text-left cursor-pointer'
                         )}
                       >
@@ -313,23 +378,25 @@ export function TransactionModal({
                         </span>
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent
-                      className="w-auto p-0 border border-border bg-card shadow-2xl rounded-2xl"
-                      align="start"
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={watch('date')}
-                        onSelect={d =>
-                          d &&
-                          setValue('date', normalizeDate(d), {
-                            shouldValidate: true
-                          })
-                        }
-                        locale={ru as any}
-                        className="p-3"
-                      />
-                    </PopoverContent>
+                    {!isFormDisabled && (
+                      <PopoverContent
+                        className="w-auto p-0 border border-border bg-card shadow-2xl rounded-2xl"
+                        align="start"
+                      >
+                        <Calendar
+                          mode="single"
+                          selected={watch('date')}
+                          onSelect={d =>
+                            d &&
+                            setValue('date', normalizeDate(d), {
+                              shouldValidate: true
+                            })
+                          }
+                          locale={ru as any}
+                          className="p-3"
+                        />
+                      </PopoverContent>
+                    )}
                   </Popover>
                 </div>
 
@@ -339,7 +406,10 @@ export function TransactionModal({
                   </Label>
                   <Input
                     placeholder="На что потратили?"
-                    className={FIELD_CLASSES}
+                    disabled={isFormDisabled}
+                    className={cn(
+                      isFormDisabled ? FIELD_CLASSES_DISABLED : FIELD_CLASSES
+                    )}
                     {...register('description')}
                   />
                 </div>
@@ -349,7 +419,7 @@ export function TransactionModal({
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6 pt-4">
               <AccentButton
                 type="submit"
-                disabled={!isValid || isLoading}
+                disabled={!isValid || isLoading || isFormDisabled}
                 className="h-14 sm:flex-1"
               >
                 {isLoading ? (

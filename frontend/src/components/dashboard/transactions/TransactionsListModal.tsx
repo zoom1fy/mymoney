@@ -2,6 +2,7 @@
 
 import { TransactionFilters } from './TransactionFilters'
 import { TransactionItem } from './TransactionListItem'
+import { TransactionModal } from './TransactionModal'
 import { AnimatePresence, motion } from 'framer-motion'
 import debounce from 'lodash/debounce'
 import { ChevronDown, Filter, Search } from 'lucide-react'
@@ -57,6 +58,7 @@ export function TransactionsListModal({
   const [filterCategory, setFilterCategory] = useState<number | 'all'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilters, setShowFilters] = useState(false)
+  const [editingTx, setEditingTx] = useState<ITransaction | null>(null)
 
   const updateDebounced = useMemo(
     () =>
@@ -119,6 +121,10 @@ export function TransactionsListModal({
   const totalPages = Math.ceil(filteredTransactions.length / pageSize)
   const hasActiveFilters =
     filterType !== 'all' || filterCategory !== 'all' || debouncedSearch !== ''
+
+  const categoryForEditing = editingTx
+    ? categories.find(c => c.id === editingTx.categoryId)
+    : undefined
 
   return (
     <Dialog
@@ -214,7 +220,8 @@ export function TransactionsListModal({
                   <TransactionItem
                     key={tx.id}
                     transaction={tx}
-                    category={categories.find(c => c.id === tx.categoryId)}
+                    category={categories.find(c => c.id === tx.categoryId)!}
+                    onEdit={() => setEditingTx(tx)}
                   />
                 ))}
               </div>
@@ -250,6 +257,20 @@ export function TransactionsListModal({
             </div>
           )}
         </GlassCard>
+
+        {/* Модалка редактирования — одна на весь список */}
+        {categoryForEditing && (
+          <TransactionModal
+            mode="edit"
+            transaction={editingTx!}
+            category={categoryForEditing}
+            isExpense={editingTx!.type === TransactionType.EXPENSE}
+            open={!!editingTx}
+            onOpenChange={isOpen => {
+              if (!isOpen) setEditingTx(null)
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )

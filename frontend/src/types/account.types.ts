@@ -105,7 +105,9 @@ export interface ICreateAccount {
 /**
  * Полный аккаунт
  */
-export interface IAccount extends IBase, ICreateAccount {}
+export interface IAccount extends IBase, ICreateAccount {
+  isDeleted: boolean
+}
 
 /**
  * Интерфейс обновления аккаунта
