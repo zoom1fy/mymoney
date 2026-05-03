@@ -24,7 +24,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "${NESTJS_PORT}:3000"
+      - "${NESTJS_PORT:-3000}:3000"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -40,12 +40,18 @@ services:
       - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN}
       - REFRESH_TOKEN_COOKIE_NAME=${REFRESH_TOKEN_COOKIE_NAME}
       - NODE_ENV=${NODE_ENV}
+      - OLLAMA_URL=${OLLAMA_URL}
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}
     ports:
-      - "${NEXTJS_PORT}:3000"
+      - "${NEXTJS_PORT:-3001}:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -54,6 +60,11 @@ services:
       - backend
     networks:
       - app-network
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}
+      - NODE_ENV=${NODE_ENV}
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
@@ -76,11 +87,11 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ./Modelfile:/Modelfile:ro # ← твой Modelfile должен лежать в корне проекта
+      - ./Modelfile:/Modelfile:ro
     restart: always
     networks:
       - app-network
-    entrypoint: [ "/bin/sh" ] # ← вот это главное исправление
+    entrypoint: [ "/bin/sh" ]
     command:
       - "-c"
       - |
