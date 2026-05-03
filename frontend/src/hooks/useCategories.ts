@@ -9,98 +9,113 @@ import { ICategory, ICreateCategory } from '@/types/category.types'
 export function useCategories(isExpense: boolean) {
   const queryClient = useQueryClient()
 
-  /** 📥 Получение категорий */
+  /** Активные категории */
   const { data: categories = [], isLoading } = useQuery({
-    queryKey: ['categories'],
+    queryKey: ['categories', isExpense],
     queryFn: () => categoryService.getAll(),
     staleTime: 1000 * 60
   })
 
-  /** ➕ Создание */
+  /** Архивные категории */
+  const { data: archived = [] } = useQuery({
+    queryKey: ['categories_archived'],
+    queryFn: () => categoryService.getArchived(),
+    staleTime: 1000 * 60
+  })
+
+  /** Создание */
   const createMutation = useMutation({
     mutationFn: (data: ICreateCategory) => categoryService.create(data),
-
     onSuccess: newCategory => {
-      queryClient.setQueryData<ICategory[]>(['categories'], old => [
+      queryClient.setQueryData<ICategory[]>(['categories', isExpense], old => [
         ...(old ?? []),
         newCategory
       ])
-
       toast.success('Категория создана')
     },
-
     onError: (error: any) => {
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Ошибка создания категории'
-
+        error?.response?.data?.message || 'Ошибка создания категории'
       toast.error(message)
     }
   })
 
-  /** ✏️ Обновление */
+  /** Обновление */
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: ICreateCategory }) =>
       categoryService.update(id, data),
-
-    onSuccess: updatedCategory => {
-      queryClient.setQueryData<ICategory[]>(['categories'], old =>
-        (old ?? []).map(cat =>
-          cat.id === updatedCategory.id ? updatedCategory : cat
-        )
+    onSuccess: updated => {
+      queryClient.setQueryData<ICategory[]>(['categories', isExpense], old =>
+        (old ?? []).map(c => (c.id === updated.id ? updated : c))
       )
-
       toast.success('Категория обновлена')
     },
-
     onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Ошибка обновления категории'
-
+      const message = error?.response?.data?.message || 'Ошибка обновления'
       toast.error(message)
     }
   })
 
-  /** 🗑 Удаление */
+  /** Архивация */
   const deleteMutation = useMutation({
     mutationFn: (id: number) => categoryService.delete(id),
-
     onSuccess: (_, id) => {
-      queryClient.setQueryData<ICategory[]>(['categories'], old =>
-        (old ?? []).filter(cat => cat.id !== id)
+      // удаляем из активных
+      queryClient.setQueryData<ICategory[]>(['categories', isExpense], old =>
+        (old ?? []).filter(c => c.id !== id)
+      )
+      // обновляем список архивных
+      queryClient.invalidateQueries({ queryKey: ['categories_archived'] })
+
+      toast.success('Категория перемещена в архив')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || 'Ошибка архивирования'
+      toast.error(message)
+    }
+  })
+
+  /** Разархивация */
+  const unarchiveMutation = useMutation({
+    mutationFn: (id: number) => categoryService.unarchive(id),
+    onSuccess: unarchived => {
+      // убрали из архива
+      queryClient.setQueryData<ICategory[]>(['categories_archived'], old =>
+        (old ?? []).filter(c => c.id !== unarchived.id)
       )
 
-      toast.success('Категория удалена')
+      // вернули в активные
+      queryClient.setQueryData<ICategory[]>(['categories', isExpense], old => [
+        ...(old ?? []),
+        unarchived
+      ])
+
+      toast.success('Категория восстановлена')
     },
-
     onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Ошибка удаления категории'
-
+      const message = error?.response?.data?.message || 'Ошибка восстановления'
       toast.error(message)
     }
   })
 
   return {
-    /** данные */
+    /** активные */
     categories,
     isLoading,
 
-    /** create */
+    /** архивные */
+    archived,
+
+    /** CRUD */
     createCategory: createMutation.mutateAsync,
-    isCreating: createMutation.isPending,
-
-    /** update */
     updateCategory: updateMutation.mutateAsync,
-    isUpdating: updateMutation.isPending,
-
-    /** delete */
     deleteCategory: deleteMutation.mutateAsync,
-    isDeleting: deleteMutation.isPending
+    unarchiveCategory: unarchiveMutation.mutateAsync,
+
+    /** состояния */
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
+    isUnarchiving: unarchiveMutation.isPending
   }
 }

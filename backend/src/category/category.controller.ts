@@ -32,11 +32,6 @@ export class CategoryController {
     return this.categoryService.findAll(user.id);
   }
 
-  @Get(':id')
-  findOne(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.categoryService.findOne(user.id, Number(id));
-  }
-
   @UsePipes(new ValidationPipe())
   @Patch(':id')
   update(@CurrentUser() user: User, @Param('id') id: string, @Body() dto: UpdateCategoryDto) {
@@ -46,5 +41,20 @@ export class CategoryController {
   @Delete(':id')
   remove(@CurrentUser() user: User, @Param('id') id: string) {
     return this.categoryService.remove(user.id, Number(id));
+  }
+
+  @Get('archived')
+  getArchived(@CurrentUser() user: User) {
+    return this.categoryService.getArchived(user.id);
+  }
+
+  @Patch(':id/unarchive')
+  unarchive(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.categoryService.unarchive(user.id, Number(id));
+  }
+
+  @Get(':id')
+  findOne(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.categoryService.findOne(user.id, Number(id));
   }
 }

@@ -2,14 +2,12 @@
 
 import { buildDonutData } from '@/lib/transactions-donut'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { MessageSquare } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { CategoriesPanel } from '@/components/dashboard/categories/CategoriesPanel'
 import ChatModal from '@/components/dashboard/chat/ChatModal'
 import { TransactionsDonutChart } from '@/components/dashboard/transactions/TransactionsDonutChart'
 import { TransactionsListModal } from '@/components/dashboard/transactions/TransactionsListModal'
-import { Button } from '@/components/ui/shadui/button'
 
 import { TransactionType } from '@/types/transaction.types'
 
@@ -36,7 +34,11 @@ export default function DashboardPage() {
   const { data: modalTransactions = [], isLoading: modalLoading } =
     useTransactionsForPeriod(modalRange.from, modalRange.to)
 
-  const { categories, isLoading: catLoading } = useCategories(isExpense)
+  const {
+    categories,
+    archived,
+    isLoading: catLoading
+  } = useCategories(isExpense)
 
   const loading = chartLoading || catLoading
   const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
@@ -55,9 +57,17 @@ export default function DashboardPage() {
     }
   }, [])
 
-  const donutData = useMemo(() => {
-    return buildDonutData(chartTransactions, type, categories)
-  }, [chartTransactions, type, categories])
+  const allCategories = useMemo(
+    () => [...categories, ...archived],
+    [categories, archived]
+  )
+  const { donutData, total } = useMemo(() => {
+    const data = buildDonutData(chartTransactions, type, allCategories)
+    const sum = data.reduce((s, i) => s + i.value, 0)
+    return { donutData: data, total: sum }
+  }, [chartTransactions, type, allCategories])
+
+  console.log(donutData)
 
   return (
     <div className="space-y-8">
@@ -65,7 +75,7 @@ export default function DashboardPage() {
         <div className="flex-1 min-w-0 rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
           <TransactionsDonutChart
             donutData={donutData}
-            total={donutData.reduce((s, i) => s + i.value, 0)}
+            total={total}
             isExpense={isExpense}
             range={chartRange}
             onRangeChange={setChartRange}
@@ -79,6 +89,7 @@ export default function DashboardPage() {
             onExpenseChange={setIsExpense}
             donutData={donutData}
             loading={loading}
+            categories={categories}
           />
         </div>
       </div>

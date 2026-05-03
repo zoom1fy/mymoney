@@ -1,9 +1,13 @@
 'use client'
 
-import { Trash2, X } from 'lucide-react'
+import { Archive, Trash2, X } from 'lucide-react'
+// Добавлен Archive
 import { ReactNode } from 'react'
 
 import { Button } from '@/components/ui/shadui/button'
+
+// Тип для действия: удаление или архивация
+type ActionType = 'delete' | 'archive'
 
 interface ModalHeaderProps {
   icon: ReactNode
@@ -12,6 +16,8 @@ interface ModalHeaderProps {
   onDelete?: () => void
   isDeleteLoading?: boolean
   showDelete?: boolean
+  actionType?: ActionType
+  deleteIcon?: ReactNode
 }
 
 export function ModalHeader({
@@ -20,11 +26,21 @@ export function ModalHeader({
   onClose,
   onDelete,
   isDeleteLoading = false,
-  showDelete = false
+  showDelete = false,
+  actionType = 'delete', // По умолчанию — удаление
+  deleteIcon
 }: ModalHeaderProps) {
+  // Определяем иконку по actionType или используем кастомную
+  const defaultDeleteIcon =
+    actionType === 'archive' ? (
+      <Archive className="size-5" />
+    ) : (
+      <Trash2 className="size-5" />
+    )
+
   return (
     <div className="relative">
-      {/* Градиентный фон как в чате */}
+      {/* Градиентный фон */}
       <div className="absolute -top-10 -left-10 w-32 h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-full blur-2xl" />
       <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-l from-primary/20 via-primary/10 to-transparent rounded-full blur-2xl" />
 
@@ -46,7 +62,7 @@ export function ModalHeader({
 
         {/* Правая группа кнопок */}
         <div className="flex items-center gap-2">
-          {/* Кнопка удаления */}
+          {/* Кнопка удаления/архивации */}
           {showDelete && onDelete && (
             <Button
               type="button"
@@ -56,11 +72,12 @@ export function ModalHeader({
               disabled={isDeleteLoading}
               className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 h-12 w-12 rounded-full hover:scale-110 transition-all duration-300"
             >
-              <Trash2 className="size-5" />
+              {deleteIcon || defaultDeleteIcon}{' '}
+              {/* Используем кастомную иконку или дефолтную */}
             </Button>
           )}
 
-          {/* Кнопка закрытия как в чате */}
+          {/* Кнопка закрытия */}
           <Button
             type="button"
             variant="ghost"

@@ -85,7 +85,9 @@ export interface ICreateCategory {
 /**
  * Полная категория (бэк → фронт)
  */
-export interface ICategory extends ICreateCategory, IBase {}
+export interface ICategory extends ICreateCategory, IBase {
+   isArchived: boolean
+}
 
 /**
  * Интерфейс обновления категории (частичное обновление)

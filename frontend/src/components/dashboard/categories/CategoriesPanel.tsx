@@ -1,16 +1,18 @@
 'use client'
 
+import { ArchiveModal } from './ArchiveModal'
 import { CategoryGrid } from './CategoryGrid'
 import { CategoryToggle } from './CategoryToggle'
 import { EditModeButton } from './EditModeButton'
 import { useState } from 'react'
 
-import { useCategories } from '@/hooks/useCategories'
+import { ICategory } from '@/types/category.types'
 
 interface Props {
   isExpense: boolean
   onExpenseChange: (value: boolean) => void
   donutData?: any[]
+  categories: ICategory[]
   loading?: boolean
 }
 
@@ -18,10 +20,10 @@ export function CategoriesPanel({
   isExpense,
   onExpenseChange,
   donutData,
+  categories,
   loading
 }: Props) {
   const [editMode, setEditMode] = useState(false)
-  const { categories } = useCategories(isExpense)
 
   return (
     <div className="w-full">
@@ -33,6 +35,8 @@ export function CategoriesPanel({
               onChange={onExpenseChange}
             />
           </div>
+          {/* Кнопка архива */}
+          <ArchiveModal isExpense={isExpense} />
           <EditModeButton
             active={editMode}
             onToggle={() => setEditMode(v => !v)}

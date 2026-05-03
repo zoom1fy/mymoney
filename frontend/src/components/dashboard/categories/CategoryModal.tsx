@@ -1,11 +1,10 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Archive, Pencil, Plus } from 'lucide-react'
+// <-- Archive вместо Trash2
 import { ReactNode, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-
-// добавил Controller
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
@@ -17,7 +16,6 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogTrigger
 } from '@/components/ui/shadui/dialog'
 import { Input } from '@/components/ui/shadui/input'
@@ -54,7 +52,7 @@ export function CategoryModal({
   const {
     createCategory,
     updateCategory,
-    deleteCategory,
+    deleteCategory, // Теперь это архивация
     isCreating,
     isUpdating,
     isDeleting
@@ -71,7 +69,7 @@ export function CategoryModal({
     setValue,
     watch,
     reset,
-    control, // добавил control
+    control,
     formState: { errors }
   } = useForm<ICreateCategory>({
     defaultValues: {
@@ -104,10 +102,7 @@ export function CategoryModal({
   const onSubmit = async (data: ICreateCategory) => {
     try {
       if (isEdit && category) {
-        await updateCategory({
-          id: category.id,
-          data
-        })
+        await updateCategory({ id: category.id, data })
       } else {
         await createCategory({
           ...data,
@@ -116,7 +111,6 @@ export function CategoryModal({
           color: data.color
         })
       }
-
       setOpen(false)
       reset()
     } catch {}
@@ -124,9 +118,8 @@ export function CategoryModal({
 
   const handleDelete = async () => {
     if (!category) return
-
     try {
-      await deleteCategory(category.id)
+      await deleteCategory(category.id) // Архивируем категорию
       setConfirmOpen(false)
       setOpen(false)
     } catch {}
@@ -137,9 +130,7 @@ export function CategoryModal({
       open={open}
       onOpenChange={v => {
         setOpen(v)
-        if (!v && mode === 'edit') {
-          onClose?.()
-        }
+        if (!v && mode === 'edit') onClose?.()
       }}
     >
       {mode === 'create' && (
@@ -170,11 +161,12 @@ export function CategoryModal({
                   <Plus className="size-6 text-white" />
                 )
               }
-              title={isEdit ? 'Редактирование категории' : 'Новая категория'}
+              title={isEdit ? 'Редактирование' : 'Новая категория'}
               onClose={() => setOpen(false)}
               onDelete={() => setConfirmOpen(true)}
               isDeleteLoading={isDeleting}
               showDelete={isEdit && !!category}
+              actionType="archive"
             />
           </DialogHeader>
 
@@ -203,7 +195,6 @@ export function CategoryModal({
                 {iconOptions.map(icon => {
                   const Icon = CategoryIcons[icon]
                   const active = selectedIcon === icon
-
                   return (
                     <button
                       key={icon}
@@ -223,7 +214,7 @@ export function CategoryModal({
               </div>
             </ScrollArea>
 
-            {/* ColorPicker с Controller */}
+            {/* ColorPicker */}
             <Controller
               name="color"
               control={control}
@@ -245,7 +236,6 @@ export function CategoryModal({
               >
                 {isEdit ? 'Сохранить' : 'Создать'}
               </AccentButton>
-
               <AccentButton
                 type="button"
                 variant="ghost"
@@ -259,18 +249,20 @@ export function CategoryModal({
           </form>
         </GlassCard>
       </DialogContent>
+
+      {/* Подтверждение архивации */}
       <ConfirmAlert
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Удалить категорию?"
+        title="Архивировать категорию?"
         description={
           <>
-            Категория <b>«{category?.name}»</b> будет удалена навсегда.
+            Категория <b>«{category?.name}»</b> будет перемещена в архив.
             <br />
-            Это действие нельзя отменить.
+            Вы сможете восстановить её позже.
           </>
         }
-        confirmText="Удалить"
+        confirmText="Архивировать"
         cancelText="Отмена"
         loading={isDeleting}
         onConfirm={handleDelete}

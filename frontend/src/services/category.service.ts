@@ -16,6 +16,18 @@ export const categoryService = {
     return response.data
   },
 
+  async getArchived() {
+    const response = await axiosWithAuth.get<ICategory[]>('/category/archived')
+    return response.data
+  },
+
+  async unarchive(id: number) {
+    const response = await axiosWithAuth.patch<ICategory>(
+      `/category/${id}/unarchive`
+    )
+    return response.data
+  },
+
   async getById(id: number) {
     const response = await axiosWithAuth.get<ICategory>(`/category/${id}`)
     return response.data
@@ -30,7 +42,7 @@ export const categoryService = {
   },
 
   async delete(id: number) {
-    const response = await axiosWithAuth.delete<{ message: string }>(
+    const response = await axiosWithAuth.delete<{ success: boolean }>(
       `/category/${id}`
     )
     return response.data

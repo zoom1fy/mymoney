@@ -13,10 +13,10 @@ export class CreateCategoryDto {
   @IsString({ message: 'Имя должно быть строкой' })
   @IsNotEmpty()
   @MaxLength(11, { message: 'Имя не должно превышать 11 символов' })
-  name: string;
+  name!: string;
 
   @IsEnum(CurrencyCode)
-  currencyCode: CurrencyCode;
+  currencyCode!: CurrencyCode;
 
   @IsOptional()
   @IsString()
@@ -24,7 +24,7 @@ export class CreateCategoryDto {
   color?: string;
 
   @IsBoolean()
-  isExpense: boolean;
+  isExpense!: boolean;
 
   @IsOptional()
   @IsInt()

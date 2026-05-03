@@ -82,6 +82,7 @@ model Category {
   color        String?  @default("") @db.VarChar(7)
   isExpense    Boolean  @map("is_expense")
   parentId     Int?     @map("parent_id") @db.UnsignedInt
+  isArchived   Boolean  @default(false)
   createdAt    DateTime @default(now()) @map("created_at")
 
   user          User          @relation("UserCategories", fields: [userId], references: [id], onDelete: Cascade)
@@ -121,22 +122,21 @@ model Transaction {
 
   @@index([userId, transactionDate, id])
   @@index([accountId, transactionDate])
+  @@index([categoryId])
   @@map("transactions")
 }
 
 enum MessageRole {
   USER
   ASSISTANT
-  SYSTEM
 }
 
 model ChatMessage {
-  id      String      @id @default(uuid())
-  userId  String      @db.Char(36)
-  role    MessageRole @default(USER)
-  content String      @db.MediumText // Текст сообщения
-  context Json?
-  createdAt DateTime @default(now())
+  id        String      @id @default(uuid())
+  userId    String      @db.Char(36)
+  role      MessageRole @default(USER)
+  content   String      @db.MediumText
+  createdAt DateTime    @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
