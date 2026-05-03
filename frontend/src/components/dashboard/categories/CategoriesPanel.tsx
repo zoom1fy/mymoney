@@ -4,6 +4,7 @@ import { ArchiveModal } from './ArchiveModal'
 import { CategoryGrid } from './CategoryGrid'
 import { CategoryToggle } from './CategoryToggle'
 import { EditModeButton } from './EditModeButton'
+import { DonutItem } from '@/lib/transactions-donut'
 import { useState } from 'react'
 
 import { ICategory } from '@/types/category.types'
@@ -11,7 +12,7 @@ import { ICategory } from '@/types/category.types'
 interface Props {
   isExpense: boolean
   onExpenseChange: (value: boolean) => void
-  donutData?: any[]
+  donutData?: DonutItem[]
   categories: ICategory[]
   loading?: boolean
 }

@@ -1,4 +1,3 @@
-// src/components/dashboard/categories/CategoryItemSkeleton.tsx
 'use client'
 
 export function CategoryItemSkeleton() {

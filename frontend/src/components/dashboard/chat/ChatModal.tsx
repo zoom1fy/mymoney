@@ -2,11 +2,9 @@
 
 import ChatMessages from './ChatMessages'
 import { getAccessToken } from '@/services/auth-token.service'
-import { chatService } from '@/services/chat.service'
 import {
   AlertCircle,
   Loader2,
-  MessageSquare,
   Send,
   Sparkles,
   X,

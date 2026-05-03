@@ -3,10 +3,11 @@
 import { DateRangePicker } from './DateRangePicker'
 import { DateRangePickerSkeleton } from './skeletons/DateRangePickerSkeleton'
 import { TransactionsDonutChartSkeleton } from './skeletons/TransactionsDonutChartSkeleton'
+import { DonutItem } from '@/lib/transactions-donut'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 interface Props {
-  donutData: any[]
+  donutData: DonutItem[]
   total: number
   isExpense: boolean
   range: { from: Date; to: Date }

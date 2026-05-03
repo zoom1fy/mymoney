@@ -7,7 +7,6 @@ import { AccountModule } from './account/account.module';
 import { CategoryModule } from './category/category.module';
 import { CurrencyModule } from './currency/currency.module';
 import { TransactionModule } from './transaction/transaction.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 import { ChatModule } from './chat/chat.module';
 
 @Module({
@@ -21,7 +20,6 @@ import { ChatModule } from './chat/chat.module';
     CategoryModule,
     CurrencyModule,
     TransactionModule,
-    DashboardModule,
     ChatModule,
   ],
   providers: [PrismaService],
