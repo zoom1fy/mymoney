@@ -21,9 +21,6 @@ export class AccountService {
       throw new BadRequestException('Счёт с таким именем уже существует');
     }
 
-    console.log('DTO:', dto);
-    console.log('currentBalance:', dto.currentBalance, 'Type:', typeof dto.currentBalance);
-
     const balance =
       dto.currentBalance !== undefined && !isNaN(dto.currentBalance)
         ? new Decimal(dto.currentBalance)
