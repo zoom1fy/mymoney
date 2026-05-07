@@ -13,6 +13,7 @@ frontend/node_modules/
 
 # Игнорировать сборочные артефакты
 backend/dist/
+backend/coverage/
 frontend/.next/
 frontend/package-lock.json
 
