@@ -14,7 +14,7 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { CurrentUser } from '../auth/decorators/user.decorator';
-import { User } from '@/../.prisma/client';
+import { User } from '@prisma/client';
 
 @Auth()
 @Controller('accounts')
