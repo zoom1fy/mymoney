@@ -22,9 +22,12 @@ import { JwtService } from '@nestjs/jwt'; // импортируем JwtService
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: ['http://localhost:3001'],
+    credentials: true,
   },
+  transports: ['websocket', 'polling'],
 })
+
 export class ChatGateway {
   @WebSocketServer()
   server!: Server;
