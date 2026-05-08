@@ -3,6 +3,7 @@
 import { DASHBOARD_PAGES } from '@/config/pages-url.config'
 import { authService } from '@/services/auth.service'
 import { useMutation } from '@tanstack/react-query'
+import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -18,6 +19,10 @@ import { IAuthForm } from '@/types/auth.types'
 
 type AuthType = 'login' | 'register'
 
+interface IAuthFormExtended extends IAuthForm {
+  confirmPassword: string
+}
+
 export function Auth() {
   const [type, setType] = useState<AuthType>('login')
   const router = useRouter()
@@ -26,10 +31,9 @@ export function Auth() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors }
-  } = useForm<IAuthForm>({
-    mode: 'onChange'
-  })
+  } = useForm<IAuthFormExtended>({ mode: 'onChange' })
 
   const { mutate: authenticate, isPending } = useMutation({
     mutationKey: ['auth'],
@@ -51,41 +55,51 @@ export function Auth() {
     }
   })
 
-  const onSubmit: SubmitHandler<IAuthForm> = data => {
-    authenticate(data)
+  const onSubmit: SubmitHandler<IAuthFormExtended> = data => {
+    if (type === 'register' && data.password !== data.confirmPassword) {
+      toast.error('Пароли не совпадают')
+      return
+    }
+    authenticate({ email: data.email, password: data.password })
+  }
+
+  const passwordValue = watch('password')
+
+  const toggleAuthType = () => {
+    setType(prev => (prev === 'login' ? 'register' : 'login'))
   }
 
   return (
     <div className="relative min-h-screen overflow-hidden text-foreground">
-      {/* Улучшенный многослойный фон с анимацией */}
+      {/* ФОН */}
       <div className="absolute inset-0 -z-10">
-        {/* Основной большой центральный blob */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[1000px] w-[1000px] rounded-full bg-accent/25 blur-3xl animate-pulse-slow" />
-
-        {/* Боковые акценты */}
-        <div className="absolute -left-48 top-0 h-[800px] w-[800px] rounded-full bg-accent/20 blur-3xl animate-float" />
-        <div className="absolute -right-64 bottom-0 h-[900px] w-[900px] rounded-full bg-accent/15 blur-3xl animate-float-delayed" />
-
-        {/* Лёгкий градиентный оверлей для глубины */}
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-background/50 to-background/70" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[1000px] w-[1000px] rounded-full bg-accent/20 blur-3xl animate-pulse-slow" />
+        <div className="absolute -left-48 top-0 h-[800px] w-[800px] rounded-full bg-accent/15 blur-3xl animate-float" />
+        <div className="absolute -right-64 bottom-0 h-[900px] w-[900px] rounded-full bg-accent/10 blur-3xl animate-float-delayed" />
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-background/60 to-background/80" />
       </div>
 
-      {/* Центральная карточка */}
       <div className="flex min-h-screen items-center justify-center px-6">
-        <GlassCard className="w-full max-w-lg rounded-3xl border p-12 shadow-2xl backdrop-blur-xl">
-          <div className="text-center mb-12">
-            <p className="mt-6 text-xl md:text-2xl text-muted-foreground">
+        <GlassCard className="w-full max-w-lg rounded-3xl border p-12 shadow-2xl backdrop-blur-xl overflow-hidden">
+          <div className="text-center mb-10">
+            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
               {type === 'login'
                 ? 'Войдите, чтобы продолжить управление финансами'
                 : 'Создайте аккаунт и обретите спокойствие с деньгами'}
             </p>
           </div>
 
-          <form
+          <motion.form
             onSubmit={handleSubmit(onSubmit)}
             className="space-y-8"
+            layout
+            transition={{ duration: 0.75, ease: [0.4, 0, 0.2, 1] }}
           >
-            <div>
+            {/* Email */}
+            <motion.div
+              layout
+              transition={{ duration: 0.4 }}
+            >
               <Label
                 htmlFor="email"
                 className="text-lg font-medium"
@@ -96,7 +110,6 @@ export function Auth() {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
-                autoComplete="email"
                 className="mt-3 h-14 text-lg px-5"
                 {...register('email', {
                   required: 'Email обязателен',
@@ -106,14 +119,14 @@ export function Auth() {
                   }
                 })}
               />
-              {errors.email && (
-                <p className="mt-2 text-base text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+              <ErrorMessage error={errors.email?.message} />
+            </motion.div>
 
-            <div>
+            {/* Пароль */}
+            <motion.div
+              layout
+              transition={{ duration: 0.4 }}
+            >
               <Label
                 htmlFor="password"
                 className="text-lg font-medium"
@@ -130,48 +143,78 @@ export function Auth() {
                 className="mt-3 h-14 text-lg px-5"
                 {...register('password', {
                   required: 'Пароль обязателен',
-                  minLength: {
-                    value: 6,
-                    message: 'Минимум 6 символов'
-                  }
+                  minLength: { value: 6, message: 'Минимум 6 символов' }
                 })}
               />
-              {errors.password && (
-                <p className="mt-2 text-base text-destructive">
-                  {errors.password.message}
-                </p>
+              <ErrorMessage error={errors.password?.message} />
+            </motion.div>
+
+            {/* Confirm Password */}
+            <AnimatePresence mode="sync">
+              {type === 'register' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginTop: 50 }}
+                  animate={{ opacity: 1, height: 100, marginTop: 0 }}
+                  exit={{ opacity: 0, height: 0, marginTop: -30 }}
+                  transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+                  layout
+                >
+                  <Label
+                    htmlFor="confirmPassword"
+                    className="text-lg font-medium"
+                  >
+                    Повторите пароль
+                  </Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    className="mt-3 h-14 text-lg px-5"
+                    {...register('confirmPassword', {
+                      required: 'Повтор пароля обязателен',
+                      validate: value =>
+                        value === passwordValue || 'Пароли не совпадают'
+                    })}
+                  />
+                  <ErrorMessage error={errors.confirmPassword?.message} />
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
 
-            <AccentButton
-              type="submit"
-              size="lg"
-              className="w-full h-14 text-lg font-medium"
-              disabled={isPending}
+            {/* Кнопка */}
+            <motion.div
+              layout
+              transition={{ duration: 0.5 }}
             >
-              {isPending
-                ? 'Подождите...'
-                : type === 'login'
-                  ? 'Войти'
-                  : 'Создать аккаунт'}
-            </AccentButton>
-          </form>
+              <AccentButton
+                type="submit"
+                size="lg"
+                className="w-full h-14 text-lg font-medium"
+                disabled={isPending}
+              >
+                {isPending
+                  ? 'Подождите...'
+                  : type === 'login'
+                    ? 'Войти'
+                    : 'Создать аккаунт'}
+              </AccentButton>
+            </motion.div>
+          </motion.form>
 
-          {/* Переключатель */}
+          {/* Переключение */}
           <div className="mt-10 text-center">
             <p className="text-lg text-muted-foreground">
               {type === 'login' ? 'Ещё нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
               <button
                 type="button"
-                onClick={() => setType(type === 'login' ? 'register' : 'login')}
-                className="font-semibold text-accent hover:underline focus:outline-none transition"
+                onClick={toggleAuthType}
+                className="font-semibold text-accent hover:underline transition-colors"
               >
                 {type === 'login' ? 'Зарегистрироваться' : 'Войти'}
               </button>
             </p>
           </div>
 
-          {/* Ссылка на главную */}
           <div className="mt-8 text-center">
             <Link
               href="/"
@@ -183,7 +226,6 @@ export function Auth() {
         </GlassCard>
       </div>
 
-      {/* Анимации */}
       <style jsx>{`
         @keyframes pulse-slow {
           0%,
@@ -192,38 +234,43 @@ export function Auth() {
             transform: scale(1);
           }
           50% {
-            opacity: 0.8;
-            transform: scale(1.05);
+            opacity: 0.85;
+            transform: scale(1.08);
           }
         }
         @keyframes float {
           0%,
           100% {
-            transform: translateY(0) translateX(0);
+            transform: translateY(0);
           }
           50% {
-            transform: translateY(-40px) translateX(30px);
+            transform: translateY(-35px);
           }
         }
         @keyframes float-delayed {
           0%,
           100% {
-            transform: translateY(0) translateX(0);
+            transform: translateY(0);
           }
           50% {
-            transform: translateY(40px) translateX(-30px);
+            transform: translateY(35px);
           }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 12s ease-in-out infinite;
-        }
-        .animate-float {
-          animation: float 18s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float-delayed 20s ease-in-out infinite;
         }
       `}</style>
     </div>
+  )
+}
+
+function ErrorMessage({ error }: { error?: string }) {
+  if (!error) return null
+  return (
+    <motion.p
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className="mt-2 text-base text-destructive"
+    >
+      {error}
+    </motion.p>
   )
 }
