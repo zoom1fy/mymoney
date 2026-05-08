@@ -3,18 +3,17 @@
 - [English](README.md)
 - [Русский](README.ru.md)
 
-MyMoney — приложение для управления личными финансами со встроенным AI-финансовым консультантом. Отслеживайте доходы, расходы и переводы между счетами в разных валютах, анализируйте траты с помощью графиков и получайте персональные рекомендации по бюджету от локальной нейросети.
+MyMoney — полнофункциональное приложение для управления личными финансами со встроенным AI-финансовым консультантом. Отслеживайте доходы, расходы и переводы между счетами в разных валютах, анализируйте траты с помощью интерактивных графиков и общайтесь с локальной нейросетью, которая даёт рекомендации на основе ваших реальных данных.
 
 ## Возможности
 
-- **Мультивалютные счета** — банковские счета, наличные и пользовательские типы счетов с иконками и балансами
-- **Учёт доходов и расходов** — транзакции с категориями, датами, описаниями и поддержкой нескольких валют
-- **Иерархические категории** — вложенные категории расходов/доходов с кастомными цветами и иконками
-- **Переводы между счетами** — перемещайте деньги между своими счетами
-- **Визуальный дашборд** — аналитика расходов с графиками (Recharts) и фильтрацией по периодам
-- **AI-финансовый консультант** — чат с локальной LLM (Ollama + llama3.1), которая анализирует ваши реальные финансовые данные и даёт конкретные рекомендации с цифрами
-- **Чат в реальном времени** — WebSocket-соединение для AI-диалога с сохранением истории в базе данных
-- **JWT-аутентификация** — безопасный вход с access/refresh токенами в httpOnly cookie
+- **Мультивалютные счета** — банковские, наличные, сберегательные, крипто и пользовательские типы с иконками
+- **Учёт доходов / расходов / переводов** — транзакции с иерархическими категориями, датами и описаниями
+- **Аналитика трат** — круговые диаграммы (Recharts) с фильтрацией по периодам
+- **AI-финансовый консультант** — локальная LLM (Ollama, llama3.1) анализирует реальные данные и даёт конкретные рекомендации с цифрами на русском языке
+- **Чат в реальном времени** — WebSocket со стримингом ответов AI, история сохраняется в БД
+- **JWT-аутентификация** — access-токены (Bearer) + refresh-токены (httpOnly cookies)
+- **Оптимистичный UI** — мгновенные обновления через TanStack Query
 
 ## Технологический стек
 
@@ -23,244 +22,291 @@ MyMoney — приложение для управления личными фи
 |---|---|
 | [Next.js 15](https://nextjs.org/) (App Router) | React-фреймворк |
 | React 19 | UI-библиотека |
-| Tailwind CSS 4 + shadcn/ui | Стилизация и компонентные примитивы |
-| Ant Design 6 | Дополнительные UI-компоненты |
-| Recharts 3 | Визуализация данных (графики) |
-| TanStack Query 5 | Управление серверным состоянием |
-| React Hook Form 7 | Работа с формами |
+| Tailwind CSS 4 + shadcn/ui (New York) | Стилизация и примитивы |
+| Ant Design 6 | DatePicker и доп. компоненты |
+| Recharts 3 | Круговые диаграммы |
+| TanStack Query 5 | Серверное состояние и оптимистичные обновления |
 | Socket.IO Client 4 | AI-чат в реальном времени |
 | Framer Motion 12 | Анимации |
+| React Hook Form 7 | Формы |
 | Sonner | Toast-уведомления |
-| Day.js / date-fns | Работа с датами |
 
 ### Бэкенд
 | Технология | Назначение |
 |---|---|
 | [NestJS 11](https://nestjs.com/) | Node.js-фреймворк |
-| Prisma 6 | ORM и миграции базы данных |
-| MySQL 8.0 | Реляционная база данных |
+| Prisma 6 | ORM и миграции |
+| MySQL 8.0 | База данных |
 | JWT + Passport | Аутентификация |
 | Argon2 | Хеширование паролей |
-| Socket.IO 4 | WebSocket-сервер для AI-чата |
-| Axios | HTTP-клиент (интеграция с Ollama API) |
+| Socket.IO 4 | WebSocket для AI-чата |
 | Decimal.js | Точные финансовые расчёты |
-| Cache Manager | Кеширование ответов |
+| Cache Manager | Кеширование |
 
 ### Инфраструктура
-| Сервис | Порт |
+| Сервис | Внутренний : Внешний порт |
 |---|---|
-| Фронтенд (Next.js) | `3001` |
-| Бэкенд (NestJS API) | `3000` |
+| Frontend (Next.js) | `3000` → `3001` (через nginx) |
+| Backend (NestJS) | `3000` (внутренний) |
+| nginx | `80` → `3001` |
 | MySQL 8.0 | `3306` |
-| phpMyAdmin | `8080` |
-| Ollama (LLM) | `11434` |
+| phpMyAdmin | `80` → `8080` |
+| Ollama | `11434` |
 
 ## Структура проекта
 
 ```
 mymoney/
-├── backend/                 # NestJS API-сервер
+├── backend/                     # NestJS API-сервер
 │   ├── src/
-│   │   ├── auth/            # JWT-аутентификация (логин, регистрация, refresh)
-│   │   ├── user/            # Управление пользователями
-│   │   ├── account/         # CRUD счетов (банк, наличные и т.д.)
-│   │   ├── category/        # Категории доходов/расходов (иерархические)
-│   │   ├── transaction/     # Транзакции (доход, расход, перевод)
-│   │   ├── dashboard/       # Аналитика и агрегированные финансовые данные
-│   │   ├── chat/            # AI-чат через WebSocket + Ollama
-│   │   ├── currency/        # Справочник валют
-│   │   ├── common/          # Общие утилиты, гарды, пайпы
-│   │   ├── config/          # Конфигурация приложения
-│   │   └── prisma/          # Prisma-сервис
+│   │   ├── auth/                # JWT: логин, регистрация, refresh, guards
+│   │   ├── user/                # CRUD профиля
+│   │   ├── account/             # CRUD счетов (банк, наличные и т.д.)
+│   │   ├── category/            # Иерархические категории доходов/расходов
+│   │   ├── transaction/         # Доходы / расходы / переводы
+│   │   ├── chat/                # WebSocket AI-чат + интеграция с Ollama
+│   │   │   ├── gateway.ts       # Socket.IO gateway
+│   │   │   └── services/        # Анализ намерений, извлечение периода, сборка промпта
+│   │   ├── currency/            # Курсы валют через API ЦБ РФ
+│   │   ├── prisma/              # Prisma-сервис
+│   │   ├── config/              # JWT-конфиг, токен-конфиг
+│   │   └── common/enums/        # Общие перечисления (CurrencyCode)
 │   ├── prisma/
-│   │   ├── schema.prisma    # Схема базы данных
-│   │   └── seed.ts          # Начальные данные (валюты, типы счетов)
-│   └── Dockerfile
-├── frontend/                # Next.js веб-приложение
+│   │   ├── schema.prisma        # Схема БД
+│   │   ├── seed.ts              # Валюты, типы счетов
+│   │   └── migrations/          # Миграции Prisma
+│   ├── test/                    # E2E-тесты
+│   └── Dockerfile(.dev/.prod)
+├── frontend/                    # Next.js веб-приложение
 │   ├── src/
-│   │   ├── app/             # Страницы App Router (авторизация, дашборд)
-│   │   ├── components/      # React UI-компоненты
-│   │   ├── hooks/           # Кастомные React-хуки
-│   │   ├── services/        # API-клиент сервисы
-│   │   ├── types/           # TypeScript-типы
-│   │   └── api/             # Обработчики API-маршрутов
-│   └── Dockerfile
-├── docker-compose.yml       # Оркестрация всего стека
-├── Modelfile                # Кастомная модель финансового советника Ollama
-├── deploy.sh                # Скрипт деплоя (macOS/Linux)
-└── deploy.bat               # Скрипт деплоя (Windows)
+│   │   ├── app/                 # App Router: auth, dashboard (me/)
+│   │   ├── components/          # UI-примитивы + компоненты дашборда
+│   │   │   ├── ui/              # shadcn/ui, кнопки, карточки, модалки
+│   │   │   ├── dashboard/       # Sidebar, счета, категории, транзакции, чат
+│   │   │   └── dashboard/.../skeletons/  # Скелетоны загрузки
+│   │   ├── hooks/               # useProfile, useAccounts, useTransactions, useChat и др.
+│   │   ├── services/            # API-клиенты (auth, account, category, transaction, chat WS)
+│   │   ├── types/               # TypeScript-интерфейсы (IAccount, ICategory, ...)
+│   │   ├── config/              # Константы маршрутов
+│   │   ├── constants/           # SEO-метаданные
+│   │   ├── lib/                 # Утилиты, форматтеры, helpers для графиков
+│   │   └── api/                 # Axios-интерсепторы, обработка ошибок
+│   └── Dockerfile(.dev/.prod)
+├── nginx/
+│   └── nginx.conf               # Обратный прокси (frontend + API + Socket.IO)
+├── docker-compose.yml           # Весь стек (MySQL, backend, frontend, nginx, phpMyAdmin, Ollama)
+├── docker-compose.dev.yml       # Dev-расширения (порты, volumes)
+├── docker-compose.prod.yml      # Prod-расширения
+├── Modelfile                    # Кастомная модель Ollama financial-advisor
+├── deploy.sh                    # Скрипт деплоя (macOS/Linux)
+├── deploy.bat                   # Скрипт деплоя (Windows)
+└── Insomnia_mymoney.yaml        # Коллекция API-запросов для Insomnia
 ```
-
-## Требования
-
-- **Docker** — [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) или Docker Engine (Linux)
-- **Git** — для клонирования репозитория
-- **Свободные порты**: `3000`, `3001`, `3306`, `8080`, `11434`
-
-Node.js (18+) не обязателен — всё работает внутри Docker-контейнеров.
 
 ## Быстрый старт
 
-### 1. Клонируйте репозиторий
+### Требования
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) или Docker Engine (Linux)
+- Git
+- Свободные порты: `3001`, `3306`, `8080`, `11434`
+
+### 1. Клонируйте и настройте
 
 ```bash
-git clone <URL_репозитория>
+git clone <url_репозитория>
 cd mymoney
-```
-
-### 2. Настройте переменные окружения
-
-**Корневой `.env`** (скопируйте из `.example.env`):
-
-```bash
 cp .example.env .env
 ```
 
-Откройте `.env` и укажите свои значения:
+Отредактируйте `.env`:
 
 ```env
-MYSQL_ROOT_PASSWORD=ваш_пароль_root
-MYSQL_USER=ваш_пользователь_БД
-MYSQL_PASSWORD=ваш_пароль_БД
+MYSQL_ROOT_PASSWORD=ваш_пароль
 MYSQL_DATABASE=mymoneydb
-DATABASE_URL=mysql://ваш_пользователь_БД:ваш_пароль_БД@db:3306/mymoneydb
-NESTJS_PORT=3000
-NEXTJS_PORT=3001
-JWT_SECRET=ваш-секретный-ключ-обязательно-измените
+DATABASE_URL=mysql://root:ваш_пароль@db:3306/mymoneydb
+JWT_SECRET=ваш-секретный-ключ
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 REFRESH_TOKEN_COOKIE_NAME=refresh_token
 NODE_ENV=development
 OLLAMA_URL=http://ollama:11434
 OLLAMA_MODEL=financial-advisor
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3000 # для prod используйте 3001
+NEXT_PUBLIC_API_URL=http://localhost:3000/api # для prod используйте 3001
+NEXT_PUBLIC_COOKIE_DOMAIN=localhost
 ```
 
-### 3. Запустите проект
+### 2. Запустите
 
-**macOS / Linux:**
 ```bash
-chmod +x deploy.sh
+# macOS / Linux
 ./deploy.sh
-```
 
-**Windows:**
-```bat
+# Windows
 deploy.bat
 ```
 
-Скрипт остановит старые контейнеры, соберёт образы и запустит весь стек.
+Или вручную:
 
-### 4. Проверьте запуск
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+```
+
+При первом запуске скачается модель `llama3.1` (~4 ГБ) и создастся кастомная модель `financial-advisor`. Это может занять несколько минут.
+
+### 3. Откройте в браузере
 
 | Сервис | URL |
 |---|---|
 | Фронтенд | http://localhost:3001 |
-| Backend API | http://localhost:3000 |
-| phpMyAdmin | http://localhost:8080 (логин: `root` / ваш `MYSQL_ROOT_PASSWORD`) |
+| phpMyAdmin | http://localhost:8080 (пользователь: `root`) |
 | Ollama API | http://localhost:11434 |
 
-При первом запуске скачается модель `llama3.1` (~4 ГБ) для AI-советника. Это может занять несколько минут в зависимости от скорости интернета.
+## API-справочник
 
-## Разработка
+### Аутентификация (`/api/auth`)
+| Метод | Путь | Auth | Описание |
+|---|---|---|---|
+| POST | `/api/auth/register` | — | Регистрация `{email, password}` |
+| POST | `/api/auth/login` | — | Вход `{email, password}` |
+| POST | `/api/auth/login/access-token` | Cookie | Обновление access-токена |
+| POST | `/api/auth/logout` | — | Удаление refresh-куки |
 
-### Бэкенд (NestJS)
+Ответ: `{ user: {id, email}, accessToken }` + `refresh_token` httpOnly cookie.
 
-```bash
-cd backend
+### Пользователь (`/api/user/profile`)
+| Метод | Auth | Описание |
+|---|---|---|
+| GET | JWT | Получить профиль |
+| PATCH | JWT | Обновить email / пароль |
+| DELETE | JWT | Удалить аккаунт |
 
-# Установка зависимостей
-npm install
+### Счета (`/api/accounts`)
+| Метод | Auth | Описание |
+|---|---|---|
+| POST | JWT | Создать счёт |
+| GET | JWT | Список активных |
+| GET `/:id` | JWT | Получить по ID |
+| PATCH `/:id` | JWT | Обновить |
+| DELETE `/:id` | JWT | Мягкое удаление |
 
-# Генерация Prisma-клиента
-npm run prisma:generate
+### Категории (`/api/category`)
+| Метод | Auth | Описание |
+|---|---|---|
+| POST | JWT | Создать категорию |
+| GET | JWT | Активные категории |
+| GET `/:id` | JWT | По ID |
+| PATCH `/:id` | JWT | Обновить |
+| DELETE `/:id` | JWT | Архивация (с подкатегориями) |
+| GET `/archived` | JWT | Архивные категории |
+| PATCH `/:id/unarchive` | JWT | Восстановить |
 
-# Применение миграций
-npm run prisma:migrate:dev
+### Транзакции (`/api/transactions`)
+| Метод | Auth | Описание |
+|---|---|---|
+| POST | JWT | Создать (INCOME / EXPENSE / TRANSFER) |
+| GET | JWT | Список с пагинацией и фильтрами |
+| GET `/:id` | JWT | По ID |
+| PATCH `/:id` | JWT | Обновить (rollback + apply) |
+| DELETE `/:id` | JWT | Удалить (обратный баланс) |
 
-# Сидирование базы данных
-npm run prisma:seed
+**Фильтры:** `take`, `cursor`, `accountId`, `type`, `from`, `to`
 
-# Запуск в режиме разработки (watch)
-npm run start:dev
+### Чат (`/api/chat`)
+| Метод | Auth | Описание |
+|---|---|---|
+| GET | JWT | Последние 10 сообщений |
+| DELETE | JWT | Очистить историю |
 
-# Запуск тестов
-npm run test
-npm run test:e2e
+### WebSocket — AI-чат
 
-# Линтинг
-npm run lint
-```
+Подключение: `ws://localhost:3001/socket.io` с `auth.token` = JWT access-токен.
 
-### Фронтенд (Next.js)
-
-```bash
-cd frontend
-
-# Установка зависимостей
-npm install
-
-# Запуск dev-сервера
-npm run dev
-
-# Сборка для продакшена
-npm run build
-
-# Линтинг
-npm run lint
-```
-
-### Docker (весь стек)
-
-```bash
-# Запуск всего
-docker-compose up -d --build
-
-# Просмотр логов
-docker-compose logs -f backend
-docker-compose logs -f frontend
-
-# Остановка всех сервисов
-docker-compose down
-
-# Остановка с удалением томов (сброс базы данных)
-docker-compose down -v
-```
-
-## Схема базы данных
-
-Приложение использует следующие основные сущности:
-
-- **User** — зарегистрированные пользователи (UUID, email, хеш пароля)
-- **Account** — финансовые счета (банк, наличные и т.д.) с типом, категорией, валютой и иконкой
-- **Category** — категории доходов/расходов с опциональной иерархией (родитель → подкатегория), кастомными цветами
-- **Transaction** — финансовые операции (INCOME / EXPENSE / TRANSFER) с суммой, датой, описанием
-- **Currency** — поддерживаемые валюты (RUB, USD, EUR, BTC)
-- **ChatMessage** — история AI-чата (сообщения пользователя и ответы ассистента)
-
-Все денежные значения хранятся как `DECIMAL(15, 2)` для точности.
+| Событие | Направление | Данные | Описание |
+|---|---|---|---|
+| `chat:send` | → | `{text, tempId?}` | Отправить сообщение |
+| `chat:message` | ← | `{id, content, role, createdAt}` | Сохранённое сообщение |
+| `chat:partial` | ← | `{id, chunk}` | Чанк стриминга ответа |
+| `chat:complete` | ← | `{id, finalId, response}` | Полный ответ |
+| `chat:error` | ← | `{error, tempId?}` | Ошибка |
 
 ## AI-финансовый консультант
 
-В проект встроен локальный AI-ассистент на базе [Ollama](https://ollama.com) с кастомной моделью `financial-advisor`, основанной на `llama3.1`.
+- **Модель:** `financial-advisor` (кастомная, на базе `llama3.1` через Ollama)
+- **Язык:** только русский
+- **Триггер:** ключевые слова *анализ, расход, доход, отчет, финанс, оптимиз, сводка, статист, эконом, бюджет*
+- **Данные:** полная финансовая сводка (доходы/расходы по категориям, помесячная разбивка, балансы счетов, норма сбережения)
+- **Извлечение периода** из естественного языка: "за прошлый месяц", "последние 30 дней", "с 1 марта по 17 апреля"
+- **Стриминг:** ответ передаётся по WebSocket чанками в реальном времени
 
-**Что он умеет:**
-- Анализирует ваши реальные доходы, расходы, категории и периоды
-- Определяет топ категорий расходов и их доли
-- Выявляет растущие категории трат и аномальные расходы
-- Даёт конкретные рекомендации с числами (сколько сократить, какой лимит установить)
-- Отвечает **только на русском** — кратко, можно с эмодзи
+**Что умеет:**
+- Определяет топ категорий расходов и их долю
+- Выявляет растущие категории и необычные паттерны
+- Даёт конкретные рекомендации с цифрами (сколько сократить, какой лимит установить)
 
-**Чего он НЕ делает:**
-- Никогда не придумывает транзакции, суммы или категории, которых нет в ваших данных
+**Что НЕ делает:**
+- Никогда не придумывает данные, которых нет в ваших записях
 - Не даёт инвестиционных советов
-- Работает полностью локально — никакие данные не покидают ваш компьютер
+- Работает полностью локально — данные не покидают ваш компьютер
 
-Модель описана в файле `Modelfile` в корне проекта и автоматически создаётся при первом запуске.
+## Разработка
+
+### Бэкенд
+```bash
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate dev
+npm run prisma:seed
+npm run start:dev
+
+# Тесты (66+ unit-тестов)
+npm run test          # Unit
+npm run test:cov      # С покрытием
+npm run test:e2e      # E2E
+npm run lint
+```
+
+### Фронтенд
+```bash
+cd frontend
+npm install
+npm run dev
+npm run lint
+```
+
+### Docker
+```bash
+docker compose up -d --build
+docker compose logs -f backend
+docker compose down
+docker compose down -v   # Сброс БД + данных Ollama
+```
+
+## База данных
+
+| Сущность | Описание |
+|---|---|
+| **User** | UUID, email, хеш Argon2 |
+| **Account** | Привязан к пользователю, типу, категории, валюте; баланс DECIMAL(15,2) |
+| **Category** | Иерархическая (самоссылающаяся), в рамках пользователя, флаг дохода/расхода |
+| **Transaction** | INCOME / EXPENSE / TRANSFER, атомарное обновление баланса |
+| **Currency** | RUB, USD, EUR, BTC |
+| **ChatMessage** | UUID, связь с пользователем, роль (USER/ASSISTANT), содержимое |
+
+Все суммы — `DECIMAL(15,2)`. Кодировка: `utf8mb4_unicode_ci`.
+
+## Безопасность
+
+- **Argon2** для хеширования паролей (не bcrypt)
+- **JWT** пара: access (15 мин) + refresh (7 дней)
+- **Refresh-токен** в httpOnly, SameSite=Lax cookie (защита от XSS)
+- **Мягкое удаление** для счетов (`isDeleted`) и категорий (`isArchived`)
+- **CORS** ограничен origin фронтенда
 
 ## Примечания
 
-- Поддержка русского языка встроена (кодировка `utf8mb4_unicode_ci`)
-- AI-советник по умолчанию отвечает только на русском
-- Все финансовые расчёты используют `Decimal.js` (никаких проблем с плавающей точкой)
-- Пароли хешируются через Argon2 (не bcrypt)
-- Refresh-токены хранятся в httpOnly cookie (защита от XSS)
+- Интерфейс на русском языке; AI-консультант отвечает только на русском
+- Курсы валют загружаются через API Центрального Банка России (ЦБ РФ)
+- Все финансовые расчёты через `Decimal.js` — никаких проблем с плавающей точкой

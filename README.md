@@ -3,18 +3,17 @@
 - [English](README.md)
 - [Русский](README.ru.md)
 
-MyMoney is a personal finance management application with an AI-powered financial advisor. Track income, expenses, transfers across multiple accounts and currencies, analyze spending patterns with visual charts, and get personalized budget recommendations from a built-in LLM.
+MyMoney is a full-stack personal finance application with an AI-powered financial advisor. Track income, expenses, and transfers across multiple accounts and currencies, analyze spending with interactive charts, and chat with a local LLM that gives data-backed financial recommendations.
 
 ## Features
 
-- **Multi-currency accounts** — bank accounts, cash, and custom account types with icons and balances
-- **Income & expense tracking** — transactions with categories, dates, descriptions, and multi-currency support
-- **Hierarchical categories** — nested income/expense categories with custom colors and icons
-- **Transfers between accounts** — move money between your accounts
-- **Visual dashboard** — spending analytics with charts (Recharts) and period filtering
-- **AI financial advisor** — chat with a local LLM (Ollama + llama3.1) that analyzes your real financial data and gives concrete, numbers-backed recommendations
-- **Real-time chat** — WebSocket-powered AI conversation with message history stored in the database
-- **JWT authentication** — secure login with access/refresh tokens stored in httpOnly cookies
+- **Multi-currency accounts** — bank, cash, savings, crypto, and custom account types with icons
+- **Income / expense / transfer tracking** — transactions with hierarchical categories, dates, descriptions
+- **Spending analytics** — donut charts (Recharts) with period filtering
+- **AI financial advisor** — local Ollama LLM (llama3.1-based) that analyzes your real data and gives concrete, numbers-backed recommendations in Russian
+- **Real-time WebSocket chat** — streaming AI responses with message history in DB
+- **JWT authentication** — access tokens (Bearer) + refresh tokens (httpOnly cookies)
+- **Optimistic UI** — instant updates with TanStack Query optimistic mutations
 
 ## Tech Stack
 
@@ -23,244 +22,291 @@ MyMoney is a personal finance management application with an AI-powered financia
 |---|---|
 | [Next.js 15](https://nextjs.org/) (App Router) | React framework |
 | React 19 | UI library |
-| Tailwind CSS 4 + shadcn/ui | Styling & component primitives |
-| Ant Design 6 | Additional UI components |
-| Recharts 3 | Data visualization (charts) |
-| TanStack Query 5 | Server state management |
-| React Hook Form 7 | Form handling |
+| Tailwind CSS 4 + shadcn/ui (New York) | Styling & primitives |
+| Ant Design 6 | Date picker, additional components |
+| Recharts 3 | Donut charts |
+| TanStack Query 5 | Server state & optimistic updates |
 | Socket.IO Client 4 | Real-time AI chat |
 | Framer Motion 12 | Animations |
+| React Hook Form 7 | Form handling |
 | Sonner | Toast notifications |
-| Day.js / date-fns | Date manipulation |
 
 ### Backend
 | Technology | Purpose |
 |---|---|
 | [NestJS 11](https://nestjs.com/) | Node.js framework |
-| Prisma 6 | ORM & database migrations |
-| MySQL 8.0 | Relational database |
+| Prisma 6 | ORM & migrations |
+| MySQL 8.0 | Database |
 | JWT + Passport | Authentication |
 | Argon2 | Password hashing |
-| Socket.IO 4 | WebSocket server for AI chat |
-| Axios | HTTP client (Ollama API integration) |
-| Decimal.js | Precise financial calculations |
+| Socket.IO 4 | WebSocket for AI chat |
+| Decimal.js | Precise financial math |
 | Cache Manager | Response caching |
 
 ### Infrastructure
-| Service | Port |
+| Service | Internal : External |
 |---|---|
-| Frontend (Next.js) | `3001` |
-| Backend (NestJS API) | `3000` |
+| Frontend (Next.js) | `3000` → `3001` (via nginx) |
+| Backend (NestJS) | `3000` (internal) |
+| nginx | `80` → `3001` |
 | MySQL 8.0 | `3306` |
-| phpMyAdmin | `8080` |
-| Ollama (LLM) | `11434` |
+| phpMyAdmin | `80` → `8080` |
+| Ollama | `11434` |
 
 ## Project Structure
 
 ```
 mymoney/
-├── backend/                 # NestJS API server
+├── backend/                     # NestJS API server
 │   ├── src/
-│   │   ├── auth/            # JWT authentication (login, register, refresh)
-│   │   ├── user/            # User management
-│   │   ├── account/         # Account CRUD (bank, cash, etc.)
-│   │   ├── category/        # Income/expense categories (hierarchical)
-│   │   ├── transaction/     # Transactions (income, expense, transfer)
-│   │   ├── dashboard/       # Analytics & aggregated financial data
-│   │   ├── chat/            # AI chat via WebSocket + Ollama
-│   │   ├── currency/        # Currency reference data
-│   │   ├── common/          # Shared utilities, guards, pipes
-│   │   ├── config/          # App configuration
-│   │   └── prisma/          # Prisma service
+│   │   ├── auth/                # JWT login, register, refresh, guards
+│   │   ├── user/                # Profile CRUD
+│   │   ├── account/             # Account CRUD (bank, cash, etc.)
+│   │   ├── category/            # Hierarchical income/expense categories
+│   │   ├── transaction/         # Income / expense / transfer CRUD
+│   │   ├── chat/                # WebSocket AI chat + Ollama integration
+│   │   │   ├── gateway.ts       # Socket.IO gateway
+│   │   │   └── services/        # Analysis intent, period extraction, prompt builder
+│   │   ├── currency/            # Exchange rates via CBR API
+│   │   ├── prisma/              # Prisma client service
+│   │   ├── config/              # JWT config, token config
+│   │   └── common/enums/        # Shared enums (CurrencyCode)
 │   ├── prisma/
-│   │   ├── schema.prisma    # Database schema
-│   │   └── seed.ts          # Initial data (currencies, account types)
-│   └── Dockerfile
-├── frontend/                # Next.js web application
+│   │   ├── schema.prisma        # Database schema
+│   │   ├── seed.ts              # Currencies, account types
+│   │   └── migrations/          # Prisma migrations
+│   ├── test/                    # E2E tests
+│   └── Dockerfile(.dev/.prod)
+├── frontend/                    # Next.js web application
 │   ├── src/
-│   │   ├── app/             # App Router pages (auth, dashboard)
-│   │   ├── components/      # React UI components
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── services/        # API client services
-│   │   ├── types/           # TypeScript type definitions
-│   │   └── api/             # API route handlers
-│   └── Dockerfile
-├── docker-compose.yml       # Full stack orchestration
-├── Modelfile                # Custom Ollama financial advisor model
-├── deploy.sh                # Deploy script (macOS/Linux)
-└── deploy.bat               # Deploy script (Windows)
+│   │   ├── app/                 # App Router: auth, dashboard (me/)
+│   │   ├── components/          # UI primitives + dashboard components
+│   │   │   ├── ui/              # shadcn/ui, buttons, cards, modals
+│   │   │   ├── dashboard/       # Sidebar, accounts, categories, transactions, chat
+│   │   │   └── dashboard/.../skeletons/  # Loading skeletons
+│   │   ├── hooks/               # useProfile, useAccounts, useTransactions, useChat, etc.
+│   │   ├── services/            # API clients (auth, account, category, transaction, chat WS)
+│   │   ├── types/               # TypeScript interfaces (IAccount, ICategory, etc.)
+│   │   ├── config/              # Route constants
+│   │   ├── constants/           # SEO metadata
+│   │   ├── lib/                 # Utils, formatters, chart helpers
+│   │   └── api/                 # Axios interceptors, error helpers
+│   └── Dockerfile(.dev/.prod)
+├── nginx/
+│   └── nginx.conf               # Reverse proxy (frontend + API + Socket.IO)
+├── docker-compose.yml           # Full stack (MySQL, backend, frontend, nginx, phpMyAdmin, Ollama)
+├── docker-compose.dev.yml       # Dev overrides (ports, volumes)
+├── docker-compose.prod.yml      # Prod overrides
+├── Modelfile                    # Custom Ollama financial-advisor model definition
+├── deploy.sh                    # Deploy script (macOS/Linux)
+├── deploy.bat                   # Deploy script (Windows)
+└── Insomnia_mymoney.yaml        # API collection for Insomnia
 ```
-
-## Requirements
-
-- **Docker** — [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine (Linux)
-- **Git** — for cloning the repository
-- **Free ports**: `3000`, `3001`, `3306`, `8080`, `11434`
-
-Node.js (18+) is optional — everything runs inside Docker containers.
 
 ## Quick Start
 
-### 1. Clone the repository
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine (Linux)
+- Git
+- Free ports: `3001`, `3306`, `8080`, `11434`
+
+### 1. Clone and configure
 
 ```bash
-git clone <repository_URL>
+git clone <repository_url>
 cd mymoney
-```
-
-### 2. Configure environment variables
-
-**Root `.env`** (copy from `.example.env`):
-
-```bash
 cp .example.env .env
 ```
 
-Edit `.env` and set your values:
+Edit `.env`:
 
 ```env
-MYSQL_ROOT_PASSWORD=your_root_password
-MYSQL_USER=your_db_user
-MYSQL_PASSWORD=your_db_password
+MYSQL_ROOT_PASSWORD=your_pass
 MYSQL_DATABASE=mymoneydb
-DATABASE_URL=mysql://your_db_user:your_db_password@db:3306/mymoneydb
-NESTJS_PORT=3000
-NEXTJS_PORT=3001
-JWT_SECRET=your-super-secret-key-change-this
+DATABASE_URL=mysql://root:your_pass@db:3306/mymoneydb
+JWT_SECRET=your-secret-key
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 REFRESH_TOKEN_COOKIE_NAME=refresh_token
 NODE_ENV=development
 OLLAMA_URL=http://ollama:11434
 OLLAMA_MODEL=financial-advisor
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3000 # for prod use 3001
+NEXT_PUBLIC_API_URL=http://localhost:3000/api # for prod use 3001
+NEXT_PUBLIC_COOKIE_DOMAIN=localhost
 ```
 
-### 3. Start the project
+### 2. Start
 
-**macOS / Linux:**
 ```bash
-chmod +x deploy.sh
+# macOS / Linux
 ./deploy.sh
-```
 
-**Windows:**
-```bat
+# Windows
 deploy.bat
 ```
 
-The script stops old containers, builds images, and starts the full stack.
+Or manually:
 
-### 4. Verify
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+```
+
+First launch downloads `llama3.1` (~4 GB) and creates the custom `financial-advisor` model. This may take a few minutes.
+
+### 3. Access
 
 | Service | URL |
 |---|---|
 | Frontend | http://localhost:3001 |
-| Backend API | http://localhost:3000 |
-| phpMyAdmin | http://localhost:8080 (login: `root` / your `MYSQL_ROOT_PASSWORD`) |
+| phpMyAdmin | http://localhost:8080 (user: `root`) |
 | Ollama API | http://localhost:11434 |
 
-The first launch will download the `llama3.1` model (~4 GB) for the AI advisor. This may take a few minutes depending on your connection.
+## API Reference
 
-## Development
+### Authentication (`/api/auth`)
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | — | Register `{email, password}` |
+| POST | `/api/auth/login` | — | Login `{email, password}` |
+| POST | `/api/auth/login/access-token` | Cookie | Refresh access token |
+| POST | `/api/auth/logout` | — | Clear refresh token |
 
-### Backend (NestJS)
+Response: `{ user: {id, email}, accessToken }` + `refresh_token` httpOnly cookie.
 
-```bash
-cd backend
+### User (`/api/user/profile`)
+| Method | Auth | Description |
+|---|---|---|
+| GET | JWT | Get profile |
+| PATCH | JWT | Update email / password |
+| DELETE | JWT | Delete account |
 
-# Install dependencies
-npm install
+### Accounts (`/api/accounts`)
+| Method | Auth | Description |
+|---|---|---|
+| POST | JWT | Create account |
+| GET | JWT | List all active |
+| GET `/:id` | JWT | Get by ID |
+| PATCH `/:id` | JWT | Update |
+| DELETE `/:id` | JWT | Soft-delete |
 
-# Generate Prisma client
-npm run prisma:generate
+### Categories (`/api/category`)
+| Method | Auth | Description |
+|---|---|---|
+| POST | JWT | Create category |
+| GET | JWT | List active categories |
+| GET `/:id` | JWT | Get by ID |
+| PATCH `/:id` | JWT | Update |
+| DELETE `/:id` | JWT | Archive (with subcategories) |
+| GET `/archived` | JWT | List archived |
+| PATCH `/:id/unarchive` | JWT | Restore |
 
-# Run migrations
-npm run prisma:migrate:dev
+### Transactions (`/api/transactions`)
+| Method | Auth | Description |
+|---|---|---|
+| POST | JWT | Create (INCOME / EXPENSE / TRANSFER) |
+| GET | JWT | List with pagination & filters |
+| GET `/:id` | JWT | Get by ID |
+| PATCH `/:id` | JWT | Update (rollback + apply) |
+| DELETE `/:id` | JWT | Delete (reverse balance) |
 
-# Seed the database
-npm run prisma:seed
+**Filters:** `take`, `cursor`, `accountId`, `type`, `from`, `to`
 
-# Start in dev mode (watch)
-npm run start:dev
+### Chat (`/api/chat`)
+| Method | Auth | Description |
+|---|---|---|
+| GET | JWT | Last 10 messages |
+| DELETE | JWT | Clear all messages |
 
-# Run tests
-npm run test
-npm run test:e2e
+### WebSocket — AI Chat
 
-# Lint
-npm run lint
-```
+Connect: `ws://localhost:3001/socket.io` with `auth.token` set to the JWT access token.
 
-### Frontend (Next.js)
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start dev server
-npm run dev
-
-# Build for production
-npm run build
-
-# Lint
-npm run lint
-```
-
-### Docker (full stack)
-
-```bash
-# Start everything
-docker-compose up -d --build
-
-# View logs
-docker-compose logs -f backend
-docker-compose logs -f frontend
-
-# Stop all services
-docker-compose down
-
-# Stop and remove volumes (resets database)
-docker-compose down -v
-```
-
-## Database Schema
-
-The application uses the following core entities:
-
-- **User** — registered users (UUID, email, password hash)
-- **Account** — financial accounts (bank, cash, etc.) with type, category, currency, and icon
-- **Category** — income/expense categories with optional parent-child hierarchy, custom colors
-- **Transaction** — financial operations (INCOME / EXPENSE / TRANSFER) with amount, date, description
-- **Currency** — supported currencies (RUB, USD, EUR, BTC)
-- **ChatMessage** — AI chat history (user messages and assistant responses)
-
-All monetary values use `DECIMAL(15, 2)` for precision.
+| Event | Direction | Payload | Description |
+|---|---|---|---|
+| `chat:send` | → | `{text, tempId?}` | Send a message |
+| `chat:message` | ← | `{id, content, role, createdAt}` | Saved user message |
+| `chat:partial` | ← | `{id, chunk}` | Streaming response chunk |
+| `chat:complete` | ← | `{id, finalId, response}` | Final response |
+| `chat:error` | ← | `{error, tempId?}` | Error |
 
 ## AI Financial Advisor
 
-The project includes a local AI assistant powered by [Ollama](https://ollama.com) running a custom `financial-advisor` model based on `llama3.1`.
+- **Model:** `financial-advisor` (custom, based on `llama3.1` via Ollama)
+- **Language:** Russian only
+- **Triggers:** Keywords like *анализ, расход, доход, отчет, финанс, оптимиз, сводка, статист, эконом, бюджет*
+- **Data sent:** Full financial summary (income/expense by category, monthly breakdown, account balances, savings rate)
+- **Period extraction:** Natural language → date ranges ("за прошлый месяц", "последние 30 дней", "с 1 марта по 17 апреля")
+- **Streaming:** Responses streamed via WebSocket in real-time chunks
 
 **What it does:**
-- Analyzes your real income, expenses, categories, and date ranges
 - Identifies top spending categories and their proportions
-- Flags growing expense categories and unusual spending patterns
+- Flags growing expense categories and unusual patterns
 - Gives specific, numbers-backed recommendations (exact amounts to cut, limits to set)
-- Responds **only in Russian** with concise, emoji-friendly answers
 
-**What it doesn't do:**
-- It never invents transactions, amounts, or categories that aren't in your data
-- It doesn't give investment advice
-- It runs entirely locally — no data leaves your machine
+**What it does NOT do:**
+- Never invents data not in your records
+- Does not give investment advice
+- Runs entirely locally — no data leaves your machine
 
-The model is defined in the `Modelfile` at the project root and is automatically created on first launch.
+## Development
+
+### Backend
+```bash
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate dev
+npm run prisma:seed
+npm run start:dev
+
+# Tests (66+ unit tests)
+npm run test          # Unit
+npm run test:cov      # With coverage
+npm run test:e2e      # E2E
+npm run lint
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+npm run lint
+```
+
+### Docker
+```bash
+docker compose up -d --build
+docker compose logs -f backend
+docker compose down
+docker compose down -v   # Reset DB + Ollama data
+```
+
+## Database
+
+| Entity | Description |
+|---|---|
+| **User** | UUID, email, Argon2 hash |
+| **Account** | Linked to user, type, category, currency; DECIMAL(15,2) balance |
+| **Category** | Hierarchical (self-referencing), scoped to user, income/expense flag |
+| **Transaction** | INCOME / EXPENSE / TRANSFER, updates balances atomically |
+| **Currency** | RUB, USD, EUR, BTC |
+| **ChatMessage** | UUID, user link, role (USER/ASSISTANT), content |
+
+All values use `DECIMAL(15,2)`. Collation: `utf8mb4_unicode_ci`.
+
+## Security
+
+- **Argon2** password hashing (not bcrypt)
+- **JWT** access (15m) + refresh (7d) token pair
+- **Refresh token** in httpOnly, SameSite=Lax cookie (XSS-resistant)
+- **Soft-delete** for accounts (`isDeleted`) and categories (`isArchived`)
+- **CORS** restricted to frontend origin
 
 ## Notes
 
-- Russian language support is built-in (`utf8mb4_unicode_ci` collation)
-- The AI advisor responds only in Russian by design
-- All financial calculations use `Decimal.js` for precision (no floating-point issues)
-- Passwords are hashed with Argon2 (not bcrypt)
-- Refresh tokens are stored in httpOnly cookies (XSS-resistant)
+- UI is in Russian; the AI advisor responds only in Russian
+- Currency exchange rates fetched from the Central Bank of Russia (CBR) API
+- All financial math uses `Decimal.js` — no floating-point precision issues
