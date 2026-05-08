@@ -16,11 +16,12 @@ export const getAccessToken = () => {
 export const saveTokenStorage = (accessToken: string) => {
   Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
     domain: COOKIE_DOMAIN,
-    sameSite: 'strict',
-    expires: 1, // 1 день
-    secure: process.env.NODE_ENV === 'production'
-  })
-}
+    sameSite: 'lax',
+    expires: 1,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  });
+};
 
 export const removeTokenStorage = () => {
   Cookies.remove(EnumTokens.ACCESS_TOKEN, {
