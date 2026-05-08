@@ -28,9 +28,6 @@ export default function HomePage() {
         </div>
 
         <div className="mx-auto max-w-6xl px-6 pt-40 pb-32 text-center">
-          {/* badge */}
-          <GlassBadge>🪙 Новый подход к личным финансам</GlassBadge>
-
           {/* title */}
           <h1 className="mt-10 text-6xl md:text-7xl font-semibold tracking-tight">
             Финансы
@@ -76,10 +73,6 @@ export default function HomePage() {
           <h2 className="text-4xl font-semibold tracking-tight">
             Всё, что нужно — и ничего лишнего
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Мы убрали шум и оставили только то, что действительно помогает
-            контролировать финансы.
-          </p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">
