@@ -1,13 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-} from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import * as request from 'supertest';
-import * as cookieParser from 'cookie-parser';
+import request from 'supertest';
+import cookieParser from 'cookie-parser';
 import { JwtService } from '@nestjs/jwt';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { AuthModule } from '../src/auth/auth.module';
 import { AccountModule } from '../src/account/account.module';
 import { CategoryModule } from '../src/category/category.module';
@@ -142,9 +139,9 @@ describe('MyMoney API (e2e)', () => {
 
   afterEach(() => {
     // Clear call history only - preserve mockResolvedValue from beforeEach
-    Object.values(mockPrisma).forEach(model => {
+    Object.values(mockPrisma).forEach((model) => {
       if (model && typeof model === 'object') {
-        Object.values(model).forEach(fn => {
+        Object.values(model).forEach((fn) => {
           if (typeof fn === 'function' && 'mockClear' in fn) {
             (fn as jest.Mock).mockClear();
           }
@@ -169,7 +166,10 @@ describe('MyMoney API (e2e)', () => {
     it('should register a new user and return tokens', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce(null);
       mockPrisma.user.create.mockResolvedValueOnce({
-        id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: '$argon2id$hashed', lastLogin: new Date(),
+        id: TEST_USER_ID,
+        email: TEST_EMAIL,
+        passwordHash: '$argon2id$hashed',
+        lastLogin: new Date(),
       });
 
       const response = await request(app.getHttpServer())
@@ -207,7 +207,10 @@ describe('MyMoney API (e2e)', () => {
   describe('POST /api/auth/login', () => {
     it('should login successfully and return tokens', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce({
-        id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: '$argon2id$hash', lastLogin: new Date(),
+        id: TEST_USER_ID,
+        email: TEST_EMAIL,
+        passwordHash: '$argon2id$hash',
+        lastLogin: new Date(),
       });
 
       const response = await request(app.getHttpServer())
@@ -230,9 +233,7 @@ describe('MyMoney API (e2e)', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should clear refresh token cookie', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/auth/logout')
-        .expect(200);
+      const response = await request(app.getHttpServer()).post('/api/auth/logout').expect(200);
       expect(response.header['set-cookie']).toBeDefined();
     });
   });
@@ -242,22 +243,38 @@ describe('MyMoney API (e2e)', () => {
     it('should create a new account', async () => {
       mockPrisma.account.findFirst.mockResolvedValueOnce(null);
       mockPrisma.account.create.mockResolvedValueOnce({
-        id: 1, userId: TEST_USER_ID, name: 'Сбербанк', icon: 'bank',
-        currentBalance: new Decimal(1000), isDeleted: false,
-        createdAt: new Date(), updatedAt: new Date(),
+        id: 1,
+        userId: TEST_USER_ID,
+        name: 'Сбербанк',
+        icon: 'bank',
+        currentBalance: new Decimal(1000),
+        isDeleted: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       const response = await request(app.getHttpServer())
         .post('/api/accounts')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
-        .send({ name: 'Сбербанк', categoryId: 1, typeId: 1, currencyCode: 'RUB', currentBalance: 1000, icon: 'bank' })
+        .send({
+          name: 'Сбербанк',
+          categoryId: 1,
+          typeId: 1,
+          currencyCode: 'RUB',
+          currentBalance: 1000,
+          icon: 'bank',
+        })
         .expect(201);
 
       expect(response.body.name).toBe('Сбербанк');
     });
 
     it('should return 400 for duplicate account name', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: 1, name: 'Сбербанк', isDeleted: false });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: 1,
+        name: 'Сбербанк',
+        isDeleted: false,
+      });
       await request(app.getHttpServer())
         .post('/api/accounts')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
@@ -277,8 +294,22 @@ describe('MyMoney API (e2e)', () => {
   describe('GET /api/accounts', () => {
     it('should return all active accounts for user', async () => {
       mockPrisma.account.findMany.mockResolvedValueOnce([
-        { id: 1, userId: TEST_USER_ID, name: 'Сбербанк', currentBalance: new Decimal(1000), isDeleted: false, createdAt: new Date('2020-01-01') },
-        { id: 2, userId: TEST_USER_ID, name: 'Наличные', currentBalance: new Decimal(500), isDeleted: false, createdAt: new Date('2020-01-02') },
+        {
+          id: 1,
+          userId: TEST_USER_ID,
+          name: 'Сбербанк',
+          currentBalance: new Decimal(1000),
+          isDeleted: false,
+          createdAt: new Date('2020-01-01'),
+        },
+        {
+          id: 2,
+          userId: TEST_USER_ID,
+          name: 'Наличные',
+          currentBalance: new Decimal(500),
+          isDeleted: false,
+          createdAt: new Date('2020-01-02'),
+        },
       ]);
 
       const response = await request(app.getHttpServer())
@@ -294,7 +325,11 @@ describe('MyMoney API (e2e)', () => {
   describe('GET /api/accounts/:id', () => {
     it('should return a single account', async () => {
       mockPrisma.account.findFirst.mockResolvedValueOnce({
-        id: 1, userId: TEST_USER_ID, name: 'Сбербанк', currentBalance: new Decimal(1000), isDeleted: false,
+        id: 1,
+        userId: TEST_USER_ID,
+        name: 'Сбербанк',
+        currentBalance: new Decimal(1000),
+        isDeleted: false,
       });
 
       const response = await request(app.getHttpServer())
@@ -317,9 +352,18 @@ describe('MyMoney API (e2e)', () => {
   describe('PATCH /api/accounts/:id', () => {
     it('should update an account', async () => {
       mockPrisma.account.findFirst
-        .mockResolvedValueOnce({ id: 1, name: 'Old', isDeleted: false, currentBalance: new Decimal(0) })
+        .mockResolvedValueOnce({
+          id: 1,
+          name: 'Old',
+          isDeleted: false,
+          currentBalance: new Decimal(0),
+        })
         .mockResolvedValueOnce(null);
-      mockPrisma.account.update.mockResolvedValueOnce({ id: 1, name: 'Updated', currentBalance: new Decimal(2000) });
+      mockPrisma.account.update.mockResolvedValueOnce({
+        id: 1,
+        name: 'Updated',
+        currentBalance: new Decimal(2000),
+      });
 
       const response = await request(app.getHttpServer())
         .patch('/api/accounts/1')
@@ -333,7 +377,12 @@ describe('MyMoney API (e2e)', () => {
 
   describe('DELETE /api/accounts/:id', () => {
     it('should soft-delete an account', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: 1, name: 'ToDelete', isDeleted: false, currentBalance: new Decimal(0) });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: 1,
+        name: 'ToDelete',
+        isDeleted: false,
+        currentBalance: new Decimal(0),
+      });
       mockPrisma.account.update.mockResolvedValueOnce({ id: 1, isDeleted: true });
 
       await request(app.getHttpServer())
@@ -342,7 +391,7 @@ describe('MyMoney API (e2e)', () => {
         .expect(200);
 
       expect(mockPrisma.account.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ isDeleted: true }) }),
+        expect.objectContaining({ data: expect.objectContaining({ isDeleted: true }) })
       );
     });
   });
@@ -352,8 +401,14 @@ describe('MyMoney API (e2e)', () => {
     it('should create a new category', async () => {
       mockPrisma.category.findFirst.mockResolvedValueOnce(null);
       mockPrisma.category.create.mockResolvedValueOnce({
-        id: 1, userId: TEST_USER_ID, name: 'Еда', icon: 'food', color: '#FF0000',
-        isExpense: true, isArchived: false, currencyCode: 'RUB',
+        id: 1,
+        userId: TEST_USER_ID,
+        name: 'Еда',
+        icon: 'food',
+        color: '#FF0000',
+        isExpense: true,
+        isArchived: false,
+        currencyCode: 'RUB',
       });
 
       const response = await request(app.getHttpServer())
@@ -417,7 +472,12 @@ describe('MyMoney API (e2e)', () => {
 
   describe('DELETE /api/category/:id', () => {
     it('should archive a category and its children', async () => {
-      mockPrisma.category.findFirst.mockResolvedValueOnce({ id: 1, name: 'ToDelete', isArchived: false, userId: TEST_USER_ID });
+      mockPrisma.category.findFirst.mockResolvedValueOnce({
+        id: 1,
+        name: 'ToDelete',
+        isArchived: false,
+        userId: TEST_USER_ID,
+      });
       mockPrisma.category.update.mockResolvedValueOnce({ id: 1, isArchived: true });
       mockPrisma.category.updateMany.mockResolvedValueOnce({ count: 2 });
 
@@ -427,7 +487,7 @@ describe('MyMoney API (e2e)', () => {
         .expect(200);
 
       expect(mockPrisma.category.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { isArchived: true } }),
+        expect.objectContaining({ data: { isArchived: true } })
       );
     });
   });
@@ -445,7 +505,14 @@ describe('MyMoney API (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/transactions')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
-        .send({ accountId: 1, categoryId: 1, amount: 100, type: 'INCOME', currencyCode: 'RUB', description: 'Salary' })
+        .send({
+          accountId: 1,
+          categoryId: 1,
+          amount: 100,
+          type: 'INCOME',
+          currencyCode: 'RUB',
+          description: 'Salary',
+        })
         .expect(201);
 
       expect(mockPrisma.$transaction).toHaveBeenCalled();
@@ -506,7 +573,11 @@ describe('MyMoney API (e2e)', () => {
   describe('DELETE /api/transactions/:id', () => {
     it('should delete a transaction and reverse balance changes', async () => {
       mockPrisma.transaction.findFirst.mockResolvedValueOnce({
-        id: 1, accountId: 1, type: 'INCOME', amount: 100, targetAccountId: null,
+        id: 1,
+        accountId: 1,
+        type: 'INCOME',
+        amount: 100,
+        targetAccountId: null,
         account: { userId: TEST_USER_ID },
       });
       mockPrisma.$transaction.mockResolvedValueOnce([{}, {}]);
@@ -532,7 +603,10 @@ describe('MyMoney API (e2e)', () => {
   describe('GET /api/user/profile', () => {
     it('should return user profile', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce({
-        id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: '$argon2id$hashed', lastLogin: new Date(),
+        id: TEST_USER_ID,
+        email: TEST_EMAIL,
+        passwordHash: '$argon2id$hashed',
+        lastLogin: new Date(),
       });
 
       const response = await request(app.getHttpServer())
@@ -552,10 +626,25 @@ describe('MyMoney API (e2e)', () => {
       // 2nd: updateProfile calls findById -> findUnique
       // 3rd: updateProfile calls getByEmail -> findUnique (should return null = available)
       mockPrisma.user.findUnique
-        .mockResolvedValueOnce({ id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: '$argon2id$hashed', lastLogin: new Date() })
-        .mockResolvedValueOnce({ id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: '$argon2id$hashed', lastLogin: new Date() })
+        .mockResolvedValueOnce({
+          id: TEST_USER_ID,
+          email: TEST_EMAIL,
+          passwordHash: '$argon2id$hashed',
+          lastLogin: new Date(),
+        })
+        .mockResolvedValueOnce({
+          id: TEST_USER_ID,
+          email: TEST_EMAIL,
+          passwordHash: '$argon2id$hashed',
+          lastLogin: new Date(),
+        })
         .mockResolvedValueOnce(null);
-      mockPrisma.user.update.mockResolvedValueOnce({ id: TEST_USER_ID, email: newEmail, passwordHash: '$argon2id$hashed', lastLogin: new Date() });
+      mockPrisma.user.update.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        email: newEmail,
+        passwordHash: '$argon2id$hashed',
+        lastLogin: new Date(),
+      });
 
       const response = await request(app.getHttpServer())
         .patch('/api/user/profile')
