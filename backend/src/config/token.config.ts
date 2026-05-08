@@ -11,6 +11,7 @@ export interface TokenConfig {
     httpOnly: boolean;
     secure: boolean;
     sameSite: 'lax' | 'none' | 'strict';
+    path: string;
   };
 }
 
@@ -34,16 +35,16 @@ export const tokenConfigProvider: Provider = {
       throw new Error('REFRESH_TOKEN_COOKIE_NAME is not defined in environment');
     }
 
-    const secure = nodeEnv === 'production';
-
+    const isProduction = process.env.NODE_ENV === 'production';
     return {
       accessTokenExpiresIn,
       refreshTokenExpiresIn,
       refreshTokenName,
       refreshTokenCookieOptions: {
         httpOnly: true,
-        secure,
+        secure: isProduction,
         sameSite: 'lax',
+        path: '/',
       },
     };
   },
