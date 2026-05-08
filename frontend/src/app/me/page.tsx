@@ -67,8 +67,6 @@ export default function DashboardPage() {
     return { donutData: data, total: sum }
   }, [chartTransactions, type, allCategories])
 
-  console.log(donutData)
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
