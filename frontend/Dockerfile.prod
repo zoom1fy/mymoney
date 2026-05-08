@@ -1,0 +1,23 @@
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Аргументы для сборки
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SOCKET_URL
+ARG NEXT_PUBLIC_COOKIE_DOMAIN
+
+# Устанавливаем их как ENV для этапа сборки
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
+ENV NEXT_PUBLIC_COOKIE_DOMAIN=$NEXT_PUBLIC_COOKIE_DOMAIN
+
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+
+COPY --from=builder /app ./
+CMD ["npm", "run", "start"]

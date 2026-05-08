@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN apk add --no-cache netcat-openbsd
+
+RUN npm config set registry https://registry.npmjs.org/
+RUN npm install
+RUN npx prisma generate
+
+COPY . .
+
+CMD ["sh", "-c", "until nc -z db 3306; do echo 'Waiting for DB...'; sleep 1; done; npm run start"]

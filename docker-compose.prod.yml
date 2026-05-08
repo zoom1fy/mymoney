@@ -1,0 +1,26 @@
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile.prod
+    environment:
+      NODE_ENV: production
+    ports: []
+
+  frontend:
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile.prod
+        args:
+          NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+          NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
+          NEXT_PUBLIC_COOKIE_DOMAIN: ${NEXT_PUBLIC_COOKIE_DOMAIN}
+      environment:
+        NODE_ENV: production
+        # NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        # NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
+        # NEXT_PUBLIC_COOKIE_DOMAIN: ${NEXT_PUBLIC_COOKIE_DOMAIN}
+      ports: []
+
+  nginx:
+    ports:
+      - "3001:80"
