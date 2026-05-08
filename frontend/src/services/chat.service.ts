@@ -15,7 +15,6 @@ class ChatService {
   private socket: Socket | null = null
   private token: string | null = null
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 3
 
   setToken(token: string) {
     this.token = token
@@ -27,11 +26,14 @@ class ChatService {
     if (this.socket?.connected) return
 
     this.socket = io(
-      process.env.NEXT_PUBLIC_SOCKET_URL || 'ws://localhost:3000',
+      process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001',
       {
+        path: '/socket.io',
         auth: { token: this.token },
-        transports: ['websocket'],
-        reconnection: false // Отключаем автоматическое переподключение (будем делать вручную)
+        withCredentials: true,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        transports: ['websocket', 'polling']
       }
     )
 
