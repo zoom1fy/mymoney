@@ -5,6 +5,7 @@ import { UserService } from '../user/user.service';
 import { verify } from 'argon2';
 import { Response } from 'express';
 import { TOKEN_CONFIG, TokenConfig } from '../config/token.config';
+import { SignOptions } from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -45,12 +46,18 @@ export class AuthService {
 
   private issueToken(userId: string) {
     const data = { id: userId };
-    const accessToken = this.jwt.sign(data, {
-      expiresIn: this.tokenConfig.accessTokenExpiresIn,
-    });
-    const refreshToken = this.jwt.sign(data, {
-      expiresIn: this.tokenConfig.refreshTokenExpiresIn,
-    });
+
+    const signOptions: SignOptions = {
+      expiresIn: this.tokenConfig.accessTokenExpiresIn as SignOptions['expiresIn'],
+    };
+
+    const refreshOptions: SignOptions = {
+      expiresIn: this.tokenConfig.refreshTokenExpiresIn as SignOptions['expiresIn'],
+    };
+
+    const accessToken = this.jwt.sign(data, signOptions);
+    const refreshToken = this.jwt.sign(data, refreshOptions);
+
     return { accessToken, refreshToken };
   }
 
