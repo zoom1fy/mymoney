@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-import { MessageRole } from '@/../.prisma/client';
+import { MessageRole } from '@prisma/client';
 
 export class CreateChatMessageDto {
   @IsEnum(MessageRole)

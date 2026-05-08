@@ -2,7 +2,7 @@ import { Controller, Get, Delete } from '@nestjs/common';
 import { ChatService } from './services/chat.service';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 import { Auth } from '../auth/decorators/auth.decorator';
-import { User } from '@/../.prisma/client';
+import { User } from '@prisma/client';
 
 @Auth()
 @Controller('chat')

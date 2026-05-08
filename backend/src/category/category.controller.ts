@@ -13,7 +13,7 @@ import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CurrentUser } from '../auth/decorators/user.decorator';
-import { User } from '@/../.prisma/client';
+import { User } from '@prisma/client';
 import { Auth } from '../auth/decorators/auth.decorator';
 
 @Auth()
