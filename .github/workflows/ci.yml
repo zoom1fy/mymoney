@@ -1,0 +1,238 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  DOCKER_DEFAULT_PLATFORM: linux/amd64
+
+jobs:
+  backend-lint:
+    name: Backend Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+
+  backend-test:
+    name: Backend Tests
+    needs: backend-lint
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm test -- --coverage
+        env:
+          DATABASE_URL: mysql://root:test_password@localhost:3306/test_db
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+
+  backend-build:
+    name: Backend Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run build
+
+  frontend-lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      
+      # Создаем временный .env файл для сборки
+      - name: Create env file
+        run: |
+          echo "NEXT_PUBLIC_API_URL=http://localhost:3001/api" >> .env
+          echo "NEXT_PUBLIC_SOCKET_URL=http://localhost:3001" >> .env
+          echo "NEXT_PUBLIC_COOKIE_DOMAIN=localhost" >> .env
+          echo "NODE_ENV=development" >> .env
+      
+      - run: npm run build
+
+  docker-build:
+    name: Docker Build Test
+    needs: [backend-build, frontend-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Create test env file
+        run: |
+          cat > .env << EOF
+          MYSQL_ROOT_PASSWORD=test_password
+          MYSQL_DATABASE=test_db
+          DATABASE_URL=mysql://root:test_password@db:3306/test_db
+          JWT_SECRET=test_secret_key_for_ci
+          JWT_ACCESS_EXPIRES_IN=15m
+          JWT_REFRESH_EXPIRES_IN=7d
+          REFRESH_TOKEN_COOKIE_NAME=refresh_token
+          NODE_ENV=development
+          OLLAMA_URL=http://ollama:11434
+          OLLAMA_MODEL=financial-advisor
+          NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
+          NEXT_PUBLIC_API_URL=http://localhost:3001/api
+          NEXT_PUBLIC_COOKIE_DOMAIN=localhost
+          DOCKER_DEFAULT_PLATFORM=linux/amd64
+          EOF
+      
+      - name: Build Docker images
+        run: |
+          docker compose -f docker-compose.yml build backend frontend
+      
+      - name: Verify Docker images
+        run: |
+          docker images
+
+  notify-success:
+    name: Notify Success
+    needs: [backend-lint, backend-test, backend-build, frontend-lint, frontend-build, docker-build]
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ✅ CI Pipeline Successful!
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            Message: ${{ github.event.head_commit.message }}
+            
+            All checks passed:
+            ✅ Backend Lint
+            ✅ Backend Tests
+            ✅ Backend Build
+            ✅ Frontend Lint
+            ✅ Frontend Build
+            ✅ Docker Build
+            
+            View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  notify-failure:
+    name: Notify Failure
+    needs: [backend-lint, backend-test, backend-build, frontend-lint, frontend-build, docker-build]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ CI Pipeline Failed!
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            Message: ${{ github.event.head_commit.message }}
+            
+            One or more checks failed. Please review the logs.
+            
+            View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  notify-cancel:
+    name: Notify Cancelled
+    needs: [backend-lint, backend-test, backend-build, frontend-lint, frontend-build, docker-build]
+    if: cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ⚠️ CI Pipeline Cancelled
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            
+            The pipeline was cancelled.
+            
+            View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
