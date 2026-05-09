@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Check backend package-lock.json
         run: |
           cd backend
@@ -24,7 +24,7 @@ jobs:
             exit 1
           fi
           echo "✅ backend/package-lock.json is in sync"
-
+      
       - name: Check frontend package-lock.json
         run: |
           cd frontend
@@ -38,7 +38,7 @@ jobs:
     name: Backend Lint
     needs: check-lockfile
     runs-on: ubuntu-latest
-    continue-on-error: true # Разрешаем продолжение при ошибке
+    continue-on-error: true
     defaults:
       run:
         working-directory: backend
@@ -62,7 +62,7 @@ jobs:
 
   backend-test:
     name: Backend Tests
-    needs: check-lockfile # Запускаем независимо от линтинга
+    needs: check-lockfile
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -103,7 +103,7 @@ jobs:
 
   backend-build:
     name: Backend Build
-    needs: check-lockfile # Запускаем независимо от линтинга
+    needs: check-lockfile
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -126,7 +126,7 @@ jobs:
     name: Frontend Lint
     needs: check-lockfile
     runs-on: ubuntu-latest
-    continue-on-error: true # Разрешаем продолжение при ошибке
+    continue-on-error: true
     defaults:
       run:
         working-directory: frontend
@@ -147,7 +147,7 @@ jobs:
 
   frontend-build:
     name: Frontend Build
-    needs: check-lockfile # Запускаем независимо от линтинга
+    needs: check-lockfile
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -163,14 +163,14 @@ jobs:
         run: |
           npm install --package-lock-only
           npm ci
-
+      
       - name: Create env file
         run: |
           echo "NEXT_PUBLIC_API_URL=http://localhost:3001/api" >> .env
           echo "NEXT_PUBLIC_SOCKET_URL=http://localhost:3001" >> .env
           echo "NEXT_PUBLIC_COOKIE_DOMAIN=localhost" >> .env
           echo "NODE_ENV=development" >> .env
-
+      
       - run: npm run build
 
   docker-build:
@@ -179,10 +179,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
+      
       - name: Create test env file
         run: |
           cat > .env << EOF
@@ -201,27 +201,30 @@ jobs:
           NEXT_PUBLIC_COOKIE_DOMAIN=localhost
           DOCKER_DEFAULT_PLATFORM=linux/amd64
           EOF
-
-      - name: Build Docker images
+      
+      - name: Check Dockerfile locations
+        run: |
+          echo "Checking Dockerfiles:"
+          ls -la backend/Dockerfile || echo "❌ backend/Dockerfile not found"
+          ls -la backend/Dockerfile.prod || echo "⚠️ backend/Dockerfile.prod not found"
+          ls -la frontend/Dockerfile || echo "❌ frontend/Dockerfile not found"
+          ls -la frontend/Dockerfile.prod || echo "⚠️ frontend/Dockerfile.prod not found"
+      
+      - name: Build Docker images (development)
         run: |
           docker compose -f docker-compose.yml build backend frontend
-
+      
+      - name: Build Docker images (production)
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml build backend frontend
+      
       - name: Verify Docker images
         run: |
           docker images
 
   notify:
     name: Notify
-    needs:
-      [
-        check-lockfile,
-        backend-lint,
-        backend-test,
-        backend-build,
-        frontend-lint,
-        frontend-build,
-        docker-build,
-      ]
+    needs: [check-lockfile, backend-lint, backend-test, backend-build, frontend-lint, frontend-build, docker-build]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -231,37 +234,37 @@ jobs:
           # Определяем общий статус
           FAILED_JOBS=""
           WARNING_JOBS=""
-
+          
           # Проверяем критические джобы (тесты и сборка)
           if [ "${{ needs.check-lockfile.result }}" != "success" ]; then
             FAILED_JOBS="$FAILED_JOBS ⚠️ Lockfile Check\n"
           fi
-
+          
           # Линтинг - предупреждение, не ошибка
           if [ "${{ needs.backend-lint.result }}" != "success" ]; then
             WARNING_JOBS="$WARNING_JOBS ⚠️ Backend Lint\n"
           fi
-
+          
           if [ "${{ needs.backend-test.result }}" != "success" ]; then
             FAILED_JOBS="$FAILED_JOBS ❌ Backend Tests\n"
           fi
-
+          
           if [ "${{ needs.backend-build.result }}" != "success" ]; then
             FAILED_JOBS="$FAILED_JOBS ❌ Backend Build\n"
           fi
-
+          
           if [ "${{ needs.frontend-lint.result }}" != "success" ]; then
             WARNING_JOBS="$WARNING_JOBS ⚠️ Frontend Lint\n"
           fi
-
+          
           if [ "${{ needs.frontend-build.result }}" != "success" ]; then
             FAILED_JOBS="$FAILED_JOBS ❌ Frontend Build\n"
           fi
-
+          
           if [ "${{ needs.docker-build.result }}" != "success" ]; then
             FAILED_JOBS="$FAILED_JOBS ❌ Docker Build\n"
           fi
-
+          
           # Определяем итоговый статус
           if [ -z "$FAILED_JOBS" ] && [ -z "$WARNING_JOBS" ]; then
             echo "STATUS=success" >> $GITHUB_OUTPUT
@@ -276,11 +279,11 @@ jobs:
             echo "EMOJI=❌" >> $GITHUB_OUTPUT
             echo "RESULT=Failed" >> $GITHUB_OUTPUT
           fi
-
+          
           # Сохраняем для использования в сообщении
           echo "FAILED_JOBS=$FAILED_JOBS" >> $GITHUB_OUTPUT
           echo "WARNING_JOBS=$WARNING_JOBS" >> $GITHUB_OUTPUT
-
+      
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
         with:
@@ -288,22 +291,22 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
             ${{ steps.status.outputs.EMOJI }} CI Pipeline ${{ steps.status.outputs.RESULT }}
-
+            
             📦 **Repository:** ${{ github.repository }}
             🌿 **Branch:** ${{ github.ref_name }}
             📝 **Commit:** ${{ github.sha }}
             👤 **Author:** ${{ github.actor }}
             💬 **Message:** ${{ github.event.head_commit.message }}
-
+            
             **Critical Jobs:**
             🔍 Lockfile Check: ${{ needs.check-lockfile.result == 'success' && '✅' || '❌' }}
             🧪 Backend Tests: ${{ needs.backend-test.result == 'success' && '✅' || '❌' }}
             🏗️ Backend Build: ${{ needs.backend-build.result == 'success' && '✅' || '❌' }}
             🏗️ Frontend Build: ${{ needs.frontend-build.result == 'success' && '✅' || '❌' }}
             🐳 Docker Build: ${{ needs.docker-build.result == 'success' && '✅' || '❌' }}
-
+            
             **Lint Checks (non-blocking):**
             🔍 Backend Lint: ${{ needs.backend-lint.result == 'success' && '✅' || '⚠️' }}
             🔍 Frontend Lint: ${{ needs.frontend-lint.result == 'success' && '✅' || '⚠️' }}
-
+            
             🔗 **View details:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
