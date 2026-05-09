@@ -44,10 +44,7 @@ describe('UserService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UserService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [UserService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     service = module.get<UserService>(UserService);
@@ -144,7 +141,7 @@ describe('UserService', () => {
         passwordHash,
       } as any);
 
-      const result = await service.update(userId, { password: newPass } as any);
+      const result = await service.update(userId, { password: newPass });
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },
@@ -160,7 +157,7 @@ describe('UserService', () => {
         passwordHash,
       } as any);
 
-      const result = await service.update(userId, { email: updatedEmail } as any);
+      const result = await service.update(userId, { email: updatedEmail });
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },
@@ -193,7 +190,13 @@ describe('UserService', () => {
     it('should update email and return user without passwordHash with computed name', async () => {
       // First: findById returns current user
       mockPrisma.user.findUnique.mockResolvedValueOnce({
-        id: userId, email, passwordHash, lastLogin: now, accounts: [], categories: [], transactions: [],
+        id: userId,
+        email,
+        passwordHash,
+        lastLogin: now,
+        accounts: [],
+        categories: [],
+        transactions: [],
       } as any);
       // Second: getByEmail returns null (no conflict for new email)
       mockPrisma.user.findUnique.mockResolvedValueOnce(null);
@@ -204,9 +207,12 @@ describe('UserService', () => {
         lastLogin: now,
       } as any);
 
-      const updated = await service.updateProfile(userId, { email: updatedEmail } as any);
+      const updated = await service.updateProfile(userId, { email: updatedEmail });
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { email: updatedEmail } });
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({ where: { id: userId }, data: { email: updatedEmail } });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: { email: updatedEmail },
+      });
       expect(updated.email).toBe(updatedEmail);
       expect((updated as any).passwordHash).toBeUndefined();
       expect(updated.name).toBe('new'); // computed from updated email
@@ -214,7 +220,13 @@ describe('UserService', () => {
 
     it('should update password (hash it) and return user without passwordHash', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce({
-        id: userId, email, passwordHash, lastLogin: now, accounts: [], categories: [], transactions: [],
+        id: userId,
+        email,
+        passwordHash,
+        lastLogin: now,
+        accounts: [],
+        categories: [],
+        transactions: [],
       } as any);
       mockPrisma.user.update.mockResolvedValueOnce({
         id: userId,
@@ -223,7 +235,7 @@ describe('UserService', () => {
         lastLogin: now,
       } as any);
 
-      const updated = await service.updateProfile(userId, { password: 'newpass' } as any);
+      const updated = await service.updateProfile(userId, { password: 'newpass' });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: { passwordHash: passwordHash },
@@ -234,11 +246,19 @@ describe('UserService', () => {
     it('should throw ConflictException if new email already in use', async () => {
       // First: findById returns current user
       mockPrisma.user.findUnique.mockResolvedValueOnce({
-        id: userId, email, passwordHash, lastLogin: now, accounts: [], categories: [], transactions: [],
+        id: userId,
+        email,
+        passwordHash,
+        lastLogin: now,
+        accounts: [],
+        categories: [],
+        transactions: [],
       } as any);
       // Second: getByEmail finds existing user with the new email
       mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'other', email: updatedEmail } as any);
-      await expect(service.updateProfile(userId, { email: updatedEmail } as any)).rejects.toThrow(ConflictException);
+      await expect(service.updateProfile(userId, { email: updatedEmail } as any)).rejects.toThrow(
+        ConflictException
+      );
     });
 
     it('should skip email uniqueness check if email unchanged', async () => {
@@ -252,9 +272,17 @@ describe('UserService', () => {
         categories: [],
         transactions: [],
       } as any);
-      mockPrisma.user.update.mockResolvedValueOnce({ id: userId, email, passwordHash, lastLogin: now } as any);
-      const updated = await service.updateProfile(userId, { email } as any);
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({ where: { id: userId }, data: { email } });
+      mockPrisma.user.update.mockResolvedValueOnce({
+        id: userId,
+        email,
+        passwordHash,
+        lastLogin: now,
+      } as any);
+      const updated = await service.updateProfile(userId, { email });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: { email },
+      });
       expect(updated.email).toBe(email);
       expect((updated as any).passwordHash).toBeUndefined();
     });
@@ -263,7 +291,13 @@ describe('UserService', () => {
   describe('deleteUser()', () => {
     it('should delete user', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce({
-        id: userId, email, passwordHash, lastLogin: now, accounts: [], categories: [], transactions: [],
+        id: userId,
+        email,
+        passwordHash,
+        lastLogin: now,
+        accounts: [],
+        categories: [],
+        transactions: [],
       } as any);
       mockPrisma.user.delete.mockResolvedValueOnce({ id: userId, email } as any);
       const result = await service.deleteUser(userId);

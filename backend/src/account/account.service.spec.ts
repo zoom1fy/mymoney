@@ -22,10 +22,7 @@ describe('AccountService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AccountService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [AccountService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     service = module.get<AccountService>(AccountService);
@@ -86,7 +83,12 @@ describe('AccountService', () => {
       });
 
       await expect(
-        service.create(userId, { name: 'Savings', categoryId: 'bank' as any, typeId: 'bank' as any, currencyCode: 'RUB' as any }),
+        service.create(userId, {
+          name: 'Savings',
+          categoryId: 'bank' as any,
+          typeId: 'bank' as any,
+          currencyCode: 'RUB' as any,
+        })
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
@@ -103,7 +105,12 @@ describe('AccountService', () => {
         updatedAt: new Date(),
       });
 
-      await service.create(userId, { name: 'New', categoryId: 'bank' as any, typeId: 'bank' as any, currencyCode: 'RUB' as any });
+      await service.create(userId, {
+        name: 'New',
+        categoryId: 'bank' as any,
+        typeId: 'bank' as any,
+        currencyCode: 'RUB' as any,
+      });
       const createArg = mockPrisma.account.create.mock.calls[0][0];
       expect(createArg.data.icon).toBe('default');
     });
@@ -121,7 +128,12 @@ describe('AccountService', () => {
         updatedAt: new Date(),
       });
 
-      await service.create(userId, { name: 'Empty', categoryId: 'bank' as any, typeId: 'bank' as any, currencyCode: 'RUB' as any });
+      await service.create(userId, {
+        name: 'Empty',
+        categoryId: 'bank' as any,
+        typeId: 'bank' as any,
+        currencyCode: 'RUB' as any,
+      });
       const createArg = mockPrisma.account.create.mock.calls[0][0];
       expect(createArg.data.currentBalance).toBeInstanceOf(Decimal);
       expect(Number(createArg.data.currentBalance)).toBeCloseTo(0);
@@ -140,7 +152,13 @@ describe('AccountService', () => {
         updatedAt: new Date(),
       });
 
-      await service.create(userId, { name: 'NaN', currentBalance: NaN, categoryId: 'bank' as any, typeId: 'bank' as any, currencyCode: 'RUB' as any });
+      await service.create(userId, {
+        name: 'NaN',
+        currentBalance: NaN,
+        categoryId: 'bank' as any,
+        typeId: 'bank' as any,
+        currencyCode: 'RUB' as any,
+      });
       const createArg = mockPrisma.account.create.mock.calls[0][0];
       expect(createArg.data.currentBalance).toBeInstanceOf(Decimal);
       expect(Number(createArg.data.currentBalance)).toBeCloseTo(0);
@@ -178,7 +196,10 @@ describe('AccountService', () => {
       expect(typeof res[0].currentBalance).toBe('number');
       expect(res[0].currentBalance).toBe(10);
       expect(mockPrisma.account.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { userId, isDeleted: false }, orderBy: { createdAt: 'asc' } }),
+        expect.objectContaining({
+          where: { userId, isDeleted: false },
+          orderBy: { createdAt: 'asc' },
+        })
       );
     });
   });
@@ -239,13 +260,17 @@ describe('AccountService', () => {
         currentBalance: new Decimal(50),
       };
       // update() calls findOne() internally (1st findFirst), then checks for name conflict (2nd findFirst)
-      mockPrisma.account.findFirst
-        .mockResolvedValueOnce(existing)
-        .mockResolvedValueOnce({ id: 2, userId, name: 'B', isDeleted: false, currentBalance: new Decimal(20) });
+      mockPrisma.account.findFirst.mockResolvedValueOnce(existing).mockResolvedValueOnce({
+        id: 2,
+        userId,
+        name: 'B',
+        isDeleted: false,
+        currentBalance: new Decimal(20),
+      });
 
-      await expect(
-        service.update(userId, 1, { name: 'B' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.update(userId, 1, { name: 'B' })).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('should skip name check if name unchanged', async () => {
@@ -294,7 +319,7 @@ describe('AccountService', () => {
 
       const res = await service.remove(userId, 1);
       expect(mockPrisma.account.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ isDeleted: true }) }),
+        expect.objectContaining({ data: expect.objectContaining({ isDeleted: true }) })
       );
       expect(res).toBeDefined();
     });

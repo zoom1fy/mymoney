@@ -27,7 +27,6 @@ import { JwtService } from '@nestjs/jwt'; // импортируем JwtService
   },
   transports: ['websocket', 'polling'],
 })
-
 export class ChatGateway {
   @WebSocketServer()
   server!: Server;

@@ -44,7 +44,7 @@ describe('AuthService', () => {
   let tokenConfig: TokenConfig;
 
   // Common dto used in tests
-  const dto: AuthDto = { email: TEST_EMAIL, password: TEST_PASSWORD } as AuthDto;
+  const dto: AuthDto = { email: TEST_EMAIL, password: TEST_PASSWORD };
 
   beforeEach(async () => {
     // Create mocks for dependencies
@@ -109,13 +109,13 @@ describe('AuthService', () => {
       expect(result.accessToken).toBe('ACCESS_TOKEN');
       expect(result.refreshToken).toBe('REFRESH_TOKEN');
       // verify that tokens were issued with correct userId
-      expect((jwtService.sign as jest.Mock)).toHaveBeenCalledWith(
+      expect(jwtService.sign as jest.Mock).toHaveBeenCalledWith(
         { id: TEST_USER_ID },
-        expect.objectContaining({ expiresIn: tokenConfig.accessTokenExpiresIn }),
+        expect.objectContaining({ expiresIn: tokenConfig.accessTokenExpiresIn })
       );
-      expect((jwtService.sign as jest.Mock)).toHaveBeenCalledWith(
+      expect(jwtService.sign as jest.Mock).toHaveBeenCalledWith(
         { id: TEST_USER_ID },
-        expect.objectContaining({ expiresIn: tokenConfig.refreshTokenExpiresIn }),
+        expect.objectContaining({ expiresIn: tokenConfig.refreshTokenExpiresIn })
       );
     });
 
@@ -167,9 +167,9 @@ describe('AuthService', () => {
       expect(result.refreshToken).toBe('REFRESH_TOKEN');
 
       // ensure sign called with correct user id again
-      expect((jwtService.sign as jest.Mock)).toHaveBeenCalledWith(
+      expect(jwtService.sign as jest.Mock).toHaveBeenCalledWith(
         { id: TEST_USER_ID },
-        expect.objectContaining({ expiresIn: tokenConfig.accessTokenExpiresIn }),
+        expect.objectContaining({ expiresIn: tokenConfig.accessTokenExpiresIn })
       );
     });
 
@@ -206,7 +206,7 @@ describe('AuthService', () => {
       } as any;
     });
     afterEach(() => {
-      global.Date = ORIGINAL_DATE as any;
+      global.Date = ORIGINAL_DATE;
     });
 
     it('should set cookie with correct name, value, and options', () => {
@@ -216,7 +216,7 @@ describe('AuthService', () => {
         'REFRESH_TOKEN',
         expect.objectContaining({
           expires: expect.any(Date),
-        }),
+        })
       );
       // verify expires date equals MOCK_DATE + 1 day
       const expiresDate = (mockResponse.cookie as any).mock.calls[0][2].expires as Date;
@@ -233,7 +233,7 @@ describe('AuthService', () => {
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         tokenConfig.refreshTokenName,
         '',
-        expect.objectContaining({ expires: new Date(0) }),
+        expect.objectContaining({ expires: new Date(0) })
       );
     });
   });

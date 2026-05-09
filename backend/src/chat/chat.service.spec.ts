@@ -16,10 +16,7 @@ describe('ChatService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ChatService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [ChatService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     service = module.get<ChatService>(ChatService);
@@ -55,8 +52,20 @@ describe('ChatService', () => {
   describe('findAll()', () => {
     it('should return messages ordered by createdAt asc and limited to 10', async () => {
       const messages = [
-        { id: 1, userId: 'user-uuid-1', role: 'user', content: 'a', createdAt: new Date('2020-01-01') },
-        { id: 2, userId: 'user-uuid-1', role: 'assistant', content: 'b', createdAt: new Date('2020-01-02') },
+        {
+          id: 1,
+          userId: 'user-uuid-1',
+          role: 'user',
+          content: 'a',
+          createdAt: new Date('2020-01-01'),
+        },
+        {
+          id: 2,
+          userId: 'user-uuid-1',
+          role: 'assistant',
+          content: 'b',
+          createdAt: new Date('2020-01-02'),
+        },
       ];
       mockPrisma.chatMessage.findMany.mockResolvedValue(messages);
 

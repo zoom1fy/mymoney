@@ -21,10 +21,7 @@ describe('CurrencyService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CurrencyService,
-        { provide: HttpService, useValue: mockHttpService },
-      ],
+      providers: [CurrencyService, { provide: HttpService, useValue: mockHttpService }],
     }).compile();
 
     service = module.get<CurrencyService>(CurrencyService);
@@ -56,7 +53,9 @@ describe('CurrencyService', () => {
       const rate = await service.getExchangeRate('RUB', 'USD');
       expect(rate).toBe(90.5);
       expect(mockHttpService.get).toHaveBeenCalledTimes(1);
-      expect(mockHttpService.get).toHaveBeenCalledWith('https://www.cbr-xml-daily.ru/daily_json.js');
+      expect(mockHttpService.get).toHaveBeenCalledWith(
+        'https://www.cbr-xml-daily.ru/daily_json.js'
+      );
     });
 
     it('should fetch RUB -> EUR and return Value / Nominal', async () => {
@@ -94,7 +93,9 @@ describe('CurrencyService', () => {
         },
       };
       (mockHttpService.get as jest.Mock).mockReturnValue(of({ data: incompleteApiResponse }));
-      await expect(service.getExchangeRate('RUB', 'GBP')).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.getExchangeRate('RUB', 'GBP')).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('should throw BadRequestException if currency not found (GBP -> RUB)', async () => {
@@ -104,7 +105,9 @@ describe('CurrencyService', () => {
         },
       };
       (mockHttpService.get as jest.Mock).mockReturnValue(of({ data: incompleteApiResponse }));
-      await expect(service.getExchangeRate('GBP', 'RUB')).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.getExchangeRate('GBP', 'RUB')).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('should handle custom Nominal value', async () => {

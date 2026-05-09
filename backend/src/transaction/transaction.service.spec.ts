@@ -61,21 +61,29 @@ describe('TransactionService', () => {
     prisma = module.get<PrismaService>(PrismaService) as any;
     currencyService = module.get<CurrencyService>(CurrencyService) as any;
     // Reset all mock implementations
-    Object.values(mockPrisma.account).forEach((m) => (m as jest.Mock).mockReset());
-    Object.values(mockPrisma.category).forEach((m) => (m as jest.Mock).mockReset());
-    Object.values(mockPrisma.transaction).forEach((m) => (m as jest.Mock).mockReset());
-    (mockPrisma.$transaction as jest.Mock).mockReset();
+    Object.values(mockPrisma.account).forEach((m) => m.mockReset());
+    Object.values(mockPrisma.category).forEach((m) => m.mockReset());
+    Object.values(mockPrisma.transaction).forEach((m) => m.mockReset());
+    mockPrisma.$transaction.mockReset();
     mockPrisma.$transaction.mockImplementation((updates: any[]) => Promise.resolve(updates));
     mockCurrencyService.getExchangeRate.mockReset();
     mockCurrencyService.getExchangeRate.mockResolvedValue(1);
     // Default sensible mocks
-    mockPrisma.account.findFirst.mockResolvedValue({ id: accountId, currentBalance: new Decimal(1000), userId });
+    mockPrisma.account.findFirst.mockResolvedValue({
+      id: accountId,
+      currentBalance: new Decimal(1000),
+      userId,
+    });
     mockPrisma.category.findFirst.mockResolvedValue({ id: categoryId, userId });
   });
 
   describe('create()', () => {
     it('should create INCOME transaction and increment account balance', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: accountId,
+        currentBalance: new Decimal(1000),
+        userId,
+      });
       mockPrisma.category.findFirst.mockResolvedValueOnce({ id: categoryId, userId });
       mockPrisma.$transaction.mockResolvedValueOnce([
         { id: accountId, currentBalance: new Decimal(1100) },
@@ -103,7 +111,11 @@ describe('TransactionService', () => {
     });
 
     it('should create EXPENSE transaction and decrement account balance', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: accountId,
+        currentBalance: new Decimal(1000),
+        userId,
+      });
       mockPrisma.category.findFirst.mockResolvedValueOnce({ id: categoryId, userId });
       mockPrisma.$transaction.mockResolvedValueOnce([
         { id: accountId, currentBalance: new Decimal(900) },
@@ -159,7 +171,13 @@ describe('TransactionService', () => {
 
     it('should throw NotFoundException if account not found', async () => {
       mockPrisma.account.findFirst.mockResolvedValueOnce(null);
-      const input: any = { accountId, categoryId, amount, type: TransactionType.INCOME, currencyCode: 'RUB' };
+      const input: any = {
+        accountId,
+        categoryId,
+        amount,
+        type: TransactionType.INCOME,
+        currencyCode: 'RUB',
+      };
       await expect(service.create(userId, input)).rejects.toBeInstanceOf(NotFoundException);
     });
 
@@ -167,47 +185,95 @@ describe('TransactionService', () => {
       mockPrisma.account.findFirst
         .mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId })
         .mockResolvedValueOnce(null);
-      const input: any = { accountId, targetAccountId: 999, amount, type: TransactionType.TRANSFER, currencyCode: 'RUB' };
+      const input: any = {
+        accountId,
+        targetAccountId: 999,
+        amount,
+        type: TransactionType.TRANSFER,
+        currencyCode: 'RUB',
+      };
       await expect(service.create(userId, input)).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('should throw NotFoundException if category not found for INCOME/EXPENSE', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: accountId,
+        currentBalance: new Decimal(1000),
+        userId,
+      });
       mockPrisma.category.findFirst.mockResolvedValueOnce(null);
-      const input: any = { accountId, categoryId: 999, amount, type: TransactionType.INCOME, currencyCode: 'RUB' };
+      const input: any = {
+        accountId,
+        categoryId: 999,
+        amount,
+        type: TransactionType.INCOME,
+        currencyCode: 'RUB',
+      };
       await expect(service.create(userId, input)).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('should throw BadRequestException if categoryId is undefined for INCOME/EXPENSE', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: accountId,
+        currentBalance: new Decimal(1000),
+        userId,
+      });
       const input: any = { accountId, amount, type: TransactionType.INCOME, currencyCode: 'RUB' };
       await expect(service.create(userId, input)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should throw BadRequestException if amount <= 0', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId });
-      const input: any = { accountId, categoryId, amount: 0, type: TransactionType.INCOME, currencyCode: 'RUB' };
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: accountId,
+        currentBalance: new Decimal(1000),
+        userId,
+      });
+      const input: any = {
+        accountId,
+        categoryId,
+        amount: 0,
+        type: TransactionType.INCOME,
+        currencyCode: 'RUB',
+      };
       await expect(service.create(userId, input)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should throw BadRequestException if TRANSFER without targetAccountId', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: accountId,
+        currentBalance: new Decimal(1000),
+        userId,
+      });
       const input: any = { accountId, amount, type: TransactionType.TRANSFER, currencyCode: 'RUB' };
       await expect(service.create(userId, input)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should throw BadRequestException for unknown transaction type', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: accountId,
+        currentBalance: new Decimal(1000),
+        userId,
+      });
       const input: any = { accountId, categoryId, amount, type: 'UNKNOWN', currencyCode: 'RUB' };
       await expect(service.create(userId, input)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should use current date if transactionDate not provided', async () => {
-      mockPrisma.account.findFirst.mockResolvedValueOnce({ id: accountId, currentBalance: new Decimal(1000), userId });
+      mockPrisma.account.findFirst.mockResolvedValueOnce({
+        id: accountId,
+        currentBalance: new Decimal(1000),
+        userId,
+      });
       mockPrisma.category.findFirst.mockResolvedValueOnce({ id: categoryId, userId });
       mockPrisma.$transaction.mockResolvedValueOnce([{}]);
 
-      const input: any = { accountId, categoryId, amount: 50, type: TransactionType.INCOME, currencyCode: 'RUB' };
+      const input: any = {
+        accountId,
+        categoryId,
+        amount: 50,
+        type: TransactionType.INCOME,
+        currencyCode: 'RUB',
+      };
 
       const result = await service.create(userId, input);
       const createCall = mockPrisma.transaction.create.mock.calls[0][0];
@@ -235,7 +301,14 @@ describe('TransactionService', () => {
       mockPrisma.transaction.findMany.mockResolvedValueOnce([]);
       const from = '2020-01-01';
       const to = '2020-12-31';
-      await service.findAll(userId, { take: 10, cursor: 0, accountId, type: TransactionType.EXPENSE, from, to });
+      await service.findAll(userId, {
+        take: 10,
+        cursor: 0,
+        accountId,
+        type: TransactionType.EXPENSE,
+        from,
+        to,
+      });
       const whereArg = mockPrisma.transaction.findMany.mock.calls[0][0].where;
       expect(whereArg.accountId).toBe(accountId);
       expect(whereArg.type).toBe(TransactionType.EXPENSE);
@@ -243,7 +316,9 @@ describe('TransactionService', () => {
     });
 
     it('should default take to 20 if not provided', async () => {
-      mockPrisma.transaction.findMany.mockResolvedValueOnce([{ id: 1, amount: 10, type: 'INCOME', transactionDate: new Date() }]);
+      mockPrisma.transaction.findMany.mockResolvedValueOnce([
+        { id: 1, amount: 10, type: 'INCOME', transactionDate: new Date() },
+      ]);
       const result: any = await service.findAll(userId, {});
       expect(mockPrisma.transaction.findMany.mock.calls.length).toBeGreaterThan(0);
       expect(result.data.length).toBeGreaterThanOrEqual(0);
@@ -316,7 +391,13 @@ describe('TransactionService', () => {
 
   describe('update()', () => {
     it('should rollback old transaction and apply new transaction', async () => {
-      const existing = { id: 20, accountId, type: TransactionType.INCOME, amount: 100, account: { userId } };
+      const existing = {
+        id: 20,
+        accountId,
+        type: TransactionType.INCOME,
+        amount: 100,
+        account: { userId },
+      };
       mockPrisma.transaction.findFirst.mockResolvedValueOnce(existing);
       mockPrisma.account.findMany.mockResolvedValueOnce([{ id: accountId, isDeleted: false }]);
       mockPrisma.$transaction.mockResolvedValueOnce([{}]);
@@ -328,13 +409,23 @@ describe('TransactionService', () => {
 
     it('should throw NotFoundException if not found', async () => {
       mockPrisma.transaction.findFirst.mockResolvedValueOnce(null);
-      await expect(service.update(userId, 999, { amount: 50, type: TransactionType.INCOME })).rejects.toBeInstanceOf(NotFoundException);
+      await expect(
+        service.update(userId, 999, { amount: 50, type: TransactionType.INCOME })
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('should throw BadRequestException if account is deleted', async () => {
-      mockPrisma.transaction.findFirst.mockResolvedValueOnce({ id: 21, accountId, type: TransactionType.INCOME, amount: 50, account: { userId } });
+      mockPrisma.transaction.findFirst.mockResolvedValueOnce({
+        id: 21,
+        accountId,
+        type: TransactionType.INCOME,
+        amount: 50,
+        account: { userId },
+      });
       mockPrisma.account.findMany.mockResolvedValueOnce([{ id: accountId, isDeleted: true }]);
-      await expect(service.update(userId, 21, { amount: 60, type: TransactionType.EXPENSE })).rejects.toBeInstanceOf(BadRequestException);
+      await expect(
+        service.update(userId, 21, { amount: 60, type: TransactionType.EXPENSE })
+      ).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 });

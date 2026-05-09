@@ -143,7 +143,7 @@ describe('MyMoney API (e2e)', () => {
       if (model && typeof model === 'object') {
         Object.values(model).forEach((fn) => {
           if (typeof fn === 'function' && 'mockClear' in fn) {
-            (fn as jest.Mock).mockClear();
+            fn.mockClear();
           }
         });
       }

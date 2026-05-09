@@ -34,22 +34,26 @@ describe('CategoryService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CategoryService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [CategoryService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
     // Reset all mock implementations and calls
     Object.values(mockPrisma.category).forEach((mock) => {
-      (mock as jest.Mock).mockReset();
+      mock.mockReset();
     });
   });
 
   describe('create()', () => {
     it('should create category with all fields', async () => {
-      const dto: any = { name: 'Groceries', icon: 'shopping', color: '#AA00AA', isExpense: true, currencyCode: 'RUB', parentId: null };
+      const dto: any = {
+        name: 'Groceries',
+        icon: 'shopping',
+        color: '#AA00AA',
+        isExpense: true,
+        currencyCode: 'RUB',
+        parentId: null,
+      };
       const created: Category = {
         id: 5,
         name: dto.name,
@@ -72,7 +76,13 @@ describe('CategoryService', () => {
     });
 
     it('should default icon to "default" if not provided', async () => {
-      const dto: any = { name: 'Utilities', color: '#000000', isExpense: true, currencyCode: 'RUB', parentId: null };
+      const dto: any = {
+        name: 'Utilities',
+        color: '#000000',
+        isExpense: true,
+        currencyCode: 'RUB',
+        parentId: null,
+      };
       const created: Category = {
         id: 6,
         name: dto.name,
@@ -168,7 +178,10 @@ describe('CategoryService', () => {
       ];
       mockPrisma.category.findMany.mockResolvedValue(list);
       const res = await service.findAll(userId);
-      expect(mockPrisma.category.findMany).toHaveBeenCalledWith({ where: { isArchived: false, userId }, orderBy: { createdAt: 'asc' } });
+      expect(mockPrisma.category.findMany).toHaveBeenCalledWith({
+        where: { isArchived: false, userId },
+        orderBy: { createdAt: 'asc' },
+      });
       expect(res).toEqual(list);
     });
   });
@@ -191,9 +204,7 @@ describe('CategoryService', () => {
     it('updates category fields', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
       const dto: any = { name: 'New Name', color: '#123456', parentId: 3 };
-      mockPrisma.category.findFirst
-        .mockResolvedValueOnce(current)
-        .mockResolvedValueOnce(null);
+      mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(null);
       mockPrisma.category.findFirst.mockResolvedValueOnce({ id: 3, isArchived: false });
       mockPrisma.category.update.mockResolvedValueOnce({ ...current, ...dto });
 
@@ -204,13 +215,19 @@ describe('CategoryService', () => {
     it('throws BadRequestException if category is archived', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: true, parentId: 2 };
       mockPrisma.category.findFirst.mockResolvedValueOnce(current);
-      await expect(service.update(userId, categoryId, { name: 'Anything' })).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.update(userId, categoryId, { name: 'Anything' })).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('throws BadRequestException if new name conflicts with another active category', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce({ id: 999, isArchived: false });
-      await expect(service.update(userId, categoryId, { name: 'Conflicting' })).rejects.toBeInstanceOf(BadRequestException);
+      mockPrisma.category.findFirst
+        .mockResolvedValueOnce(current)
+        .mockResolvedValueOnce({ id: 999, isArchived: false });
+      await expect(
+        service.update(userId, categoryId, { name: 'Conflicting' })
+      ).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('skips name check if name unchanged', async () => {
@@ -224,13 +241,19 @@ describe('CategoryService', () => {
     it('throws BadRequestException if new parent not found', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
       mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(null);
-      await expect(service.update(userId, categoryId, { parentId: 99 })).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.update(userId, categoryId, { parentId: 99 })).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('throws BadRequestException if new parent is archived', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce({ id: 99, isArchived: true });
-      await expect(service.update(userId, categoryId, { parentId: 99 })).rejects.toBeInstanceOf(BadRequestException);
+      mockPrisma.category.findFirst
+        .mockResolvedValueOnce(current)
+        .mockResolvedValueOnce({ id: 99, isArchived: true });
+      await expect(service.update(userId, categoryId, { parentId: 99 })).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('skips parent check if parentId unchanged', async () => {
@@ -244,18 +267,36 @@ describe('CategoryService', () => {
 
   describe('remove()', () => {
     it('archives category and all its children', async () => {
-      const current = { id: categoryId, name: 'ToRemove', userId, isArchived: false, parentId: null };
+      const current = {
+        id: categoryId,
+        name: 'ToRemove',
+        userId,
+        isArchived: false,
+        parentId: null,
+      };
       mockPrisma.category.findFirst.mockResolvedValueOnce(current);
       mockPrisma.category.update.mockResolvedValueOnce({ ...current, isArchived: true });
       mockPrisma.category.updateMany.mockResolvedValueOnce({ count: 2 });
       const res = await service.remove(userId, categoryId);
-      expect(mockPrisma.category.update).toHaveBeenCalledWith({ where: { id: categoryId }, data: { isArchived: true } });
-      expect(mockPrisma.category.updateMany).toHaveBeenCalledWith({ where: { parentId: categoryId }, data: { isArchived: true } });
+      expect(mockPrisma.category.update).toHaveBeenCalledWith({
+        where: { id: categoryId },
+        data: { isArchived: true },
+      });
+      expect(mockPrisma.category.updateMany).toHaveBeenCalledWith({
+        where: { parentId: categoryId },
+        data: { isArchived: true },
+      });
       expect(res).toEqual({ success: true });
     });
 
     it('returns category as-is if already archived', async () => {
-      const current = { id: categoryId, name: 'Archived', userId, isArchived: true, parentId: null };
+      const current = {
+        id: categoryId,
+        name: 'Archived',
+        userId,
+        isArchived: true,
+        parentId: null,
+      };
       mockPrisma.category.findFirst.mockResolvedValueOnce(current);
       const res = await service.remove(userId, categoryId);
       expect(res).toEqual(current);
@@ -272,7 +313,10 @@ describe('CategoryService', () => {
       ];
       mockPrisma.category.findMany.mockResolvedValue(archived);
       const res = await service.getArchived(userId);
-      expect(mockPrisma.category.findMany).toHaveBeenCalledWith({ where: { isArchived: true, userId }, orderBy: { createdAt: 'asc' } });
+      expect(mockPrisma.category.findMany).toHaveBeenCalledWith({
+        where: { isArchived: true, userId },
+        orderBy: { createdAt: 'asc' },
+      });
       expect(res).toEqual(archived);
     });
   });
@@ -289,8 +333,14 @@ describe('CategoryService', () => {
       mockPrisma.category.update.mockResolvedValueOnce(unarchived);
       mockPrisma.category.updateMany.mockResolvedValueOnce({ count: 2 });
       const res = await service.unarchive(userId, categoryId);
-      expect(mockPrisma.category.update).toHaveBeenCalledWith({ where: { id: categoryId }, data: { isArchived: false } });
-      expect(mockPrisma.category.updateMany).toHaveBeenCalledWith({ where: { parentId: categoryId }, data: { isArchived: false } });
+      expect(mockPrisma.category.update).toHaveBeenCalledWith({
+        where: { id: categoryId },
+        data: { isArchived: false },
+      });
+      expect(mockPrisma.category.updateMany).toHaveBeenCalledWith({
+        where: { parentId: categoryId },
+        data: { isArchived: false },
+      });
       expect(res).toEqual({ id: categoryId, name: 'Cat', isArchived: false, userId, parentId: 2 });
     });
 
@@ -298,7 +348,9 @@ describe('CategoryService', () => {
       const current = { id: categoryId, name: 'Cat', userId, isArchived: true, parentId: 2 };
       const parent = { id: 2, isArchived: true };
       mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(parent);
-      await expect(service.unarchive(userId, categoryId)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.unarchive(userId, categoryId)).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('returns category as-is if not archived', async () => {
@@ -311,7 +363,9 @@ describe('CategoryService', () => {
     it('throws BadRequestException if parent not found for child category', async () => {
       const current = { id: categoryId, name: 'Cat', userId, isArchived: true, parentId: 99 };
       mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(null);
-      await expect(service.unarchive(userId, categoryId)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.unarchive(userId, categoryId)).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
   });
 });

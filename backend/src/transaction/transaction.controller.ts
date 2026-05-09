@@ -19,7 +19,7 @@ export class TransactionController {
 
   @Get()
   async findAll(@CurrentUser() user: User, @Query() query: GetTransactionsDto) {
-     return this.transactionService.findAll(user.id, query)
+    return this.transactionService.findAll(user.id, query);
   }
 
   @Get(':id')
