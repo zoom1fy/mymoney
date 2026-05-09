@@ -5,9 +5,10 @@ export enum EnumTokens {
   REFRESH_TOKEN = 'refresh_token'
 }
 
-const COOKIE_DOMAIN = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || 
+const COOKIE_DOMAIN =
+  process.env.NEXT_PUBLIC_COOKIE_DOMAIN ||
   (typeof window !== 'undefined' ? window.location.hostname : 'localhost')
-  
+
 export const getAccessToken = () => {
   const accessToken = Cookies.get(EnumTokens.ACCESS_TOKEN)
   return accessToken || null
@@ -19,9 +20,9 @@ export const saveTokenStorage = (accessToken: string) => {
     sameSite: 'lax',
     expires: 1,
     secure: process.env.NODE_ENV === 'production',
-    path: '/',
-  });
-};
+    path: '/'
+  })
+}
 
 export const removeTokenStorage = () => {
   Cookies.remove(EnumTokens.ACCESS_TOKEN, {

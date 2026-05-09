@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { ReactNode } from 'react'
 
 import {
@@ -13,6 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/shadui/alert-dialog'
+
+import { cn } from '@/lib/utils'
 
 interface ConfirmAlertProps {
   open: boolean

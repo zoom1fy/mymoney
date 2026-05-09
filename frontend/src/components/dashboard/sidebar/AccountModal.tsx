@@ -1,7 +1,5 @@
 'use client'
 
-import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
-import { cn } from '@/lib/utils'
 import { Pencil, Plus, Trash2, X } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -40,6 +38,10 @@ import {
 } from '@/types/account.types'
 
 import { useAccounts } from '@/hooks/useAccounts'
+
+import { cn } from '@/lib/utils'
+
+import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
 
 const iconOptions = Object.keys(AccountIcons) as AccountIconName[]
 

@@ -1,11 +1,17 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadui/popover'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { HexColorPicker } from 'react-colorful'
+
 import { Input } from '@/components/ui/shadui/input'
 import { Label } from '@/components/ui/shadui/label'
-import { HexColorPicker } from 'react-colorful'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/shadui/popover'
+
+import { cn } from '@/lib/utils'
 
 interface Props {
   value: string
@@ -13,7 +19,10 @@ interface Props {
   label?: string
 }
 
-function throttle<T extends (...args: any[]) => void>(func: T, delay: number): T {
+function throttle<T extends (...args: any[]) => void>(
+  func: T,
+  delay: number
+): T {
   let timeout: NodeJS.Timeout | null = null
   return function (this: any, ...args: Parameters<T>) {
     if (!timeout) {
@@ -46,9 +55,18 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
   const hexValue = useMemo(() => toHex(internalValue), [internalValue])
 
   const presetColors = [
-    '#6366F1', '#22C55E', '#F59E0B', '#EF4444',
-    '#06B6D4', '#A855F7', '#F97316', '#14B8A6',
-    '#DB2777', '#3B82F6', '#84CC16', '#E11D48'
+    '#6366F1',
+    '#22C55E',
+    '#F59E0B',
+    '#EF4444',
+    '#06B6D4',
+    '#A855F7',
+    '#F97316',
+    '#14B8A6',
+    '#DB2777',
+    '#3B82F6',
+    '#84CC16',
+    '#E11D48'
   ]
 
   const throttledOnChange = useCallback(throttle(onChange, 50), [onChange])
@@ -57,7 +75,10 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
     <div className="space-y-3">
       <Label className="text-lg">{label}</Label>
 
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={setOpen}
+      >
         <PopoverTrigger asChild>
           <button
             type="button"
@@ -72,7 +93,9 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
                 className="size-6 rounded-md border shadow-sm"
                 style={{ backgroundColor: internalValue }}
               />
-              <span className="text-sm text-muted-foreground">{internalValue}</span>
+              <span className="text-sm text-muted-foreground">
+                {internalValue}
+              </span>
             </div>
           </button>
         </PopoverTrigger>

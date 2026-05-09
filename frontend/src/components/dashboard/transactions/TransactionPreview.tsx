@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -9,6 +8,8 @@ import { ArrowDown, ArrowRight, HelpCircle } from 'lucide-react'
 import { AccountIcons, IAccount } from '@/types/account.types'
 import { CategoryIcons, ICategory } from '@/types/category.types'
 import { ITransaction, TransactionType } from '@/types/transaction.types'
+
+import { cn } from '@/lib/utils'
 
 interface TransactionPreviewProps {
   amount: number | ''
@@ -64,7 +65,9 @@ export function TransactionPreview({
       let balanceAfterRollback = isOriginalExpense
         ? selectedAccount.currentBalance + originalAmount
         : selectedAccount.currentBalance - originalAmount
-      return isExpense ? balanceAfterRollback - finalAmount : balanceAfterRollback + finalAmount
+      return isExpense
+        ? balanceAfterRollback - finalAmount
+        : balanceAfterRollback + finalAmount
     }
     return isExpense
       ? selectedAccount.currentBalance - finalAmount

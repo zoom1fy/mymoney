@@ -1,4 +1,3 @@
-import { IBase } from './root.types'
 import {
   BadgeRussianRuble,
   Banknote,
@@ -30,6 +29,8 @@ import {
   WalletCards,
   WalletMinimal
 } from 'lucide-react'
+
+import { IBase } from './root.types'
 
 export enum CurrencyCode {
   RUB = 'RUB',

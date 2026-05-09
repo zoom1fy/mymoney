@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { Archive, HelpCircle, Search, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
@@ -20,6 +19,8 @@ import {
 import { CategoryIcons, ICategory } from '@/types/category.types'
 
 import { useCategories } from '@/hooks/useCategories'
+
+import { cn } from '@/lib/utils'
 
 interface ArchiveModalProps {
   isExpense: boolean

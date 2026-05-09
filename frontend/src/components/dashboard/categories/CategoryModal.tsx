@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { Archive, Pencil, Plus } from 'lucide-react'
 // <-- Archive вместо Trash2
 import { ReactNode, useEffect, useState } from 'react'
@@ -31,6 +30,8 @@ import {
 } from '@/types/category.types'
 
 import { useCategories } from '@/hooks/useCategories'
+
+import { cn } from '@/lib/utils'
 
 const iconOptions = Object.keys(CategoryIcons) as CategoryIconName[]
 

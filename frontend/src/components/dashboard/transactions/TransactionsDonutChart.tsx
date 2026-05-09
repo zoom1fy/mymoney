@@ -1,10 +1,12 @@
 'use client'
 
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+
+import { DonutItem } from '@/lib/transactions-donut'
+
 import { DateRangePicker } from './DateRangePicker'
 import { DateRangePickerSkeleton } from './skeletons/DateRangePickerSkeleton'
 import { TransactionsDonutChartSkeleton } from './skeletons/TransactionsDonutChartSkeleton'
-import { DonutItem } from '@/lib/transactions-donut'
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 interface Props {
   donutData: DonutItem[]

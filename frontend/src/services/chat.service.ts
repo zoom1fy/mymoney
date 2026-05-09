@@ -1,6 +1,5 @@
 'use client'
 
-import { axiosWithAuth } from '../api/interceptor'
 import { Socket, io } from 'socket.io-client'
 
 import {
@@ -10,6 +9,8 @@ import {
   WsErrorPayload,
   WsPartialResponse
 } from '@/types/chat.types'
+
+import { axiosWithAuth } from '../api/interceptor'
 
 class ChatService {
   private socket: Socket | null = null

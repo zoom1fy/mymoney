@@ -1,7 +1,7 @@
-import { DashboardHeader } from './header'
-
 import { DashboardSidebar } from '@/components/dashboard/sidebar/DashboardSidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/shadui/sidebar'
+
+import { DashboardHeader } from './header'
 
 export const metadata = {
   title: 'Дашборд'

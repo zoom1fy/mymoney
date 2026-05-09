@@ -1,11 +1,13 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-import { hexWithAlpha } from '@/utils/hex-with-alpha'
 import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 
 import { CategoryIconName, CategoryIcons } from '@/types/category.types'
+
+import { cn } from '@/lib/utils'
+
+import { hexWithAlpha } from '@/utils/hex-with-alpha'
 
 interface Props {
   name: string

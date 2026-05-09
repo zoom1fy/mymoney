@@ -1,11 +1,12 @@
+import { chatService } from '@/services/chat.service'
+import axios, { CreateAxiosDefaults } from 'axios'
+
 import {
   getAccessToken,
   removeTokenStorage
 } from '../services/auth-token.service'
 import { authService } from '../services/auth.service'
 import { errorCatch } from './error'
-import { chatService } from '@/services/chat.service'
-import axios, { CreateAxiosDefaults } from 'axios'
 
 const options: CreateAxiosDefaults = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',

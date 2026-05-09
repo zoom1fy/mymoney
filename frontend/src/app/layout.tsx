@@ -1,9 +1,10 @@
-import './globals.css'
-import { Providers } from './providers'
 import type { Metadata } from 'next'
 import { Toaster } from 'sonner'
 
 import { SITE_NAME } from '@/constants/seo.constants'
+
+import './globals.css'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: {

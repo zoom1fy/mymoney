@@ -1,13 +1,15 @@
 'use client'
 
-import { AccountModal } from './AccountModal'
-import { formatCurrency } from '@/lib/format'
-import { cn } from '@/lib/utils'
 import { Wallet } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
 import { AccountIcons } from '@/types/account.types'
 import type { IAccount } from '@/types/account.types'
+
+import { formatCurrency } from '@/lib/format'
+import { cn } from '@/lib/utils'
+
+import { AccountModal } from './AccountModal'
 
 interface Props {
   account: IAccount

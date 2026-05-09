@@ -1,8 +1,5 @@
 'use client'
 
-import { TransactionFilters } from './TransactionFilters'
-import { TransactionItem } from './TransactionListItem'
-import { TransactionModal } from './TransactionModal'
 import { AnimatePresence, motion } from 'framer-motion'
 import debounce from 'lodash/debounce'
 import { ChevronDown, Filter, Search } from 'lucide-react'
@@ -22,6 +19,10 @@ import { Input } from '@/components/ui/shadui/input'
 
 import { ICategory } from '@/types/category.types'
 import { ITransaction, TransactionType } from '@/types/transaction.types'
+
+import { TransactionFilters } from './TransactionFilters'
+import { TransactionItem } from './TransactionListItem'
+import { TransactionModal } from './TransactionModal'
 
 const getCurrentMonthRange = () => {
   const now = new Date()

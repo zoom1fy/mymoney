@@ -3,9 +3,9 @@ import { ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react'
 import Link from 'next/link'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
-import { Button } from '@/components/ui/shadui/button'
 import { GlassBadge } from '@/components/ui/cards/glass-badge'
 import { GlassCard } from '@/components/ui/cards/glass-card'
+import { Button } from '@/components/ui/shadui/button'
 
 export default function HomePage() {
   return (

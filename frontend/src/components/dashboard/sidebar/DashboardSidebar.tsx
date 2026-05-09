@@ -1,8 +1,5 @@
 'use client'
 
-import { ScrollArea } from '../../ui/shadui/scroll-area'
-import { AccountCard } from './AccountCard'
-import { AccountModal } from './AccountModal'
 import { Wallet } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
@@ -26,6 +23,10 @@ import {
 } from '@/types/account.types'
 
 import { useAccounts } from '@/hooks/useAccounts'
+
+import { ScrollArea } from '../../ui/shadui/scroll-area'
+import { AccountCard } from './AccountCard'
+import { AccountModal } from './AccountModal'
 
 export function DashboardSidebar() {
   const { accounts, isLoading } = useAccounts()

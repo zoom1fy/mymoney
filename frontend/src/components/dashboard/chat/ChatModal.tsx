@@ -1,15 +1,7 @@
 'use client'
 
-import ChatMessages from './ChatMessages'
 import { getAccessToken } from '@/services/auth-token.service'
-import {
-  AlertCircle,
-  Loader2,
-  Send,
-  Sparkles,
-  X,
-  Zap
-} from 'lucide-react'
+import { AlertCircle, Loader2, Send, Sparkles, X, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { ConfirmAlert } from '@/components/ui/dialogs/confirm-alert'
@@ -17,6 +9,8 @@ import { Button } from '@/components/ui/shadui/button'
 import { Input } from '@/components/ui/shadui/input'
 
 import { useChat } from '@/hooks/useChat'
+
+import ChatMessages from './ChatMessages'
 
 interface ChatModalProps {
   open: boolean

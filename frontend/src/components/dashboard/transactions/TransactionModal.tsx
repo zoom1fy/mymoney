@@ -1,8 +1,5 @@
 'use client'
 
-import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
-import { TransactionPreview } from './TransactionPreview'
-import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import {
@@ -47,6 +44,11 @@ import { ITransaction, TransactionType } from '@/types/transaction.types'
 
 import { useAccounts } from '@/hooks/useAccounts'
 import { useTransactions } from '@/hooks/useTransactions'
+
+import { cn } from '@/lib/utils'
+
+import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
+import { TransactionPreview } from './TransactionPreview'
 
 interface ITransactionForm {
   amount: number | ''

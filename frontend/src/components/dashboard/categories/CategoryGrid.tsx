@@ -1,13 +1,14 @@
 'use client'
 
-import { TransactionModal } from '../transactions/TransactionModal'
-import { CategoryItem } from './CategoryItem'
-import { CategoryItemSkeleton } from './CategoryItemSkeleton'
-import { CategoryModal } from './CategoryModal'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { ICategory } from '@/types/category.types'
+
+import { TransactionModal } from '../transactions/TransactionModal'
+import { CategoryItem } from './CategoryItem'
+import { CategoryItemSkeleton } from './CategoryItemSkeleton'
+import { CategoryModal } from './CategoryModal'
 
 interface Props {
   categories: ICategory[]

@@ -1,6 +1,4 @@
 // category.types.ts
-import { CurrencyCode } from './account.types'
-import { IBase } from './root.types'
 import {
   Airplay,
   Anchor,
@@ -70,6 +68,9 @@ import {
   Zap
 } from 'lucide-react'
 
+import { CurrencyCode } from './account.types'
+import { IBase } from './root.types'
+
 /**
  * Интерфейс создания категории (фронт → бэк)
  */
@@ -86,7 +87,7 @@ export interface ICreateCategory {
  * Полная категория (бэк → фронт)
  */
 export interface ICategory extends ICreateCategory, IBase {
-   isArchived: boolean
+  isArchived: boolean
 }
 
 /**

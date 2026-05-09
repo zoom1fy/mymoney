@@ -1,11 +1,12 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { Bot, Sparkles, User } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 
 import type { ChatMessage } from '@/types/chat.types'
+
+import { cn } from '@/lib/utils'
 
 export default function ChatMessages({
   messages,

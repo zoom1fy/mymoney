@@ -6,7 +6,7 @@ import { IBase } from './root.types'
  * Используются для указания типа операции в системе.
  */
 export enum TransactionType {
-  INCOME = 'INCOME',   // Доход
+  INCOME = 'INCOME', // Доход
   EXPENSE = 'EXPENSE', // Расход
   TRANSFER = 'TRANSFER' // Перевод между счетами
 }
@@ -16,14 +16,14 @@ export enum TransactionType {
  * Используется на фронте при отправке данных на бэкенд.
  */
 export interface ICreateTransaction {
-  accountId: number               // ID счета, с которого списываются/начисляются деньги
-  targetAccountId?: number        // ID целевого счета (для переводов)
-  categoryId?: number             // ID категории (доход/расход)
-  amount: number                  // Сумма транзакции
-  description?: string            // Комментарий или описание
-  type: TransactionType           // Тип транзакции
-  currencyCode: CurrencyCode      // Валюта транзакции
-  transactionDate?: string        // Дата транзакции (если не передана, ставится текущая)
+  accountId: number // ID счета, с которого списываются/начисляются деньги
+  targetAccountId?: number // ID целевого счета (для переводов)
+  categoryId?: number // ID категории (доход/расход)
+  amount: number // Сумма транзакции
+  description?: string // Комментарий или описание
+  type: TransactionType // Тип транзакции
+  currencyCode: CurrencyCode // Валюта транзакции
+  transactionDate?: string // Дата транзакции (если не передана, ставится текущая)
 }
 
 /**
@@ -40,8 +40,8 @@ export interface ITransaction extends ICreateTransaction, IBase {
  * Используется для пагинации: nextCursor нужен для запроса следующей страницы.
  */
 export interface ITransactionResponse {
-  data: ITransaction[]           // Массив транзакций
-  nextCursor: number | null      // Курсор для следующей страницы (null, если больше нет данных)
+  data: ITransaction[] // Массив транзакций
+  nextCursor: number | null // Курсор для следующей страницы (null, если больше нет данных)
 }
 
 /**

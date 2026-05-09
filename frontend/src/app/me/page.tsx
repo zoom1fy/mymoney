@@ -1,6 +1,5 @@
 'use client'
 
-import { buildDonutData } from '@/lib/transactions-donut'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -13,6 +12,8 @@ import { TransactionType } from '@/types/transaction.types'
 
 import { useCategories } from '@/hooks/useCategories'
 import { useTransactionsForPeriod } from '@/hooks/useTransactions'
+
+import { buildDonutData } from '@/lib/transactions-donut'
 
 const getCurrentMonthRange = () => ({
   from: startOfMonth(new Date()),

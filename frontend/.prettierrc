@@ -14,9 +14,24 @@
     "^@/constants/(.*)$",
     "^@/types/(.*)$",
     "^@/assets/(.*)$",
-    "^@/hooks/(.*)$"
+    "^@/hooks/(.*)$",
+    "^@/lib/(.*)$",
+    "^@/utils/(.*)$",
+    "^[./]"
   ],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
-  "plugins": ["@trivago/prettier-plugin-sort-imports"]
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+  "overrides": [
+    {
+      "files": ["*.spec.ts", "*.test.ts", "*.spec.tsx", "*.test.tsx"],
+      "options": {
+        "importOrder": [
+          "<THIRD_PARTY_MODULES>",
+          "^@/(.*)$",
+          "^[./]"
+        ]
+      }
+    }
+  ]
 }
