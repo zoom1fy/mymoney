@@ -183,6 +183,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
+      - name: Show project structure
+        run: |
+          echo "=== Backend Dockerfiles ==="
+          ls -la backend/Dockerfile* 2>/dev/null || echo "No Dockerfiles found"
+          echo ""
+          echo "=== Frontend Dockerfiles ==="
+          ls -la frontend/Dockerfile* 2>/dev/null || echo "No Dockerfiles found"
+      
       - name: Create test env file
         run: |
           cat > .env << EOF
@@ -202,24 +210,19 @@ jobs:
           DOCKER_DEFAULT_PLATFORM=linux/amd64
           EOF
       
-      - name: Check Dockerfile locations
+      - name: Build with docker-compose.dev.yml (development)
         run: |
-          echo "Checking Dockerfiles:"
-          ls -la backend/Dockerfile || echo "❌ backend/Dockerfile not found"
-          ls -la backend/Dockerfile.prod || echo "⚠️ backend/Dockerfile.prod not found"
-          ls -la frontend/Dockerfile || echo "❌ frontend/Dockerfile not found"
-          ls -la frontend/Dockerfile.prod || echo "⚠️ frontend/Dockerfile.prod not found"
+          echo "Building with development config..."
+          docker compose -f docker-compose.yml -f docker-compose.dev.yml build backend frontend
       
-      - name: Build Docker images (development)
+      - name: Build with docker-compose.prod.yml (production)
         run: |
-          docker compose -f docker-compose.yml build backend frontend
-      
-      - name: Build Docker images (production)
-        run: |
+          echo "Building with production config..."
           docker compose -f docker-compose.yml -f docker-compose.prod.yml build backend frontend
       
       - name: Verify Docker images
         run: |
+          echo "=== Built Docker images ==="
           docker images
 
   notify:
@@ -231,16 +234,13 @@ jobs:
       - name: Determine status
         id: status
         run: |
-          # Определяем общий статус
           FAILED_JOBS=""
           WARNING_JOBS=""
           
-          # Проверяем критические джобы (тесты и сборка)
           if [ "${{ needs.check-lockfile.result }}" != "success" ]; then
             FAILED_JOBS="$FAILED_JOBS ⚠️ Lockfile Check\n"
           fi
           
-          # Линтинг - предупреждение, не ошибка
           if [ "${{ needs.backend-lint.result }}" != "success" ]; then
             WARNING_JOBS="$WARNING_JOBS ⚠️ Backend Lint\n"
           fi
@@ -265,7 +265,6 @@ jobs:
             FAILED_JOBS="$FAILED_JOBS ❌ Docker Build\n"
           fi
           
-          # Определяем итоговый статус
           if [ -z "$FAILED_JOBS" ] && [ -z "$WARNING_JOBS" ]; then
             echo "STATUS=success" >> $GITHUB_OUTPUT
             echo "EMOJI=✅" >> $GITHUB_OUTPUT
@@ -280,7 +279,6 @@ jobs:
             echo "RESULT=Failed" >> $GITHUB_OUTPUT
           fi
           
-          # Сохраняем для использования в сообщении
           echo "FAILED_JOBS=$FAILED_JOBS" >> $GITHUB_OUTPUT
           echo "WARNING_JOBS=$WARNING_JOBS" >> $GITHUB_OUTPUT
       
@@ -292,21 +290,20 @@ jobs:
           message: |
             ${{ steps.status.outputs.EMOJI }} CI Pipeline ${{ steps.status.outputs.RESULT }}
             
-            📦 **Repository:** ${{ github.repository }}
-            🌿 **Branch:** ${{ github.ref_name }}
-            📝 **Commit:** ${{ github.sha }}
-            👤 **Author:** ${{ github.actor }}
-            💬 **Message:** ${{ github.event.head_commit.message }}
+            📦 Repository: ${{ github.repository }}
+            🌿 Branch: ${{ github.ref_name }}
+            👤 Author: ${{ github.actor }}
+            💬 Message: ${{ github.event.head_commit.message }}
             
-            **Critical Jobs:**
+            Critical Jobs:
             🔍 Lockfile Check: ${{ needs.check-lockfile.result == 'success' && '✅' || '❌' }}
             🧪 Backend Tests: ${{ needs.backend-test.result == 'success' && '✅' || '❌' }}
             🏗️ Backend Build: ${{ needs.backend-build.result == 'success' && '✅' || '❌' }}
             🏗️ Frontend Build: ${{ needs.frontend-build.result == 'success' && '✅' || '❌' }}
             🐳 Docker Build: ${{ needs.docker-build.result == 'success' && '✅' || '❌' }}
             
-            **Lint Checks (non-blocking):**
+            Lint Checks:
             🔍 Backend Lint: ${{ needs.backend-lint.result == 'success' && '✅' || '⚠️' }}
             🔍 Frontend Lint: ${{ needs.frontend-lint.result == 'success' && '✅' || '⚠️' }}
             
-            🔗 **View details:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            🔗 View: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
