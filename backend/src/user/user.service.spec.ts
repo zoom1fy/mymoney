@@ -5,9 +5,11 @@ import { PrismaService } from '../prisma/prisma.service';
 
 // Mock argon2 hashing behavior as specified
 jest.mock('argon2', () => ({
-  verify: jest.fn(),
+  verify: jest.fn().mockResolvedValue(true),
   hash: jest.fn().mockResolvedValue('$argon2id$hashed-password'),
 }));
+
+const mockArgon2Verify = jest.requireMock('argon2').verify as jest.Mock;
 
 describe('UserService', () => {
   let service: UserService;
@@ -52,6 +54,7 @@ describe('UserService', () => {
     Object.values(mockPrisma.user).forEach((mock) => {
       (mock as jest.Mock).mockReset();
     });
+    mockArgon2Verify.mockResolvedValue(true);
   });
 
   describe('findById()', () => {
@@ -207,7 +210,8 @@ describe('UserService', () => {
         lastLogin: now,
       } as any);
 
-      const updated = await service.updateProfile(userId, { email: updatedEmail });
+      const updated = await service.updateProfile(userId, { email: updatedEmail, currentPassword: password });
+      expect(mockArgon2Verify).toHaveBeenCalledWith(passwordHash, password);
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { email: updatedEmail } });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },
@@ -235,7 +239,7 @@ describe('UserService', () => {
         lastLogin: now,
       } as any);
 
-      const updated = await service.updateProfile(userId, { password: 'newpass' });
+      const updated = await service.updateProfile(userId, { password: 'newpass', currentPassword: password });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: { passwordHash: passwordHash },
@@ -256,7 +260,7 @@ describe('UserService', () => {
       } as any);
       // Second: getByEmail finds existing user with the new email
       mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'other', email: updatedEmail } as any);
-      await expect(service.updateProfile(userId, { email: updatedEmail } as any)).rejects.toThrow(
+      await expect(service.updateProfile(userId, { email: updatedEmail, currentPassword: password })).rejects.toThrow(
         ConflictException
       );
     });
@@ -278,13 +282,31 @@ describe('UserService', () => {
         passwordHash,
         lastLogin: now,
       } as any);
-      const updated = await service.updateProfile(userId, { email });
+      const updated = await service.updateProfile(userId, { email, currentPassword: password });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: { email },
       });
       expect(updated.email).toBe(email);
       expect((updated as any).passwordHash).toBeUndefined();
+    });
+
+    it('should throw BadRequestException if current password is wrong', async () => {
+      mockArgon2Verify.mockResolvedValueOnce(false);
+      mockPrisma.user.findUnique.mockResolvedValueOnce({
+        id: userId,
+        email,
+        passwordHash,
+        lastLogin: now,
+        accounts: [],
+        categories: [],
+        transactions: [],
+      } as any);
+
+      const { BadRequestException } = require('@nestjs/common');
+      await expect(
+        service.updateProfile(userId, { email: updatedEmail, currentPassword: 'wrong' })
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

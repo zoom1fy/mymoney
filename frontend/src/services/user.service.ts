@@ -1,5 +1,5 @@
 import { axiosWithAuth } from '../api/interceptor'
-import { IAuthForm, IUser } from '../types/auth.types'
+import { IUser } from '../types/auth.types'
 
 export const userService = {
   async getProfile() {
@@ -7,7 +7,11 @@ export const userService = {
     return response.data
   },
 
-  async updateProfile(data: Partial<IAuthForm>) {
+  async updateProfile(data: {
+    email?: string
+    password?: string
+    currentPassword: string
+  }) {
     const response = await axiosWithAuth.patch<IUser>('/user/profile', data)
     return response.data
   },

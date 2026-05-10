@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from '../auth/dto/auth.dto';
 import { UpdateProfileDto } from './dto/user.dto';
-import { hash } from 'argon2';
+import { hash, verify } from 'argon2';
 
 @Injectable()
 export class UserService {
@@ -75,6 +80,12 @@ export class UserService {
 
   async updateProfile(id: string, dto: UpdateProfileDto) {
     const user = await this.findById(id);
+
+    // Проверяем текущий пароль
+    const isValidPassword = await verify(user.passwordHash, dto.currentPassword);
+    if (!isValidPassword) {
+      throw new BadRequestException('Неверный текущий пароль');
+    }
 
     // Если обновляем email, проверяем уникальность
     if (dto.email && dto.email !== user.email) {

@@ -40,10 +40,29 @@ export function useProfile() {
     }
   })
 
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: {
+      email?: string
+      password?: string
+      currentPassword: string
+    }) => userService.updateProfile(data),
+    onSuccess: async (updatedProfile: any) => {
+      queryClient.setQueryData(['profile'], updatedProfile)
+      toast.success('Профиль обновлён')
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.message || 'Ошибка при обновлении профиля'
+      toast.error(message)
+    }
+  })
+
   return {
     profile,
     isLoading,
     logout: logoutMutation.mutate,
-    isLoggingOut: logoutMutation.isPending
+    isLoggingOut: logoutMutation.isPending,
+    updateProfile: updateProfileMutation.mutateAsync,
+    isUpdatingProfile: updateProfileMutation.isPending
   }
 }

@@ -1,7 +1,9 @@
 'use client'
 
 import { LogOut, MessageSquare, User } from 'lucide-react'
+import { useState } from 'react'
 
+import { ProfileModal } from '@/components/dashboard/profile/ProfileModal'
 import { Avatar, AvatarFallback } from '@/components/ui/shadui/avatar'
 import { Button } from '@/components/ui/shadui/button'
 import {
@@ -18,6 +20,7 @@ import { useProfile } from '@/hooks/useProfile'
 
 export function DashboardHeader() {
   const { profile, logout, isLoggingOut } = useProfile()
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const getInitials = () => {
     if (profile?.name) {
@@ -91,6 +94,14 @@ export function DashboardHeader() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              onClick={() => setProfileOpen(true)}
+              className="cursor-pointer"
+            >
+              <User className="mr-2 h-4 w-4" />
+              Профиль
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
               onClick={handleLogout}
               disabled={isLoggingOut}
               className="cursor-pointer text-destructive focus:text-destructive"
@@ -100,6 +111,11 @@ export function DashboardHeader() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <ProfileModal
+          open={profileOpen}
+          onOpenChange={setProfileOpen}
+        />
       </div>
     </header>
   )
