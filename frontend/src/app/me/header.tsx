@@ -4,6 +4,7 @@ import { LogOut, MessageSquare, User } from 'lucide-react'
 import { useState } from 'react'
 
 import { ProfileModal } from '@/components/dashboard/profile/ProfileModal'
+import { ThemeToggle } from '@/components/ui/buttons/ThemeToggle'
 import { Avatar, AvatarFallback } from '@/components/ui/shadui/avatar'
 import { Button } from '@/components/ui/shadui/button'
 import {
@@ -64,6 +65,8 @@ export function DashboardHeader() {
           <span className="hidden sm:inline">ИИ помощник</span>
           <span className="sm:hidden">ИИ помощник</span>
         </Button>
+
+        <ThemeToggle />
 
         {/* Dropdown меню профиля */}
         <DropdownMenu>
