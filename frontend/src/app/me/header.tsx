@@ -48,8 +48,8 @@ export function DashboardHeader() {
 
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         <Button
-          size="sm"
           className="cursor-pointer shadow-sm hover:shadow transition-all"
+          size="sm"
           onClick={() => window.dispatchEvent(new Event('open-transactions'))}
         >
           <span className="hidden sm:inline">Список транзакций</span>
@@ -57,8 +57,8 @@ export function DashboardHeader() {
         </Button>
 
         <Button
-          size="sm"
           className="cursor-pointer shadow-sm hover:shadow transition-all"
+          size="sm"
           onClick={() => window.dispatchEvent(new Event('open-chat'))}
         >
           <MessageSquare className="size-4" />
@@ -72,9 +72,9 @@ export function DashboardHeader() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              variant="ghost"
-              size="sm"
               className="relative h-8 w-8 rounded-full cursor-pointer"
+              size="sm"
+              variant="ghost"
             >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -84,9 +84,9 @@ export function DashboardHeader() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-56 bg-background"
-            align="end"
             forceMount
+            align="end"
+            className="w-56 bg-background"
           >
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
@@ -97,17 +97,17 @@ export function DashboardHeader() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => setProfileOpen(true)}
               className="cursor-pointer"
+              onClick={() => setProfileOpen(true)}
             >
               <User className="mr-2 h-4 w-4" />
               Профиль
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={handleLogout}
-              disabled={isLoggingOut}
               className="cursor-pointer text-destructive focus:text-destructive"
+              disabled={isLoggingOut}
+              onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               {isLoggingOut ? 'Выход...' : 'Выйти'}

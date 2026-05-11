@@ -73,20 +73,20 @@ export function ConfirmAlert({
 
         <AlertDialogFooter className="mt-10 gap-4">
           <AlertDialogCancel
-            disabled={loading}
             className="h-12 px-8 text-lg rounded-xl cursor-pointer"
+            disabled={loading}
           >
             {cancelText}
           </AlertDialogCancel>
 
           <AlertDialogAction
-            disabled={loading}
-            onClick={onConfirm}
             className={cn(
               'h-12 px-8 text-lg rounded-xl cursor-pointer',
               destructive &&
                 'bg-destructive text-destructive-foreground hover:bg-primary/90'
             )}
+            disabled={loading}
+            onClick={onConfirm}
           >
             {confirmText}
           </AlertDialogAction>

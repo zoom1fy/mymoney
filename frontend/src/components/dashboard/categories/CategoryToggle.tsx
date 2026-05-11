@@ -10,13 +10,13 @@ interface Props {
 export function CategoryToggle({ isExpense, onChange }: Props) {
   return (
     <div
-      onClick={() => onChange(!isExpense)}
       className={cn(
         'group relative flex h-11 w-full rounded-full border border-border/40',
         'bg-muted/30 backdrop-blur-xl overflow-hidden p-1',
         'shadow-[0_1px_4px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)]',
         'cursor-pointer select-none'
       )}
+      onClick={() => onChange(!isExpense)}
     >
       {/* БЕГУНОК */}
       <div

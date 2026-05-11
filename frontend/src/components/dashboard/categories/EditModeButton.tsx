@@ -12,14 +12,14 @@ interface Props {
 export function EditModeButton({ active, onToggle }: Props) {
   return (
     <button
-      onClick={onToggle}
+      aria-label="Режим редактирования категорий"
       className={cn(
         'size-10 rounded-full border flex items-center justify-center transition-all cursor-pointer',
         active
           ? 'bg-accent text-accent-foreground shadow-lg scale-110'
           : 'bg-background hover:bg-muted'
       )}
-      aria-label="Режим редактирования категорий"
+      onClick={onToggle}
     >
       <Pencil className="size-5" />
     </button>

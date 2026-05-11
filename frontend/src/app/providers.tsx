@@ -19,10 +19,10 @@ export function Providers({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={client}>
       <ThemeProvider
+        disableTransitionOnChange
+        enableSystem
         attribute="class"
         defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
       >
         {children}
         <ReactQueryDevtools initialIsOpen={false} />

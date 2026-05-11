@@ -30,7 +30,6 @@ import { AccountModal } from './AccountModal'
 
 export function DashboardSidebar() {
   const { accounts, isLoading } = useAccounts()
-  const pathname = usePathname()
 
   const ACCOUNT_CATEGORIES: AccountCategoryEnum[] = [
     AccountCategoryEnum.ACCOUNTS,
@@ -58,9 +57,6 @@ export function DashboardSidebar() {
     }
   )
 
-  const IconComponent = (iconName?: string) =>
-    AccountIcons[iconName || 'Wallet'] || Wallet
-
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-border/50 bg-background/70 backdrop-blur-sm">
@@ -87,8 +83,8 @@ export function DashboardSidebar() {
 
             return (
               <SidebarGroup
-                key={category}
                 className="py-2"
+                key={category}
               >
                 <SidebarGroupLabel className="px-3 text-base font-semibold text-foreground/80">
                   {categoryName}
@@ -97,8 +93,8 @@ export function DashboardSidebar() {
                 <SidebarGroupContent className="grid gap-3 mt-2">
                   {accountsInCategory.map(account => (
                     <AccountCard
-                      key={account.id}
                       account={account}
+                      key={account.id}
                     />
                   ))}
                 </SidebarGroupContent>

@@ -171,11 +171,11 @@ export default function ChatMessages({
 
       {messages.map((msg, index) => (
         <div
-          key={msg.id}
           className={cn(
             'flex gap-2 sm:gap-3 animate-in slide-in-from-bottom-2 fade-in duration-300',
             msg.isUser ? 'justify-end' : 'justify-start'
           )}
+          key={msg.id}
           style={{ animationDelay: `${index * 50}ms` }}
         >
           {!msg.isUser && (
@@ -255,8 +255,8 @@ export default function ChatMessages({
       )}
 
       <div
-        ref={bottomRef}
         className="h-2"
+        ref={bottomRef}
       />
     </div>
   )

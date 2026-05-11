@@ -15,8 +15,8 @@ export function TransactionItem({ transaction: tx, category, onEdit }: Props) {
 
   return (
     <div
-      onClick={onEdit}
       className="cursor-pointer"
+      onClick={onEdit}
     >
       <div className="p-4 hover:bg-accent/50 transition-colors touch-manipulation">
         {/* Мобильный вид */}

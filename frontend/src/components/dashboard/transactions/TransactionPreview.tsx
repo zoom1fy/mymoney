@@ -62,7 +62,7 @@ export function TransactionPreview({
       const isOriginalExpense =
         originalTransaction.type === TransactionType.EXPENSE
       const originalAmount = originalTransaction.amount
-      let balanceAfterRollback = isOriginalExpense
+      const balanceAfterRollback = isOriginalExpense
         ? selectedAccount.currentBalance + originalAmount
         : selectedAccount.currentBalance - originalAmount
       return isExpense
@@ -82,9 +82,9 @@ export function TransactionPreview({
         {/* Сумма и дата */}
         <div className="text-center">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 shadow-sm"
+            initial={{ scale: 0.9, opacity: 0 }}
           >
             <span className="text-xl font-bold text-primary tracking-tight">
               {finalAmount ? `${finalAmount.toLocaleString('ru-RU')} ₽` : '0 ₽'}
@@ -100,13 +100,13 @@ export function TransactionPreview({
           {/* Блок счета */}
           <div className="flex flex-col items-center space-y-2 flex-1">
             <motion.div
-              whileHover={{ scale: 1.05 }}
               className={cn(
                 'size-16 rounded-xl flex items-center justify-center border-2 transition-all shadow-sm',
                 selectedAccount
                   ? 'bg-background border-primary/40 shadow-primary/10'
                   : 'bg-muted/30 border-muted/40'
               )}
+              whileHover={{ scale: 1.05 }}
             >
               <AccountIcon
                 className={cn(
@@ -140,8 +140,8 @@ export function TransactionPreview({
           {/* Блок категории */}
           <div className="flex flex-col items-center space-y-2 flex-1">
             <motion.div
-              whileHover={{ scale: 1.05 }}
               className="size-16 rounded-xl flex items-center justify-center border-2 bg-background border-accent/40 shadow-sm"
+              whileHover={{ scale: 1.05 }}
             >
               <CategoryIcon className="size-8 text-primary" />
             </motion.div>
@@ -155,17 +155,17 @@ export function TransactionPreview({
         <AnimatePresence mode="wait">
           {isShowForecast && (
             <motion.div
-              key="forecast"
-              initial={{ height: 0, opacity: 0, y: -10 }}
               animate={{ height: 'auto', opacity: 1, y: 0 }}
+              className="overflow-hidden w-full md:w-auto"
               exit={{ height: 0, opacity: 0, y: 100 }}
+              initial={{ height: 0, opacity: 0, y: -10 }}
+              key="forecast"
               transition={{
                 type: 'spring',
                 stiffness: 120,
                 damping: 20,
                 mass: 0.8
               }}
-              className="overflow-hidden w-full md:w-auto"
             >
               <div className="mt-2 p-4 rounded-xl bg-background/80 backdrop-blur-sm border border-border shadow-xl">
                 <div className="flex items-center justify-center space-x-4">
@@ -193,8 +193,6 @@ export function TransactionPreview({
                       Станет
                     </p>
                     <motion.p
-                      key={newBalance}
-                      initial={{ scale: 1.1 }}
                       animate={{ scale: 1 }}
                       className={cn(
                         'text-lg font-black',
@@ -202,6 +200,8 @@ export function TransactionPreview({
                           ? 'text-destructive'
                           : 'text-success'
                       )}
+                      initial={{ scale: 1.1 }}
+                      key={newBalance}
                     >
                       {newBalance.toLocaleString('ru-RU')} ₽
                     </motion.p>

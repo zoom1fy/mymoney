@@ -3,7 +3,6 @@ import { ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react'
 import Link from 'next/link'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
-import { GlassBadge } from '@/components/ui/cards/glass-badge'
 import { GlassCard } from '@/components/ui/cards/glass-card'
 import { Button } from '@/components/ui/shadui/button'
 
@@ -51,14 +50,14 @@ export default function HomePage() {
             </AccentButton>
 
             <Button
+              asChild
+              className="h-12 px-8 rounded-full text-base"
               size="lg"
               variant="ghost"
-              className="h-12 px-8 rounded-full text-base"
-              asChild
             >
               <Link
-                target="_blank"
                 href="https://github.com/zoom1fy/mymoney"
+                target="_blank"
               >
                 GitHub
               </Link>
@@ -77,19 +76,19 @@ export default function HomePage() {
 
         <div className="grid gap-8 md:grid-cols-3">
           <FeatureCard
+            description="Все ваши счета, наличные и карты в одном интерфейсе с актуальными остатками."
             icon={<Wallet />}
             title="Счета и балансы"
-            description="Все ваши счета, наличные и карты в одном интерфейсе с актуальными остатками."
           />
           <FeatureCard
+            description="Понятная статистика без перегруженных графиков и лишних деталей."
             icon={<BarChart3 />}
             title="Аналитика расходов"
-            description="Понятная статистика без перегруженных графиков и лишних деталей."
           />
           <FeatureCard
+            description="Данные принадлежат только вам. Без рекламы, трекеров и облачных рисков."
             icon={<Shield />}
             title="Конфиденциальность"
-            description="Данные принадлежат только вам. Без рекламы, трекеров и облачных рисков."
           />
         </div>
       </section>

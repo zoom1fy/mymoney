@@ -207,13 +207,15 @@ export function TransactionModal({
     >
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent
-        showCloseButton={false}
         className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto"
+        showCloseButton={false}
       >
         <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl transition-all duration-700">
           <DialogHeader className="mb-8">
             <ModalHeader
               icon={<Wallet className="size-6 text-white" />}
+              isDeleteLoading={isDeleting}
+              showDelete={isEdit}
               title={
                 isEdit
                   ? `Редактировать ${isExpense ? 'расход' : 'доход'}`
@@ -221,19 +223,17 @@ export function TransactionModal({
               }
               onClose={() => onOpenChange?.(false)}
               onDelete={() => setConfirmOpen(true)}
-              isDeleteLoading={isDeleting}
-              showDelete={isEdit}
             />
           </DialogHeader>
 
           <TransactionPreview
             amount={watch('amount')}
-            date={watch('date')}
             category={category}
-            isExpense={isExpense}
-            selectedAccount={selectedAccount}
-            originalTransaction={transaction} // Передаём исходную транзакцию
+            date={watch('date')}
             isEditMode={isEdit} // Передаём флаг режима редактирования
+            isExpense={isExpense}
+            originalTransaction={transaction} // Передаём исходную транзакцию
+            selectedAccount={selectedAccount}
           />
 
           {/* Показываем предупреждение, если счёт удалён */}
@@ -246,8 +246,8 @@ export function TransactionModal({
           )}
 
           <form
-            onSubmit={handleSubmit(onSubmit)}
             className="space-y-6"
+            onSubmit={handleSubmit(onSubmit)}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
               {/* Левая колонка */}
@@ -257,17 +257,9 @@ export function TransactionModal({
                   <Controller
                     control={control}
                     name="amount"
-                    rules={{ required: 'Введите сумму' }}
                     render={({ field }) => (
                       <NumericFormat
-                        thousandSeparator=" "
-                        decimalScale={2}
-                        decimalSeparator=","
                         allowNegative={false}
-                        placeholder="0,00"
-                        customInput={Input}
-                        value={field.value}
-                        disabled={isFormDisabled}
                         className={cn(
                           isFormDisabled
                             ? FIELD_CLASSES_DISABLED
@@ -277,16 +269,24 @@ export function TransactionModal({
                             !isFormDisabled &&
                             'border-destructive'
                         )}
-                        onValueChange={values =>
-                          !isFormDisabled &&
-                          field.onChange(values.floatValue ?? '')
-                        }
+                        customInput={Input}
+                        decimalScale={2}
+                        decimalSeparator=","
+                        disabled={isFormDisabled}
                         isAllowed={values => {
                           const digits = values.value.replace(/\D/g, '')
                           return digits.length <= 10
                         }}
+                        placeholder="0,00"
+                        thousandSeparator=" "
+                        value={field.value}
+                        onValueChange={values =>
+                          !isFormDisabled &&
+                          field.onChange(values.floatValue ?? '')
+                        }
                       />
                     )}
+                    rules={{ required: 'Введите сумму' }}
                   />
                 </div>
 
@@ -297,9 +297,9 @@ export function TransactionModal({
                   <Controller
                     control={control}
                     name="accountId"
-                    rules={{ required: 'Выберите счёт' }}
                     render={({ field }) => (
                       <Select
+                        disabled={isFormDisabled}
                         value={field.value}
                         onValueChange={val => {
                           if (isFormDisabled) return
@@ -307,7 +307,6 @@ export function TransactionModal({
                           if (acc?.isDeleted) return
                           field.onChange(val)
                         }}
-                        disabled={isFormDisabled}
                       >
                         <SelectTrigger
                           className={cn(
@@ -326,9 +325,9 @@ export function TransactionModal({
                             .filter(acc => !acc.isDeleted)
                             .map(acc => (
                               <SelectItem
+                                className="text-lg py-3 cursor-pointer"
                                 key={acc.id}
                                 value={String(acc.id)}
-                                className="text-lg py-3 cursor-pointer"
                               >
                                 <div className="flex items-center justify-between w-full gap-4">
                                   <span>{acc.name}</span>
@@ -350,6 +349,7 @@ export function TransactionModal({
                         </SelectContent>
                       </Select>
                     )}
+                    rules={{ required: 'Выберите счёт' }}
                   />
                 </div>
               </div>
@@ -366,14 +366,14 @@ export function TransactionModal({
                       disabled={isFormDisabled}
                     >
                       <Button
-                        variant="outline"
-                        disabled={isFormDisabled}
                         className={cn(
                           isFormDisabled
                             ? FIELD_CLASSES_DISABLED
                             : FIELD_CLASSES,
                           'justify-start font-normal text-left cursor-pointer'
                         )}
+                        disabled={isFormDisabled}
+                        variant="outline"
                       >
                         <span className="truncate">
                           {format(watch('date'), 'd MMMM yyyy', { locale: ru })}
@@ -382,10 +382,12 @@ export function TransactionModal({
                     </PopoverTrigger>
                     {!isFormDisabled && (
                       <PopoverContent
-                        className="w-auto p-0 border border-border bg-card shadow-2xl rounded-2xl"
                         align="start"
+                        className="w-auto p-0 border border-border bg-card shadow-2xl rounded-2xl"
                       >
                         <Calendar
+                          className="p-3"
+                          locale={ru as any}
                           mode="single"
                           selected={watch('date')}
                           onSelect={d =>
@@ -394,8 +396,6 @@ export function TransactionModal({
                               shouldValidate: true
                             })
                           }
-                          locale={ru as any}
-                          className="p-3"
                         />
                       </PopoverContent>
                     )}
@@ -407,11 +407,11 @@ export function TransactionModal({
                     <FileText className="size-5 opacity-70" /> Заметка
                   </Label>
                   <Input
-                    placeholder="На что потратили?"
-                    disabled={isFormDisabled}
                     className={cn(
                       isFormDisabled ? FIELD_CLASSES_DISABLED : FIELD_CLASSES
                     )}
+                    disabled={isFormDisabled}
+                    placeholder="На что потратили?"
                     {...register('description')}
                   />
                 </div>
@@ -420,9 +420,9 @@ export function TransactionModal({
 
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6 pt-4">
               <AccentButton
-                type="submit"
-                disabled={!isValid || isLoading || isFormDisabled}
                 className="h-14 sm:flex-1"
+                disabled={!isValid || isLoading || isFormDisabled}
+                type="submit"
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin" />
@@ -434,25 +434,25 @@ export function TransactionModal({
               </AccentButton>
 
               <AccentButton
+                className="h-14 sm:flex-1"
+                disabled={isLoading}
                 type="button"
                 variant="outline"
-                className="h-14 sm:flex-1"
                 onClick={() => onOpenChange?.(false)}
-                disabled={isLoading}
               >
                 Отмена
               </AccentButton>
             </div>
 
             <ConfirmAlert
-              open={confirmOpen}
-              onOpenChange={setConfirmOpen}
-              title="Удалить транзакцию?"
-              description="Это действие нельзя отменить."
-              confirmText="Удалить"
               cancelText="Отмена"
+              confirmText="Удалить"
+              description="Это действие нельзя отменить."
               loading={isDeleting}
+              open={confirmOpen}
+              title="Удалить транзакцию?"
               onConfirm={handleDelete}
+              onOpenChange={setConfirmOpen}
             />
           </form>
         </GlassCard>

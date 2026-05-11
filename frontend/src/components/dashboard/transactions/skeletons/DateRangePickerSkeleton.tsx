@@ -7,7 +7,6 @@ export function DateRangePickerSkeleton() {
       <div className="grid grid-cols-4 gap-2 w-full max-w-md">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
-            key={i}
             className={`
               h-9 w-full rounded-lg border
               ${
@@ -16,6 +15,7 @@ export function DateRangePickerSkeleton() {
                   : 'bg-muted/25 border-muted/40'
               }
             `}
+            key={i}
           />
         ))}
       </div>

@@ -24,23 +24,19 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="ru"
       suppressHydrationWarning
+      lang="ru"
     >
       <body className="antialiased">
         <Providers>
           {children}
           <Toaster
-            theme="dark"
-            position="bottom-right"
             duration={1500}
+            position="bottom-right"
+            theme="dark"
           />
         </Providers>
       </body>
     </html>
   )
-}
-
-function setLoading(arg0: boolean) {
-  throw new Error('Function not implemented.')
 }

@@ -65,12 +65,12 @@ export function ModalHeader({
           {/* Кнопка удаления/архивации */}
           {showDelete && onDelete && (
             <Button
+              className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 h-12 w-12 rounded-full hover:scale-110 transition-all duration-300"
+              disabled={isDeleteLoading}
+              size="icon"
               type="button"
               variant="ghost"
-              size="icon"
               onClick={onDelete}
-              disabled={isDeleteLoading}
-              className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 h-12 w-12 rounded-full hover:scale-110 transition-all duration-300"
             >
               {deleteIcon || defaultDeleteIcon}{' '}
               {/* Используем кастомную иконку или дефолтную */}
@@ -79,11 +79,11 @@ export function ModalHeader({
 
           {/* Кнопка закрытия */}
           <Button
+            className="rounded-full hover:bg-muted/50 transition-all duration-300 hover:scale-110 cursor-pointer h-12 w-12"
+            size="icon"
             type="button"
             variant="ghost"
-            size="icon"
             onClick={onClose}
-            className="rounded-full hover:bg-muted/50 transition-all duration-300 hover:scale-110 cursor-pointer h-12 w-12"
           >
             <X className="size-5" />
           </Button>

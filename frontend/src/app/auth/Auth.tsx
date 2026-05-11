@@ -90,10 +90,10 @@ export function Auth() {
           </div>
 
           <motion.form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-8"
             layout
+            className="space-y-8"
             transition={{ duration: 0.75, ease: [0.4, 0, 0.2, 1] }}
+            onSubmit={handleSubmit(onSubmit)}
           >
             {/* Email */}
             <motion.div
@@ -101,16 +101,16 @@ export function Auth() {
               transition={{ duration: 0.4 }}
             >
               <Label
-                htmlFor="email"
                 className="text-lg font-medium"
+                htmlFor="email"
               >
                 Email
               </Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
                 className="mt-3 h-14 text-lg px-5"
+                id="email"
+                placeholder="you@example.com"
+                type="email"
                 {...register('email', {
                   required: 'Email обязателен',
                   pattern: {
@@ -128,19 +128,19 @@ export function Auth() {
               transition={{ duration: 0.4 }}
             >
               <Label
-                htmlFor="password"
                 className="text-lg font-medium"
+                htmlFor="password"
               >
                 Пароль
               </Label>
               <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
                 autoComplete={
                   type === 'login' ? 'current-password' : 'new-password'
                 }
                 className="mt-3 h-14 text-lg px-5"
+                id="password"
+                placeholder="••••••••"
+                type="password"
                 {...register('password', {
                   required: 'Пароль обязателен',
                   minLength: { value: 6, message: 'Минимум 6 символов' }
@@ -153,23 +153,23 @@ export function Auth() {
             <AnimatePresence mode="sync">
               {type === 'register' && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0, marginTop: 50 }}
+                  layout
                   animate={{ opacity: 1, height: 100, marginTop: 0 }}
                   exit={{ opacity: 0, height: 0, marginTop: -30 }}
+                  initial={{ opacity: 0, height: 0, marginTop: 50 }}
                   transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                  layout
                 >
                   <Label
-                    htmlFor="confirmPassword"
                     className="text-lg font-medium"
+                    htmlFor="confirmPassword"
                   >
                     Повторите пароль
                   </Label>
                   <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
                     className="mt-3 h-14 text-lg px-5"
+                    id="confirmPassword"
+                    placeholder="••••••••"
+                    type="password"
                     {...register('confirmPassword', {
                       required: 'Повтор пароля обязателен',
                       validate: value =>
@@ -187,10 +187,10 @@ export function Auth() {
               transition={{ duration: 0.5 }}
             >
               <AccentButton
-                type="submit"
-                size="lg"
                 className="w-full h-14 text-lg font-medium"
                 disabled={isPending}
+                size="lg"
+                type="submit"
               >
                 {isPending
                   ? 'Подождите...'
@@ -206,9 +206,9 @@ export function Auth() {
             <p className="text-lg text-muted-foreground">
               {type === 'login' ? 'Ещё нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
               <button
+                className="font-semibold text-accent hover:underline transition-colors"
                 type="button"
                 onClick={toggleAuthType}
-                className="font-semibold text-accent hover:underline transition-colors"
               >
                 {type === 'login' ? 'Зарегистрироваться' : 'Войти'}
               </button>
@@ -217,8 +217,8 @@ export function Auth() {
 
           <div className="mt-8 text-center">
             <Link
-              href="/"
               className="text-base text-muted-foreground hover:text-foreground transition-colors"
+              href="/"
             >
               ← Вернуться на главную
             </Link>
@@ -265,10 +265,10 @@ function ErrorMessage({ error }: { error?: string }) {
   if (!error) return null
   return (
     <motion.p
-      initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
       className="mt-2 text-base text-destructive"
+      exit={{ opacity: 0, height: 0 }}
+      initial={{ opacity: 0, height: 0 }}
     >
       {error}
     </motion.p>

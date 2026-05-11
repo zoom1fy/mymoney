@@ -86,14 +86,14 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
     <>
       {/* Кнопка открытия архива */}
       <button
-        onClick={() => {
-          setOpen(true)
-          setActiveTab(isExpense ? 'expense' : 'income')
-        }}
         className={cn(
           'size-10 rounded-full border flex items-center justify-center transition-all cursor-pointer hover:bg-muted',
           'aria-label="Открыть архив категорий"'
         )}
+        onClick={() => {
+          setOpen(true)
+          setActiveTab(isExpense ? 'expense' : 'income')
+        }}
       >
         <Archive className="size-5" />
       </button>
@@ -104,30 +104,30 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
         onOpenChange={setOpen}
       >
         <DialogContent
-          showCloseButton={false}
           className="w-[95vw] max-w-4xl p-0 max-h-[90vh] flex flex-col"
+          showCloseButton={false}
         >
           <GlassCard className="rounded-3xl p-6 md:p-8 flex flex-col h-full">
             <ModalHeader
               icon={<Archive className="size-6 text-white" />}
+              showDelete={false}
               title="Архив категорий"
               onClose={() => setOpen(false)}
-              showDelete={false}
             />
 
             {/* Поиск */}
             <div className="relative mt-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input
+                className="pl-9 pr-9 h-11 rounded-xl bg-background/50"
                 placeholder="Поиск категорий..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-9 pr-9 h-11 rounded-xl bg-background/50"
               />
               {searchQuery && (
                 <button
-                  onClick={clearSearch}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={clearSearch}
                 >
                   <X className="size-4" />
                 </button>
@@ -136,48 +136,48 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
 
             {/* Табы для переключения между расходами и доходами */}
             <Tabs
+              className="mt-6 flex-1 min-h-0 flex flex-col"
               value={activeTab}
               onValueChange={v => setActiveTab(v as 'expense' | 'income')}
-              className="mt-6 flex-1 min-h-0 flex flex-col"
             >
               <TabsList className="grid w-full grid-cols-2 rounded-xl bg-muted/50 p-1">
                 <TabsTrigger
-                  value="expense"
                   className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm cursor-pointer"
+                  value="expense"
                 >
                   Расходы ({expenseCount})
                 </TabsTrigger>
                 <TabsTrigger
-                  value="income"
                   className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm cursor-pointer"
+                  value="income"
                 >
                   Доходы ({incomeCount})
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent
-                value="expense"
                 className="flex-1 mt-4 min-h-0 overflow-y-auto"
+                value="expense"
               >
                 <CategoriesList
                   categories={filteredCategories}
-                  onUnarchive={handleUnarchive}
-                  isUnarchiving={isUnarchiving}
                   isEmpty={filteredCategories.length === 0}
+                  isUnarchiving={isUnarchiving}
                   searchQuery={searchQuery}
+                  onUnarchive={handleUnarchive}
                 />
               </TabsContent>
 
               <TabsContent
-                value="income"
                 className="flex-1 mt-4 min-h-0 overflow-y-auto"
+                value="income"
               >
                 <CategoriesList
                   categories={filteredCategories}
-                  onUnarchive={handleUnarchive}
-                  isUnarchiving={isUnarchiving}
                   isEmpty={filteredCategories.length === 0}
+                  isUnarchiving={isUnarchiving}
                   searchQuery={searchQuery}
+                  onUnarchive={handleUnarchive}
                 />
               </TabsContent>
             </Tabs>
@@ -187,19 +187,19 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
 
       {/* Подтверждение восстановления */}
       <ConfirmAlert
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title="Восстановить категорию?"
+        cancelText="Отмена"
+        confirmText="Восстановить"
         description={
           <>
             Категория <b>«{selectedCategory?.name}»</b> будет восстановлена из
             архива.
           </>
         }
-        confirmText="Восстановить"
-        cancelText="Отмена"
         loading={isUnarchiving}
+        open={confirmOpen}
+        title="Восстановить категорию?"
         onConfirm={confirmUnarchive}
+        onOpenChange={setConfirmOpen}
       />
     </>
   )
@@ -247,8 +247,8 @@ function CategoriesList({
 
         return (
           <div
-            key={category.id}
             className="group flex items-center justify-between p-3 rounded-xl bg-card/50 border border-border/50 hover:bg-card/80 hover:border-border transition-all"
+            key={category.id}
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div
@@ -286,11 +286,11 @@ function CategoriesList({
               </div>
             </div>
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onUnarchive(category)}
-              disabled={isUnarchiving}
               className="h-9 px-4 text-sm hover:bg-accent/10 hover:text-accent-foreground shrink-0 ml-2 cursor-pointer"
+              disabled={isUnarchiving}
+              size="sm"
+              variant="ghost"
+              onClick={() => onUnarchive(category)}
             >
               Восстановить
             </Button>

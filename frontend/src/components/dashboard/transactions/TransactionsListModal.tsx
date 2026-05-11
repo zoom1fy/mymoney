@@ -140,10 +140,10 @@ export function TransactionsListModal({
                 Список транзакций
               </DialogTitle>
               <Button
-                variant={showFilters ? 'secondary' : 'outline'}
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
                 className="relative flex items-center gap-2"
+                size="sm"
+                variant={showFilters ? 'secondary' : 'outline'}
+                onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="h-4 w-4" />
                 Фильтры
@@ -163,41 +163,41 @@ export function TransactionsListModal({
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
+              className="pl-10"
               placeholder="Поиск по описанию или категории"
               value={search}
               onChange={e => {
                 setSearch(e.target.value)
                 updateDebounced(e.target.value.trim())
               }}
-              className="pl-10"
             />
           </div>
 
           <AnimatePresence>
             {showFilters && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden mb-6"
+                exit={{ opacity: 0, height: 0 }}
+                initial={{ opacity: 0, height: 0 }}
               >
                 <TransactionFilters
-                  filterType={filterType}
-                  setFilterType={v => {
-                    setFilterType(v)
-                    setCurrentPage(1)
-                  }}
-                  filterCategory={filterCategory}
-                  setFilterCategory={v => {
-                    setFilterCategory(v)
-                    setCurrentPage(1)
-                  }}
+                  categories={categories}
                   dateRange={range}
+                  filterCategory={filterCategory}
+                  filterType={filterType}
                   setDateRange={r => {
                     onRangeChange(r)
                     setCurrentPage(1)
                   }}
-                  categories={categories}
+                  setFilterCategory={v => {
+                    setFilterCategory(v)
+                    setCurrentPage(1)
+                  }}
+                  setFilterType={v => {
+                    setFilterType(v)
+                    setCurrentPage(1)
+                  }}
                 />
               </motion.div>
             )}
@@ -219,9 +219,9 @@ export function TransactionsListModal({
               <div className="divide-y divide-border/50">
                 {paginatedTransactions.map(tx => (
                   <TransactionItem
+                    category={categories.find(c => c.id === tx.categoryId)!}
                     key={tx.id}
                     transaction={tx}
-                    category={categories.find(c => c.id === tx.categoryId)!}
                     onEdit={() => setEditingTx(tx)}
                   />
                 ))}
@@ -241,11 +241,11 @@ export function TransactionsListModal({
                 {Array.from({ length: totalPages })
                   .map((_, i) => (
                     <Button
+                      className="w-8 h-8 p-0"
                       key={i}
                       size="sm"
                       variant={currentPage === i + 1 ? 'default' : 'outline'}
                       onClick={() => setCurrentPage(i + 1)}
-                      className="w-8 h-8 p-0"
                     >
                       {i + 1}
                     </Button>
@@ -262,11 +262,11 @@ export function TransactionsListModal({
         {/* Модалка редактирования — одна на весь список */}
         {categoryForEditing && (
           <TransactionModal
-            mode="edit"
-            transaction={editingTx!}
             category={categoryForEditing}
             isExpense={editingTx!.type === TransactionType.EXPENSE}
+            mode="edit"
             open={!!editingTx}
+            transaction={editingTx!}
             onOpenChange={isOpen => {
               if (!isOpen) setEditingTx(null)
             }}

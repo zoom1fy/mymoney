@@ -25,8 +25,8 @@ export function AccountCard({ account }: Props) {
 
   return (
     <AccountModal
-      mode="edit"
       account={account}
+      mode="edit"
       trigger={
         <div
           className={cn(

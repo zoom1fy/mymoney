@@ -48,9 +48,9 @@ export function CategoriesPanel({
 
         <CategoryGrid
           categories={categories}
-          isExpense={isExpense}
-          editMode={editMode}
           donutData={donutData}
+          editMode={editMode}
+          isExpense={isExpense}
           loading={loading}
         />
       </div>

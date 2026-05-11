@@ -1,6 +1,6 @@
 'use client'
 
-import { Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Pencil, Plus } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
@@ -13,7 +13,6 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogTrigger
 } from '@/components/ui/shadui/dialog'
 import { Input } from '@/components/ui/shadui/input'
@@ -138,8 +137,8 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
       <DialogTrigger asChild>
         {trigger ?? (
           <Button
-            variant="outline"
             className="w-full justify-center cursor-pointer hover:[&_svg]:rotate-90 [&_svg]:transition-transform [&_svg]:duration-500"
+            variant="outline"
           >
             <Plus className="size-5" />
             <span className="text-base">Добавить счёт</span>
@@ -148,8 +147,8 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
       </DialogTrigger>
 
       <DialogContent
-        showCloseButton={false}
         className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto"
+        showCloseButton={false}
       >
         <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl transition-all duration-700">
           <DialogHeader className="mb-8">
@@ -161,17 +160,17 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                   <Plus className="size-6 text-white" />
                 )
               }
+              isDeleteLoading={isDeleting}
+              showDelete={isEdit && !!account}
               title={isEdit ? 'Редактирование счёта' : 'Создание нового счёта'}
               onClose={() => setOpen(false)}
               onDelete={() => setConfirmOpen(true)}
-              isDeleteLoading={isDeleting}
-              showDelete={isEdit && !!account}
             />
           </DialogHeader>
 
           <form
-            onSubmit={handleSubmit(onSubmit)}
             className="space-y-6"
+            onSubmit={handleSubmit(onSubmit)}
           >
             {/* Название и баланс */}
             <div className="grid gap-8 md:grid-cols-2">
@@ -179,8 +178,8 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                 <div className={CONTAINER_CLASSES}>
                   <Label className="text-lg font-medium ml-1">Название</Label>
                   <Input
-                    placeholder="Зарплатная карта"
                     className={cn(FIELD_CLASSES)}
+                    placeholder="Зарплатная карта"
                     {...register('name', { required: 'Обязательное поле' })}
                   />
                   {errors.name && (
@@ -194,25 +193,25 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               <div className="space-y-4">
                 <Label className="text-lg font-medium">Баланс</Label>
                 <NumericFormat
-                  thousandSeparator=" "
-                  decimalScale={2}
-                  decimalSeparator=","
                   allowNegative={false}
-                  placeholder="0,00"
-                  customInput={Input}
                   className={cn(
                     FIELD_CLASSES,
                     'text-2xl font-bold border-2 focus-visible:ring-offset-0',
                     errors.currentBalance && 'border-destructive'
                   )}
-                  onValueChange={values => {
-                    setValue('currentBalance', values.floatValue || 0)
-                  }}
-                  value={watch('currentBalance')}
+                  customInput={Input}
+                  decimalScale={2}
+                  decimalSeparator=","
                   isAllowed={values => {
                     const { value } = values
                     const digits = value.replace(/\D/g, '')
                     return digits.length <= 10
+                  }}
+                  placeholder="0,00"
+                  thousandSeparator=" "
+                  value={watch('currentBalance')}
+                  onValueChange={values => {
+                    setValue('currentBalance', values.floatValue || 0)
                   }}
                 />
                 {errors.currentBalance && (
@@ -274,8 +273,8 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               </div>
               <div className={CONTAINER_CLASSES}>
                 <Select
-                  value={watch('currencyCode')}
                   disabled={isEdit}
+                  value={watch('currencyCode')}
                   onValueChange={v =>
                     setValue('currencyCode', v as CurrencyCode)
                   }
@@ -305,15 +304,15 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
 
                   return (
                     <button
-                      key={icon}
-                      type="button"
-                      onClick={() => setValue('icon', icon)}
                       className={cn(
                         'flex size-16 items-center justify-center rounded-xl border-2 transition-all cursor-pointer',
                         active
                           ? 'border-accent bg-accent/20 shadow-xl scale-110'
                           : 'border-transparent hover:border-accent/50 hover:bg-accent/10 hover:scale-105'
                       )}
+                      key={icon}
+                      type="button"
+                      onClick={() => setValue('icon', icon)}
                     >
                       <Icon className="size-8" />
                     </button>
@@ -325,31 +324,30 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
             {/* Кнопки */}
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
               <AccentButton
+                className="h-14 sm:flex-1"
+                disabled={isLoading}
+                size="lg"
                 type="submit"
                 variant="outline"
-                size="lg"
-                disabled={isLoading}
-                className="h-14 sm:flex-1"
               >
                 {isEdit ? 'Сохранить' : 'Создать'}
               </AccentButton>
 
               <AccentButton
+                className="h-14 sm:flex-1"
+                disabled={isLoading}
+                size="lg"
                 type="button"
                 variant="outline"
-                size="lg"
-                className="h-14 sm:flex-1"
                 onClick={() => setOpen(false)}
-                disabled={isLoading}
               >
                 Отмена
               </AccentButton>
             </div>
 
             <ConfirmAlert
-              open={confirmOpen}
-              onOpenChange={setConfirmOpen}
-              title="Удалить счёт?"
+              cancelText="Отмена"
+              confirmText="Удалить"
               description={
                 <>
                   Счёт <b>«{account?.name}»</b> будет удалён навсегда.
@@ -357,10 +355,11 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                   Это действие нельзя отменить.
                 </>
               }
-              confirmText="Удалить"
-              cancelText="Отмена"
               loading={isDeleting}
+              open={confirmOpen}
+              title="Удалить счёт?"
               onConfirm={handleDelete}
+              onOpenChange={setConfirmOpen}
             />
           </form>
         </GlassCard>

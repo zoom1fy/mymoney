@@ -15,10 +15,10 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <Button
-        variant="ghost"
-        size="sm"
-        className="size-8 cursor-pointer"
         disabled
+        className="size-8 cursor-pointer"
+        size="sm"
+        variant="ghost"
       >
         <span className="size-4" />
       </Button>
@@ -29,11 +29,11 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
-      size="sm"
       className="size-8 cursor-pointer"
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      size="sm"
       title={isDark ? 'Светлая тема' : 'Тёмная тема'}
+      variant="ghost"
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
     >
       {isDark ? (
         <Sun className="size-4 transition-all" />

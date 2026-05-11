@@ -56,12 +56,12 @@ export function CategoryGrid({
 
                 return (
                   <CategoryItem
-                    key={cat.id}
-                    name={cat.name}
-                    icon={cat.icon}
-                    editMode={editMode}
                     amount={info.amount}
                     color={info.color}
+                    editMode={editMode}
+                    icon={cat.icon}
+                    key={cat.id}
+                    name={cat.name}
                     onClick={() => {
                       if (editMode) {
                         setEditCategory(cat)
@@ -94,22 +94,22 @@ export function CategoryGrid({
 
       {editCategory && (
         <CategoryModal
-          mode="edit"
           category={editCategory}
           isExpense={isExpense}
+          mode="edit"
           onClose={() => setEditCategory(null)}
         />
       )}
 
       {transactionCategory && (
         <TransactionModal
+          category={transactionCategory}
+          isExpense={isExpense}
           mode="create"
           open={!!transactionCategory}
           onOpenChange={open => {
             if (!open) setTransactionCategory(null)
           }}
-          category={transactionCategory}
-          isExpense={isExpense}
         />
       )}
     </>

@@ -44,11 +44,12 @@ export function TransactionsDonutChart({
         ) : (
           <>
             <ResponsiveContainer
-              width="100%"
               height="100%"
+              width="100%"
             >
               <PieChart>
                 <Pie
+                  animationDuration={700}
                   data={
                     donutData && donutData.length > 0
                       ? donutData
@@ -56,18 +57,17 @@ export function TransactionsDonutChart({
                   }
                   dataKey="value"
                   innerRadius="80%"
+                  isAnimationActive={true}
                   outerRadius="100%"
                   paddingAngle={donutData && donutData.length > 0 ? 3 : 0}
                   stroke="transparent"
-                  isAnimationActive={true}
-                  animationDuration={700}
                 >
                   {donutData && donutData.length > 0 ? (
                     donutData.map((item, index) => (
                       <Cell
-                        key={`cell-${index}`}
-                        fill={item.color}
                         className="hover:opacity-80 transition-opacity cursor-pointer"
+                        fill={item.color}
+                        key={`cell-${index}`}
                       />
                     ))
                   ) : (
@@ -76,7 +76,6 @@ export function TransactionsDonutChart({
                 </Pie>
                 {donutData && donutData.length > 0 && (
                   <Tooltip
-                    formatter={(v: number) => `${v.toLocaleString('ru-RU')} ₽`}
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
@@ -84,6 +83,7 @@ export function TransactionsDonutChart({
                       padding: '10px 14px',
                       backdropFilter: 'blur(8px)'
                     }}
+                    formatter={(v: number) => `${v.toLocaleString('ru-RU')} ₽`}
                     itemStyle={{
                       color: 'hsl(var(--foreground))',
                       fontWeight: 'bold'

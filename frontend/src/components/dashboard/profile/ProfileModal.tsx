@@ -90,8 +90,8 @@ export function ProfileModal({ open, onOpenChange }: Props) {
       onOpenChange={onOpenChange}
     >
       <DialogContent
-        showCloseButton={false}
         className="w-[95vw] max-w-3xl p-0"
+        showCloseButton={false}
       >
         <GlassCard className="rounded-3xl p-10">
           <DialogHeader className="mb-8">
@@ -103,15 +103,15 @@ export function ProfileModal({ open, onOpenChange }: Props) {
           </DialogHeader>
 
           <form
-            onSubmit={handleSubmit(onSubmit)}
             className="space-y-8"
+            onSubmit={handleSubmit(onSubmit)}
           >
             <div className="space-y-3">
               <Label className="text-lg font-medium">Email</Label>
               <Input
-                type="email"
-                placeholder="you@example.com"
                 className={cn(FIELD_CLASSES)}
+                placeholder="you@example.com"
+                type="email"
                 {...register('email', {
                   required: 'Email обязателен',
                   pattern: {
@@ -130,9 +130,9 @@ export function ProfileModal({ open, onOpenChange }: Props) {
             <div className="space-y-3">
               <Label className="text-lg font-medium">Новый пароль</Label>
               <Input
-                type="password"
-                placeholder="••••••••"
                 className={cn(FIELD_CLASSES)}
+                placeholder="••••••••"
+                type="password"
                 {...register('password', {
                   minLength: {
                     value: 6,
@@ -152,9 +152,9 @@ export function ProfileModal({ open, onOpenChange }: Props) {
                 Повторите новый пароль
               </Label>
               <Input
-                type="password"
-                placeholder="••••••••"
                 className={cn(FIELD_CLASSES)}
+                placeholder="••••••••"
+                type="password"
                 {...register('confirmPassword', {
                   validate: value =>
                     !passwordValue ||
@@ -178,13 +178,13 @@ export function ProfileModal({ open, onOpenChange }: Props) {
                   </span>
                 </Label>
                 <Input
-                  type="password"
-                  placeholder="Введите текущий пароль"
                   className={cn(
                     FIELD_CLASSES,
                     errors.currentPassword &&
                       'border-destructive focus-visible:border-destructive'
                   )}
+                  placeholder="Введите текущий пароль"
+                  type="password"
                   {...register('currentPassword', {
                     required: 'Текущий пароль обязателен'
                   })}
@@ -199,10 +199,10 @@ export function ProfileModal({ open, onOpenChange }: Props) {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6 pt-4">
               <AccentButton
-                type="submit"
-                size="lg"
                 className="h-14 sm:flex-1"
                 disabled={isUpdatingProfile}
+                size="lg"
+                type="submit"
               >
                 {isUpdatingProfile ? (
                   <Loader2 className="animate-spin" />
@@ -212,10 +212,10 @@ export function ProfileModal({ open, onOpenChange }: Props) {
               </AccentButton>
 
               <AccentButton
+                className="h-14 sm:flex-1"
+                size="lg"
                 type="button"
                 variant="ghost"
-                size="lg"
-                className="h-14 sm:flex-1"
                 onClick={() => onOpenChange(false)}
               >
                 Отмена

@@ -15,7 +15,6 @@ export function AccentButton({
 }: AccentButtonProps) {
   return (
     <Button
-      size={size}
       className={cn(
         'rounded-full bg-accent text-accent-foreground font-medium cursor-pointer',
         'hover:bg-accent/90 transition-all',
@@ -25,6 +24,7 @@ export function AccentButton({
         size === 'sm' && 'h-10 px-6 text-sm',
         className
       )}
+      size={size}
       {...props}
     >
       {children}

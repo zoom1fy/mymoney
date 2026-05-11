@@ -74,32 +74,32 @@ export default function DashboardPage() {
         <div className="flex-1 min-w-0 rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
           <TransactionsDonutChart
             donutData={donutData}
-            total={total}
             isExpense={isExpense}
-            range={chartRange}
-            onRangeChange={setChartRange}
             loading={loading}
+            range={chartRange}
+            total={total}
+            onRangeChange={setChartRange}
           />
         </div>
 
         <div className="w-full lg:w-[460px] shrink-0 space-y-4">
           <CategoriesPanel
-            isExpense={isExpense}
-            onExpenseChange={setIsExpense}
-            donutData={donutData}
-            loading={loading}
             categories={categories}
+            donutData={donutData}
+            isExpense={isExpense}
+            loading={loading}
+            onExpenseChange={setIsExpense}
           />
         </div>
       </div>
 
       <TransactionsListModal
-        transactions={modalTransactions}
         categories={categories}
-        range={modalRange}
-        onRangeChange={setModalRange}
         open={showTxList}
+        range={modalRange}
+        transactions={modalTransactions}
         onClose={() => setShowTxList(false)}
+        onRangeChange={setModalRange}
       />
 
       <ChatModal

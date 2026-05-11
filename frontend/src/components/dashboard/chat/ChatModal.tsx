@@ -130,10 +130,10 @@ export default function ChatModal({ open, onClose }: ChatModalProps) {
           </div>
 
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
             className="rounded-full hover:bg-muted/50 transition-all duration-300 hover:scale-110 cursor-pointer"
+            size="icon"
+            variant="ghost"
+            onClick={onClose}
           >
             <X className="size-4 sm:size-5" />
           </Button>
@@ -147,10 +147,10 @@ export default function ChatModal({ open, onClose }: ChatModalProps) {
               <span className="truncate">{connectionError}</span>
             </span>
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => window.location.reload()}
               className="text-destructive hover:bg-destructive/10"
+              size="sm"
+              variant="ghost"
+              onClick={() => window.location.reload()}
             >
               Перезагрузить
             </Button>
@@ -160,9 +160,9 @@ export default function ChatModal({ open, onClose }: ChatModalProps) {
         {/* Messages */}
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
           <ChatMessages
-            messages={messages}
             isLoading={isLoading}
             isThinking={isThinking}
+            messages={messages}
           />
 
           {messages.length < 3 && (
@@ -173,9 +173,9 @@ export default function ChatModal({ open, onClose }: ChatModalProps) {
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {suggestedQuestions.map(({ icon, text }) => (
                   <button
+                    className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-muted/50 hover:bg-muted border border-white/10 dark:border-white/5 text-xs sm:text-sm transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer"
                     key={text}
                     onClick={() => handleSuggestedClick(text)}
-                    className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-muted/50 hover:bg-muted border border-white/10 dark:border-white/5 text-xs sm:text-sm transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer"
                   >
                     <span className="text-primary transition-transform group-hover:rotate-12">
                       {icon}
@@ -196,9 +196,15 @@ export default function ChatModal({ open, onClose }: ChatModalProps) {
             <div className="relative flex gap-2 sm:gap-3">
               <div className="relative flex-1">
                 <Input
+                  className={`text-xs sm:text-base h-12 sm:h-14 px-3 sm:px-6 pr-10 sm:pr-20 rounded-xl bg-muted/30 border-white/10 dark:border-white/5 focus:border-primary/50 transition-all duration-300 ${
+                    isOverLimit
+                      ? 'border-destructive focus:border-destructive'
+                      : ''
+                  }`}
+                  disabled={isLoading || !isConnected || !!connectionError}
+                  placeholder={`Напишите ваш вопрос...`}
                   value={input}
                   onChange={handleInputChange}
-                  placeholder={`Напишите ваш вопрос...`}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault()
@@ -206,12 +212,6 @@ export default function ChatModal({ open, onClose }: ChatModalProps) {
                       handleSend()
                     }
                   }}
-                  disabled={isLoading || !isConnected || !!connectionError}
-                  className={`text-xs sm:text-base h-12 sm:h-14 px-3 sm:px-6 pr-10 sm:pr-20 rounded-xl bg-muted/30 border-white/10 dark:border-white/5 focus:border-primary/50 transition-all duration-300 ${
-                    isOverLimit
-                      ? 'border-destructive focus:border-destructive'
-                      : ''
-                  }`}
                 />
                 <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {input.length > 0 && (
@@ -231,10 +231,10 @@ export default function ChatModal({ open, onClose }: ChatModalProps) {
               </div>
 
               <Button
-                onClick={handleSend}
+                className="h-12 sm:h-14 w-12 sm:w-auto sm:px-6 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                 disabled={isSendDisabled}
                 size="lg"
-                className="h-12 sm:h-14 w-12 sm:w-auto sm:px-6 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                onClick={handleSend}
               >
                 {isLoading ? (
                   <Loader2 className="size-4 sm:size-5 animate-spin" />
@@ -284,16 +284,16 @@ export default function ChatModal({ open, onClose }: ChatModalProps) {
       </div>
 
       <ConfirmAlert
-        open={showClearDialog}
-        onOpenChange={setShowClearDialog}
-        title="Очистить чат?"
-        description="Чтобы задать новый вопрос, необходимо очистить историю."
-        confirmText="Очистить"
         cancelText="Отмена"
+        confirmText="Очистить"
+        description="Чтобы задать новый вопрос, необходимо очистить историю."
+        open={showClearDialog}
+        title="Очистить чат?"
         onConfirm={async () => {
           await clearChat()
           setShowClearDialog(false)
         }}
+        onOpenChange={setShowClearDialog}
       />
     </div>
   )

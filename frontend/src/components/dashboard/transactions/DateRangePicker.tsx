@@ -109,9 +109,6 @@ export function DateRangePicker({ value, onChange }: Props) {
 
             return (
               <Button
-                key={p.key}
-                onClick={() => applyPreset(p.key)}
-                type={isActive ? 'primary' : 'default'}
                 className={`
           h-9 px-4 rounded-lg text-sm font-medium
           border transition-all
@@ -121,6 +118,9 @@ export function DateRangePicker({ value, onChange }: Props) {
               : 'bg-muted/40 border-border hover:bg-accent/10 hover:border-accent/40'
           }
         `}
+                key={p.key}
+                type={isActive ? 'primary' : 'default'}
+                onClick={() => applyPreset(p.key)}
               >
                 {p.label}
               </Button>
@@ -137,6 +137,9 @@ export function DateRangePicker({ value, onChange }: Props) {
 
           <RangePicker
             allowClear={false}
+            className="w-[220px] cursor-pointer"
+            format="DD.MM.YYYY"
+            placement="bottomRight"
             value={[fromD, toD]}
             onChange={dates => {
               if (!dates) return
@@ -147,9 +150,6 @@ export function DateRangePicker({ value, onChange }: Props) {
                 to: to.endOf('day').toDate()
               })
             }}
-            format="DD.MM.YYYY"
-            className="w-[220px] cursor-pointer"
-            placement="bottomRight"
           />
 
           <Button
