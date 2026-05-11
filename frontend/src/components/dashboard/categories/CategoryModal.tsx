@@ -1,13 +1,11 @@
 'use client'
 
-import { Archive, Pencil, Plus } from 'lucide-react'
-// <-- Archive вместо Trash2
+import { Pencil, Plus } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
-import { ColorPicker } from '@/components/ui/color-picker/ColorPicker'
 import { ConfirmAlert } from '@/components/ui/dialogs/confirm-alert'
 import { ModalHeader } from '@/components/ui/modal/modal-header'
 import { Button } from '@/components/ui/shadui/button'
@@ -31,7 +29,9 @@ import {
 
 import { useCategories } from '@/hooks/useCategories'
 
+import { getRandomColor } from '@/lib/color-utils'
 import { cn } from '@/lib/utils'
+import { ColorPicker } from '@/components/ui/color-picker/ColorPicker'
 
 const iconOptions = Object.keys(CategoryIcons) as CategoryIconName[]
 
@@ -53,12 +53,11 @@ export function CategoryModal({
   const {
     createCategory,
     updateCategory,
-    deleteCategory, // Теперь это архивация
+    deleteCategory,
     isCreating,
     isUpdating,
     isDeleting
   } = useCategories(isExpense)
-
   const [open, setOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const isEdit = mode === 'edit'
@@ -77,26 +76,37 @@ export function CategoryModal({
       name: '',
       isExpense,
       icon: 'Circle',
-      color: 'hsl(var(--primary))'
+      color: getRandomColor()
     }
   })
 
+  // Открыть модалку при редактировании
   useEffect(() => {
-    if (mode === 'edit' && category) {
+    if (isEdit && category) {
       setOpen(true)
     }
-  }, [mode, category])
+  }, [isEdit, category])
 
+  // Инициализация формы при открытии
   useEffect(() => {
-    if (open && isEdit && category) {
+    if (!open) return
+
+    if (isEdit && category) {
       reset({
         name: category.name,
         icon: category.icon,
         isExpense: category.isExpense,
-        color: category.color ?? 'hsl(var(--primary))'
+        color: category.color || getRandomColor()
+      })
+    } else {
+      reset({
+        name: '',
+        isExpense,
+        icon: 'Circle',
+        color: getRandomColor()
       })
     }
-  }, [open, isEdit, category, reset])
+  }, [open, isEdit, category, reset, isExpense])
 
   const selectedIcon = watch('icon')
 
@@ -105,23 +115,8 @@ export function CategoryModal({
       if (isEdit && category) {
         await updateCategory({ id: category.id, data })
       } else {
-        await createCategory({
-          ...data,
-          isExpense,
-          currencyCode: CurrencyCode.RUB,
-          color: data.color
-        })
+        await createCategory({ ...data, currencyCode: CurrencyCode.RUB })
       }
-      setOpen(false)
-      reset()
-    } catch {}
-  }
-
-  const handleDelete = async () => {
-    if (!category) return
-    try {
-      await deleteCategory(category.id) // Архивируем категорию
-      setConfirmOpen(false)
       setOpen(false)
     } catch {}
   }
@@ -131,30 +126,30 @@ export function CategoryModal({
       open={open}
       onOpenChange={v => {
         setOpen(v)
-        if (!v && mode === 'edit') onClose?.()
+        if (!v && isEdit) onClose?.()
       }}
     >
       {mode === 'create' && (
         <DialogTrigger asChild>
           {trigger ?? (
             <Button
+              className="w-full gap-2"
               variant="outline"
-              className="w-full justify-center gap-2"
             >
-              <Plus className="size-4" />
-              Добавить категорию
+              <Plus className="size-4" /> Добавить категорию
             </Button>
           )}
         </DialogTrigger>
       )}
 
       <DialogContent
+        className="w-[95vw] max-w-3xl p-0 border-none bg-transparent"
         showCloseButton={false}
-        className="w-[95vw] max-w-3xl p-0"
       >
-        <GlassCard className="rounded-3xl p-10">
+        <GlassCard className="rounded-3xl p-6 sm:p-10">
           <DialogHeader className="mb-8">
             <ModalHeader
+              actionType="archive"
               icon={
                 isEdit ? (
                   <Pencil className="size-6 text-white" />
@@ -162,25 +157,22 @@ export function CategoryModal({
                   <Plus className="size-6 text-white" />
                 )
               }
+              showDelete={isEdit && !!category}
               title={isEdit ? 'Редактирование' : 'Новая категория'}
               onClose={() => setOpen(false)}
               onDelete={() => setConfirmOpen(true)}
-              isDeleteLoading={isDeleting}
-              showDelete={isEdit && !!category}
-              actionType="archive"
             />
           </DialogHeader>
 
           <form
-            onSubmit={handleSubmit(onSubmit)}
             className="space-y-8"
+            onSubmit={handleSubmit(onSubmit)}
           >
-            {/* Название */}
             <div className="space-y-3">
               <Label className="text-lg">Название</Label>
               <Input
-                placeholder="Продукты"
                 className="h-14 text-lg px-6 bg-background"
+                placeholder="Продукты"
                 {...register('name', { required: 'Введите название' })}
               />
               {errors.name && (
@@ -190,58 +182,58 @@ export function CategoryModal({
               )}
             </div>
 
-            {/* Иконки */}
-            <ScrollArea className="h-64 rounded-xl border bg-background/50">
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-5 gap-4 p-4">
-                {iconOptions.map(icon => {
-                  const Icon = CategoryIcons[icon]
-                  const active = selectedIcon === icon
-                  return (
-                    <button
-                      key={icon}
-                      type="button"
-                      onClick={() => setValue('icon', icon)}
-                      className={cn(
-                        'flex size-16 items-center justify-center rounded-xl border-2 transition-all cursor-pointer',
-                        active
-                          ? 'border-accent bg-accent/20 shadow-xl scale-110'
-                          : 'border-transparent hover:border-accent/50 hover:bg-accent/10 hover:scale-105'
-                      )}
-                    >
-                      <Icon className="size-8" />
-                    </button>
-                  )
-                })}
-              </div>
-            </ScrollArea>
+            <div className="space-y-3">
+              <Label className="text-lg">Иконка</Label>
+              <ScrollArea className="h-64 rounded-xl border bg-background/50">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-4 p-4">
+                  {iconOptions.map(icon => {
+                    const Icon = CategoryIcons[icon]
+                    const active = selectedIcon === icon
+                    return (
+                      <button
+                        className={cn(
+                          'flex size-14 items-center justify-center rounded-xl border-2 transition-all',
+                          active
+                            ? 'border-accent bg-accent/20 scale-110'
+                            : 'border-transparent hover:bg-accent/10'
+                        )}
+                        key={icon}
+                        type="button"
+                        onClick={() => setValue('icon', icon)}
+                      >
+                        <Icon className="size-7" />
+                      </button>
+                    )
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
 
-            {/* ColorPicker */}
             <Controller
-              name="color"
               control={control}
+              name="color"
               render={({ field }) => (
                 <ColorPicker
-                  value={field.value ?? 'hsl(var(--primary))'}
+                  value={field.value}
                   onChange={field.onChange}
                 />
               )}
             />
 
-            {/* Кнопки */}
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
               <AccentButton
-                type="submit"
-                size="lg"
                 className="h-14 sm:flex-1"
                 disabled={isLoading}
+                size="lg"
+                type="submit"
               >
                 {isEdit ? 'Сохранить' : 'Создать'}
               </AccentButton>
               <AccentButton
+                className="h-14 sm:flex-1"
+                size="lg"
                 type="button"
                 variant="ghost"
-                size="lg"
-                className="h-14 sm:flex-1"
                 onClick={() => setOpen(false)}
               >
                 Отмена
@@ -251,22 +243,22 @@ export function CategoryModal({
         </GlassCard>
       </DialogContent>
 
-      {/* Подтверждение архивации */}
       <ConfirmAlert
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title="Архивировать категорию?"
+        confirmText="Архивировать"
         description={
           <>
             Категория <b>«{category?.name}»</b> будет перемещена в архив.
-            <br />
-            Вы сможете восстановить её позже.
           </>
         }
-        confirmText="Архивировать"
-        cancelText="Отмена"
         loading={isDeleting}
-        onConfirm={handleDelete}
+        open={confirmOpen}
+        title="Архивировать категорию?"
+        onConfirm={async () => {
+          if (category) await deleteCategory(category.id)
+          setConfirmOpen(false)
+          setOpen(false)
+        }}
+        onOpenChange={setConfirmOpen}
       />
     </Dialog>
   )

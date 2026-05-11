@@ -6,8 +6,8 @@ import { useState } from 'react'
 import { CategoryIconName, CategoryIcons } from '@/types/category.types'
 
 import { cn } from '@/lib/utils'
+import { hexWithAlpha } from '@/lib/color-utils'
 
-import { hexWithAlpha } from '@/utils/hex-with-alpha'
 
 interface Props {
   name: string
@@ -33,9 +33,6 @@ export function CategoryItem({
 
   return (
     <div
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className={cn(
         'flex flex-col items-center gap-2.5 cursor-pointer select-none transition-all duration-300 group',
         editMode && 'animate-ios-wiggle'
@@ -43,6 +40,9 @@ export function CategoryItem({
       style={
         editMode ? { animationDelay: `${Math.random() * 0.15}s` } : undefined
       }
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div
         className={cn(
