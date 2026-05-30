@@ -31,8 +31,5 @@ yarn-error.log*
 .vscode/
 .idea/
 
-# Игнорировать Prisma миграции (если не хотите коммитить старые миграции)
-backend/prisma/migrations/
-
 # Игнорировать кэш Docker (если используется buildkit)
 .docker/
