@@ -38,6 +38,7 @@ services:
       NODE_ENV: ${NODE_ENV}
       OLLAMA_URL: ${OLLAMA_URL}
       OLLAMA_MODEL: ${OLLAMA_MODEL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
 
   frontend:
     build:
