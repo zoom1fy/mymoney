@@ -2,7 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  BadRequestException
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from '../auth/dto/auth.dto';

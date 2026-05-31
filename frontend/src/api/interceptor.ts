@@ -1,4 +1,3 @@
-import { chatService } from '@/services/chat.service'
 import axios, { CreateAxiosDefaults } from 'axios'
 
 import {
@@ -71,14 +70,6 @@ axiosWithAuth.interceptors.response.use(
       originalRequest._isRetry = true
       try {
         await authService.getNewTokens()
-        const freshToken = getAccessToken()
-        if (freshToken) {
-          chatService.setToken(freshToken)
-          // Если сокет был подключён, переподключаем с новым токеном
-          if (chatService.isConnected) {
-            chatService.reconnectWithNewToken(freshToken).catch(console.error)
-          }
-        }
         return axiosWithAuth.request(originalRequest)
       } catch (error) {
         if (errorCatch(error) === 'jwt expired') removeTokenStorage()

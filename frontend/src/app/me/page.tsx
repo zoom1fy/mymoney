@@ -4,7 +4,6 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 import { useEffect, useMemo, useState } from 'react'
 
 import { CategoriesPanel } from '@/components/dashboard/categories/CategoriesPanel'
-import ChatModal from '@/components/dashboard/chat/ChatModal'
 import { TransactionsDonutChart } from '@/components/dashboard/transactions/TransactionsDonutChart'
 import { TransactionsListModal } from '@/components/dashboard/transactions/TransactionsListModal'
 
@@ -27,7 +26,6 @@ export default function DashboardPage() {
   const [modalRange, setModalRange] = useState(getCurrentMonthRange())
 
   const [showTxList, setShowTxList] = useState(false)
-  const [showChat, setShowChat] = useState(false)
 
   const { data: chartTransactions = [], isLoading: chartLoading } =
     useTransactionsForPeriod(chartRange.from, chartRange.to)
@@ -47,14 +45,11 @@ export default function DashboardPage() {
   // === Слушаем события от хедера ===
   useEffect(() => {
     const openTx = () => setShowTxList(true)
-    const openChat = () => setShowChat(true)
 
     window.addEventListener('open-transactions', openTx)
-    window.addEventListener('open-chat', openChat)
 
     return () => {
       window.removeEventListener('open-transactions', openTx)
-      window.removeEventListener('open-chat', openChat)
     }
   }, [])
 
@@ -100,11 +95,6 @@ export default function DashboardPage() {
         transactions={modalTransactions}
         onClose={() => setShowTxList(false)}
         onRangeChange={setModalRange}
-      />
-
-      <ChatModal
-        open={showChat}
-        onClose={() => setShowChat(false)}
       />
     </div>
   )

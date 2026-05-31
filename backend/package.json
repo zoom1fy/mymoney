@@ -23,8 +23,8 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio",
-    "docker:start": "npx prisma generate && npx prisma db push --accept-data-loss && npm run prisma:seed && npm run start:prod",
-    "docker:start:dev": "npx prisma generate && npx prisma db push --accept-data-loss && npm run prisma:seed && npm run start:dev"
+"docker:start": "npm run prisma:generate && npx prisma db push --accept-data-loss && npm run prisma:seed && npm run start:prod",
+"docker:start:dev": "npm run prisma:generate && npx prisma db push --accept-data-loss && npm run prisma:seed && npm run start:dev"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

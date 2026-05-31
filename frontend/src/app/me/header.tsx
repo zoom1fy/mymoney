@@ -2,6 +2,7 @@
 
 import { LogOut, MessageSquare, User } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { ProfileModal } from '@/components/dashboard/profile/ProfileModal'
 import { ThemeToggle } from '@/components/ui/buttons/ThemeToggle'
@@ -59,7 +60,7 @@ export function DashboardHeader() {
         <Button
           className="cursor-pointer shadow-sm hover:shadow transition-all"
           size="sm"
-          onClick={() => window.dispatchEvent(new Event('open-chat'))}
+          onClick={() => toast.info('Ведутся технические работы. Модуль ИИ помощника временно недоступен.')}
         >
           <MessageSquare className="size-4" />
           <span className="hidden sm:inline">ИИ помощник</span>

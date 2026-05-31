@@ -36,8 +36,6 @@ services:
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
       REFRESH_TOKEN_COOKIE_NAME: ${REFRESH_TOKEN_COOKIE_NAME}
       NODE_ENV: ${NODE_ENV}
-      OLLAMA_URL: ${OLLAMA_URL}
-      OLLAMA_MODEL: ${OLLAMA_MODEL}
       CORS_ORIGINS: ${CORS_ORIGINS}
 
   frontend:
@@ -86,30 +84,8 @@ services:
     networks:
       - app-network
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-      - ./Modelfile:/Modelfile:ro
-    restart: always
-    networks:
-      - app-network
-    entrypoint: [ "/bin/sh" ]
-    command:
-      - "-c"
-      - |
-        ollama serve &
-        sleep 10
-        ollama pull llama3.1 || true
-        ollama create financial-advisor -f /Modelfile || true
-        tail -f /dev/null
-
 volumes:
   db_data:
-  ollama_data:
 
 networks:
   app-network:

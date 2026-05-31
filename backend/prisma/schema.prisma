@@ -17,8 +17,6 @@ model User {
   accounts     Account[]     @relation("UserAccounts")
   categories   Category[]    @relation("UserCategories")
   transactions Transaction[] @relation("UserTransactions")
-  chatMessages ChatMessage[]
-
   @@index([email])
   @@map("users")
 }
@@ -126,20 +124,4 @@ model Transaction {
   @@map("transactions")
 }
 
-enum MessageRole {
-  USER
-  ASSISTANT
-}
 
-model ChatMessage {
-  id        String      @id @default(uuid())
-  userId    String      @db.Char(36)
-  role      MessageRole @default(USER)
-  content   String      @db.MediumText
-  createdAt DateTime    @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-  @@map("chat_messages")
-}
