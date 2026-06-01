@@ -24,7 +24,7 @@ interface IAuthFormExtended extends IAuthForm {
 }
 
 export function Auth() {
-  const [type, setType] = useState<AuthType>('login')
+  const [type, setType] = useState<AuthType>('register')
   const router = useRouter()
 
   const {

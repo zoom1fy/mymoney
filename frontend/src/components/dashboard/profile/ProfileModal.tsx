@@ -1,11 +1,12 @@
 'use client'
 
 import { Loader2, User } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
+import { ConfirmAlert } from '@/components/ui/dialogs/confirm-alert'
 import { ModalHeader } from '@/components/ui/modal/modal-header'
 import {
   Dialog,
@@ -37,12 +38,14 @@ interface Props {
 export function ProfileModal({ open, onOpenChange }: Props) {
   const { profile, updateProfile, isUpdatingProfile } = useProfile()
 
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
+
   const {
     register,
     handleSubmit,
     reset,
     watch,
-    formState: { errors }
+    formState: { errors, isDirty }
   } = useForm<IProfileForm>({
     mode: 'onChange'
   })
@@ -57,6 +60,19 @@ export function ProfileModal({ open, onOpenChange }: Props) {
       })
     }
   }, [open, profile, reset])
+
+  const attemptClose = () => {
+    if (isDirty) {
+      setCloseConfirmOpen(true)
+      return
+    }
+    onOpenChange(false)
+  }
+
+  const confirmClose = () => {
+    setCloseConfirmOpen(false)
+    onOpenChange(false)
+  }
 
   const passwordValue = watch('password')
 
@@ -87,7 +103,13 @@ export function ProfileModal({ open, onOpenChange }: Props) {
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={(newOpen) => {
+        if (!newOpen) {
+          attemptClose()
+          return
+        }
+        onOpenChange(true)
+      }}
     >
       <DialogContent
         className="w-[95vw] max-w-3xl p-0"
@@ -98,7 +120,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
             <ModalHeader
               icon={<User className="size-6 text-white" />}
               title="Профиль"
-              onClose={() => onOpenChange(false)}
+              onClose={attemptClose}
             />
           </DialogHeader>
 
@@ -222,6 +244,17 @@ export function ProfileModal({ open, onOpenChange }: Props) {
               </AccentButton>
             </div>
           </form>
+
+          <ConfirmAlert
+            cancelText="Остаться"
+            confirmText="Закрыть"
+            description="У вас есть несохранённые изменения. Вы уверены, что хотите закрыть?"
+            destructive={false}
+            open={closeConfirmOpen}
+            title="Несохранённые изменения"
+            onConfirm={confirmClose}
+            onOpenChange={setCloseConfirmOpen}
+          />
         </GlassCard>
       </DialogContent>
     </Dialog>

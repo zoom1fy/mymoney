@@ -100,6 +100,7 @@ export function TransactionModal({
   } = useTransactions()
 
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
 
   const transactionType = isExpense
     ? TransactionType.EXPENSE
@@ -112,7 +113,7 @@ export function TransactionModal({
     setValue,
     reset,
     control,
-    formState: { errors, isValid }
+    formState: { errors, isValid, isDirty }
   } = useForm<ITransactionForm>({
     mode: 'onChange',
     defaultValues: {
@@ -198,12 +199,31 @@ export function TransactionModal({
     onOpenChange?.(false)
   }
 
+  const attemptClose = () => {
+    if (isDirty) {
+      setCloseConfirmOpen(true)
+      return
+    }
+    onOpenChange?.(false)
+  }
+
+  const confirmClose = () => {
+    setCloseConfirmOpen(false)
+    onOpenChange?.(false)
+  }
+
   const isLoading = isCreating || isUpdating || isDeleting
 
   return (
     <Dialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={(newOpen) => {
+        if (!newOpen) {
+          attemptClose()
+          return
+        }
+        onOpenChange?.(true)
+      }}
     >
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent
@@ -221,7 +241,7 @@ export function TransactionModal({
                   ? `Редактировать ${isExpense ? 'расход' : 'доход'}`
                   : `Новый ${isExpense ? 'расход' : 'доход'}`
               }
-              onClose={() => onOpenChange?.(false)}
+              onClose={attemptClose}
               onDelete={() => setConfirmOpen(true)}
             />
           </DialogHeader>
@@ -453,6 +473,17 @@ export function TransactionModal({
               title="Удалить транзакцию?"
               onConfirm={handleDelete}
               onOpenChange={setConfirmOpen}
+            />
+
+            <ConfirmAlert
+              cancelText="Остаться"
+              confirmText="Закрыть"
+              description="У вас есть несохранённые изменения. Вы уверены, что хотите закрыть?"
+              destructive={false}
+              open={closeConfirmOpen}
+              title="Несохранённые изменения"
+              onConfirm={confirmClose}
+              onOpenChange={setCloseConfirmOpen}
             />
           </form>
         </GlassCard>
