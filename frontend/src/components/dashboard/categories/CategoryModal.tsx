@@ -60,8 +60,27 @@ export function CategoryModal({
   } = useCategories(isExpense)
   const [open, setOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
   const isEdit = mode === 'edit'
   const isLoading = isCreating || isUpdating || isDeleting
+
+  const handleClose = () => {
+    setOpen(false)
+    if (isEdit) onClose?.()
+  }
+
+  const attemptClose = () => {
+    if (isDirty) {
+      setCloseConfirmOpen(true)
+      return
+    }
+    handleClose()
+  }
+
+  const confirmClose = () => {
+    setCloseConfirmOpen(false)
+    handleClose()
+  }
 
   const {
     register,
@@ -70,7 +89,7 @@ export function CategoryModal({
     watch,
     reset,
     control,
-    formState: { errors }
+    formState: { errors, isDirty }
   } = useForm<ICreateCategory>({
     defaultValues: {
       name: '',
@@ -124,9 +143,12 @@ export function CategoryModal({
   return (
     <Dialog
       open={open}
-      onOpenChange={v => {
-        setOpen(v)
-        if (!v && isEdit) onClose?.()
+      onOpenChange={(newOpen) => {
+        if (!newOpen) {
+          attemptClose()
+          return
+        }
+        setOpen(true)
       }}
     >
       {mode === 'create' && (
@@ -159,7 +181,7 @@ export function CategoryModal({
               }
               showDelete={isEdit && !!category}
               title={isEdit ? 'Редактирование' : 'Новая категория'}
-              onClose={() => setOpen(false)}
+              onClose={attemptClose}
               onDelete={() => setConfirmOpen(true)}
             />
           </DialogHeader>
@@ -259,6 +281,17 @@ export function CategoryModal({
           setOpen(false)
         }}
         onOpenChange={setConfirmOpen}
+      />
+
+      <ConfirmAlert
+        cancelText="Остаться"
+        confirmText="Закрыть"
+        description="У вас есть несохранённые изменения. Вы уверены, что хотите закрыть?"
+        destructive={false}
+        open={closeConfirmOpen}
+        title="Несохранённые изменения"
+        onConfirm={confirmClose}
+        onOpenChange={setCloseConfirmOpen}
       />
     </Dialog>
   )

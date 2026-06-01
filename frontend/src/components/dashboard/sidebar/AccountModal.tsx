@@ -68,6 +68,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
 
   const [open, setOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
 
   const handleDelete = async () => {
     if (!account) return
@@ -87,7 +88,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
     watch,
     setValue,
     reset,
-    formState: { errors }
+    formState: { errors, isDirty }
   } = useForm<ICreateAccount>({
     defaultValues: {
       name: '',
@@ -126,13 +127,32 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
     }
   }
 
+  const attemptClose = () => {
+    if (isDirty) {
+      setCloseConfirmOpen(true)
+      return
+    }
+    setOpen(false)
+  }
+
+  const confirmClose = () => {
+    setCloseConfirmOpen(false)
+    setOpen(false)
+  }
+
   const selectedIcon = watch('icon')
   const isLoading = isCreating || isUpdating || isDeleting
 
   return (
     <Dialog
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(newOpen) => {
+        if (!newOpen) {
+          attemptClose()
+          return
+        }
+        setOpen(true)
+      }}
     >
       <DialogTrigger asChild>
         {trigger ?? (
@@ -163,7 +183,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               isDeleteLoading={isDeleting}
               showDelete={isEdit && !!account}
               title={isEdit ? 'Редактирование счёта' : 'Создание нового счёта'}
-              onClose={() => setOpen(false)}
+              onClose={attemptClose}
               onDelete={() => setConfirmOpen(true)}
             />
           </DialogHeader>
@@ -360,6 +380,17 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               title="Удалить счёт?"
               onConfirm={handleDelete}
               onOpenChange={setConfirmOpen}
+            />
+
+            <ConfirmAlert
+              cancelText="Остаться"
+              confirmText="Закрыть"
+              description="У вас есть несохранённые изменения. Вы уверены, что хотите закрыть?"
+              destructive={false}
+              open={closeConfirmOpen}
+              title="Несохранённые изменения"
+              onConfirm={confirmClose}
+              onOpenChange={setCloseConfirmOpen}
             />
           </form>
         </GlassCard>
