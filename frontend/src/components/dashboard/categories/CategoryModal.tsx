@@ -136,8 +136,8 @@ export function CategoryModal({
       } else {
         await createCategory({ ...data, currencyCode: CurrencyCode.RUB })
       }
-      setOpen(false)
-    } catch {}
+    handleClose()
+  } catch {}
   }
 
   return (
@@ -256,7 +256,7 @@ export function CategoryModal({
                 size="lg"
                 type="button"
                 variant="ghost"
-                onClick={() => setOpen(false)}
+                onClick={handleClose}
               >
                 Отмена
               </AccentButton>
@@ -278,7 +278,7 @@ export function CategoryModal({
         onConfirm={async () => {
           if (category) await deleteCategory(category.id)
           setConfirmOpen(false)
-          setOpen(false)
+          handleClose()
         }}
         onOpenChange={setConfirmOpen}
       />
