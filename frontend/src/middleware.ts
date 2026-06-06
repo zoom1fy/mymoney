@@ -7,14 +7,16 @@ export async function middleware(request: NextRequest) {
   const { url, cookies } = request
 
   const refreshToken = cookies.get(EnumTokens.REFRESH_TOKEN)?.value
+  const accessToken = cookies.get(EnumTokens.ACCESS_TOKEN)?.value
+  const isAuthenticated = !!refreshToken || !!accessToken
 
   const isAuthPage = url.includes('/auth')
 
-  if (isAuthPage && refreshToken) {
+  if (isAuthPage && isAuthenticated) {
     return NextResponse.redirect(new URL(DASHBOARD_PAGES.HOME, request.url))
   }
 
-  if (!isAuthPage && !refreshToken) {
+  if (!isAuthPage && !isAuthenticated) {
     return NextResponse.redirect(new URL(DASHBOARD_PAGES.AUTH, request.url))
   }
 
