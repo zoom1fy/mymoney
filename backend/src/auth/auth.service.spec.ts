@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
+import { SeedService } from '../seed/seed.service';
 import { AuthDto } from './dto/auth.dto';
 import { TOKEN_CONFIG, TokenConfig } from '../config/token.config';
 
@@ -60,12 +61,17 @@ describe('AuthService', () => {
       findById: jest.fn(),
     };
 
+    const mockSeedService = {
+      seedNewUser: jest.fn().mockResolvedValue(undefined),
+    };
+
     // Build testing module
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: JwtService, useValue: mockJwtService },
         { provide: UserService, useValue: mockUserService },
+        { provide: SeedService, useValue: mockSeedService },
         { provide: TOKEN_CONFIG, useValue: mockTokenConfig },
       ],
     }).compile();

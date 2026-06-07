@@ -210,7 +210,10 @@ describe('UserService', () => {
         lastLogin: now,
       } as any);
 
-      const updated = await service.updateProfile(userId, { email: updatedEmail, currentPassword: password });
+      const updated = await service.updateProfile(userId, {
+        email: updatedEmail,
+        currentPassword: password,
+      });
       expect(mockArgon2Verify).toHaveBeenCalledWith(passwordHash, password);
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { email: updatedEmail } });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
@@ -239,7 +242,10 @@ describe('UserService', () => {
         lastLogin: now,
       } as any);
 
-      const updated = await service.updateProfile(userId, { password: 'newpass', currentPassword: password });
+      const updated = await service.updateProfile(userId, {
+        password: 'newpass',
+        currentPassword: password,
+      });
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: { passwordHash: passwordHash },
@@ -260,9 +266,9 @@ describe('UserService', () => {
       } as any);
       // Second: getByEmail finds existing user with the new email
       mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'other', email: updatedEmail } as any);
-      await expect(service.updateProfile(userId, { email: updatedEmail, currentPassword: password })).rejects.toThrow(
-        ConflictException
-      );
+      await expect(
+        service.updateProfile(userId, { email: updatedEmail, currentPassword: password })
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should skip email uniqueness check if email unchanged', async () => {

@@ -22,7 +22,7 @@ import { JwtService } from '@nestjs/jwt'; // импортируем JwtService
 
 function getSocketOrigins(): string[] {
   const env = process.env.CORS_ORIGINS;
-  return env ? env.split(',').map(o => o.trim()) : ['http://localhost:3001'];
+  return env ? env.split(',').map((o) => o.trim()) : ['http://localhost:3001'];
 }
 
 @WebSocketGateway({
