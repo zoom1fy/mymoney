@@ -128,12 +128,10 @@ DATABASE_URL=mysql://root:ваш_пароль@db:3306/mymoneydb
 JWT_SECRET=ваш-секретный-ключ
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
-NODE_ENV=development
 OLLAMA_URL=http://ollama:11434
 OLLAMA_MODEL=financial-advisor
 NEXT_PUBLIC_SOCKET_URL=http://localhost:3000 # для prod используйте 3001
 NEXT_PUBLIC_API_URL=http://localhost:3000/api # для prod используйте 3001
-NEXT_PUBLIC_COOKIE_DOMAIN=localhost
 ```
 
 ### 2. Запустите
