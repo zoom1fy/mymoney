@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsEnum, IsOptional, IsDateString } from 'class-validator';
+import { IsNumber, IsString, IsEnum, IsOptional, IsDateString, MaxLength } from 'class-validator';
 import { TransactionType } from '../enums/transaction-type.enum';
 import { CurrencyCode } from '../../common/enums/currency.enum';
 
@@ -19,6 +19,7 @@ export class CreateTransactionDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(100, { message: 'Описание не более 100 символов' })
   description?: string;
 
   @IsEnum(TransactionType)
