@@ -206,7 +206,6 @@ jobs:
           JWT_SECRET=test_secret_key_for_ci
           JWT_ACCESS_EXPIRES_IN=15m
           JWT_REFRESH_EXPIRES_IN=7d
-          REFRESH_TOKEN_COOKIE_NAME=refresh_token
           NODE_ENV=development
           OLLAMA_URL=http://ollama:11434
           OLLAMA_MODEL=financial-advisor

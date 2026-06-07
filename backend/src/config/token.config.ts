@@ -22,17 +22,13 @@ export const tokenConfigProvider: Provider = {
     // Для Nest >= v2.2 можно заменить на config.getOrThrow<string>('…')
     const accessTokenExpiresIn = config.get<string>('JWT_ACCESS_EXPIRES_IN');
     const refreshTokenExpiresIn = config.get<string>('JWT_REFRESH_EXPIRES_IN');
-    const refreshTokenName = config.get<string>('REFRESH_TOKEN_COOKIE_NAME');
-    const nodeEnv = config.get<string>('NODE_ENV');
+    const refreshTokenName = 'refresh_token';
 
     if (!accessTokenExpiresIn) {
       throw new Error('JWT_ACCESS_EXPIRES_IN is not defined in environment');
     }
     if (!refreshTokenExpiresIn) {
       throw new Error('JWT_REFRESH_EXPIRES_IN is not defined in environment');
-    }
-    if (!refreshTokenName) {
-      throw new Error('REFRESH_TOKEN_COOKIE_NAME is not defined in environment');
     }
 
     const isProduction = process.env.NODE_ENV === 'production';
