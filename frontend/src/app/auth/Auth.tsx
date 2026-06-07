@@ -44,6 +44,7 @@ export function Auth() {
       )
       reset()
       router.push(DASHBOARD_PAGES.HOME)
+      router.refresh()
     },
     onError(error: any) {
       const message =
