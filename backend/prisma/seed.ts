@@ -33,8 +33,7 @@ async function main() {
     INSERT INTO currencies (code, name, symbol) VALUES
     ('RUB', 'Российский рубль', '₽'),
     ('USD', 'Доллар США', '$'),
-    ('EUR', 'Евро', '€'),
-    ('BTC', 'Биткоин', '₿');
+    ('EUR', 'Евро', '€');
   `;
 
   // Добавляем категории счетов
@@ -42,7 +41,7 @@ async function main() {
   await prisma.$executeRaw`
     INSERT INTO account_categories (id, name) VALUES
     (1, 'Счета'),
-    (2, 'Сбережения');
+    (2, 'Накопительные');
   `;
 
   // Добавляем типы счетов
@@ -51,9 +50,8 @@ async function main() {
     INSERT INTO account_types (id, name) VALUES
     (1, 'Наличные'),
     (2, 'Карта'),
-    (3, 'Криптовалюта'),
-    (4, 'Депозит'),
-    (5, 'Инвестиционный счет');
+    (3, 'Депозит'),
+    (4, 'Инвестиционный счет');
   `;
 
   console.log('✅ База данных успешно заполнена!');
