@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getJwtConfig } from '../config/jwt.config';
 import { TokenConfigModule } from '../config/token.config';
+import { SeedModule } from '../seed/seed.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TokenConfigModule } from '../config/token.config';
       useFactory: getJwtConfig,
     }),
     TokenConfigModule,
+    SeedModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

@@ -83,7 +83,7 @@ export function TransactionsDonutChart({
                       padding: '10px 14px',
                       backdropFilter: 'blur(8px)'
                     }}
-                    formatter={(v: number) => `${v.toLocaleString('ru-RU')} ₽`}
+                    formatter={(v) => `${Number(v ?? 0).toLocaleString('ru-RU')} ₽`}
                     itemStyle={{
                       color: 'hsl(var(--foreground))',
                       fontWeight: 'bold'

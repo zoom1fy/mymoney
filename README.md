@@ -128,13 +128,10 @@ DATABASE_URL=mysql://root:your_pass@db:3306/mymoneydb
 JWT_SECRET=your-secret-key
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
-REFRESH_TOKEN_COOKIE_NAME=refresh_token
-NODE_ENV=development
 OLLAMA_URL=http://ollama:11434
 OLLAMA_MODEL=financial-advisor
 NEXT_PUBLIC_SOCKET_URL=http://localhost:3000 # for prod use 3001
 NEXT_PUBLIC_API_URL=http://localhost:3000/api # for prod use 3001
-NEXT_PUBLIC_COOKIE_DOMAIN=localhost
 ```
 
 ### 2. Start

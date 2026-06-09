@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@n
 import { JwtService } from '@nestjs/jwt';
 import { AuthDto } from './dto/auth.dto';
 import { UserService } from '../user/user.service';
+import { SeedService } from '../seed/seed.service';
 import { verify } from 'argon2';
 import { Response } from 'express';
 import { TOKEN_CONFIG, TokenConfig } from '../config/token.config';
@@ -14,6 +15,7 @@ export class AuthService {
   constructor(
     private jwt: JwtService,
     private userService: UserService,
+    private seedService: SeedService,
     @Inject(TOKEN_CONFIG) public readonly tokenConfig: TokenConfig
   ) {}
 
@@ -28,6 +30,11 @@ export class AuthService {
     if (userOld) throw new NotFoundException('User already exists');
 
     const { passwordHash, ...user } = await this.userService.create(dto);
+
+    await this.seedService.seedNewUser(user.id).catch((err) => {
+      console.error('Failed to seed data for new user:', err);
+    });
+
     const tokens = this.issueToken(user.id);
     return { user, ...tokens };
   }

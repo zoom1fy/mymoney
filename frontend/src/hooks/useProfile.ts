@@ -21,6 +21,9 @@ export function useProfile() {
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: async () => {
+      // Очищаем чат предыдущего пользователя
+      localStorage.removeItem('chat_messages')
+
       // Очищаем все кэши react-query
       await queryClient.clear()
 
@@ -36,6 +39,7 @@ export function useProfile() {
 
       // Даже если ошибка, попробуем очистить токен и выкинуть пользователя
       removeTokenStorage()
+      localStorage.removeItem('chat_messages')
       router.push('/auth')
     }
   })
