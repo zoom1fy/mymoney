@@ -1,6 +1,6 @@
 'use client'
 
-import { LogOut, MessageSquare, User } from 'lucide-react'
+import { LogOut, User } from 'lucide-react'
 import { useState } from 'react'
 
 import { ProfileModal } from '@/components/dashboard/profile/ProfileModal'
@@ -56,15 +56,6 @@ export function DashboardHeader() {
           <span className="sm:hidden">Транзакции</span>
         </Button>
 
-        <Button
-          className="cursor-pointer shadow-sm hover:shadow transition-all"
-          size="sm"
-          onClick={() => window.dispatchEvent(new Event('open-chat'))}
-        >
-          <MessageSquare className="size-4" />
-          <span className="hidden sm:inline">ИИ помощник</span>
-          <span className="sm:hidden">ИИ помощник</span>
-        </Button>
 
         <ThemeToggle />
 

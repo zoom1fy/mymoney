@@ -7,7 +7,7 @@ import { AccountModule } from './account/account.module';
 import { CategoryModule } from './category/category.module';
 import { CurrencyModule } from './currency/currency.module';
 import { TransactionModule } from './transaction/transaction.module';
-import { ChatModule } from './chat/chat.module';
+
 import { SeedModule } from './seed/seed.module';
 
 @Module({
@@ -21,7 +21,7 @@ import { SeedModule } from './seed/seed.module';
     CategoryModule,
     CurrencyModule,
     TransactionModule,
-    ChatModule,
+
     SeedModule,
   ],
   providers: [PrismaService],

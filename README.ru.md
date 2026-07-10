@@ -3,15 +3,14 @@
 - [English](README.md)
 - [Русский](README.ru.md)
 
-MyMoney — полнофункциональное приложение для управления личными финансами со встроенным AI-финансовым консультантом. Отслеживайте доходы, расходы и переводы между счетами в разных валютах, анализируйте траты с помощью интерактивных графиков и общайтесь с локальной нейросетью, которая даёт рекомендации на основе ваших реальных данных.
+MyMoney — полнофункциональное приложение для управления личными финансами. Отслеживайте доходы, расходы и переводы между счетами в разных валютах, анализируйте траты с помощью интерактивных графиков.
 
 ## Возможности
 
 - **Мультивалютные счета** — банковские, наличные, сберегательные, крипто и пользовательские типы с иконками
 - **Учёт доходов / расходов / переводов** — транзакции с иерархическими категориями, датами и описаниями
 - **Аналитика трат** — круговые диаграммы (Recharts) с фильтрацией по периодам
-- **AI-финансовый консультант** — локальная LLM (Ollama, llama3.1) анализирует реальные данные и даёт конкретные рекомендации с цифрами на русском языке
-- **Чат в реальном времени** — WebSocket со стримингом ответов AI, история сохраняется в БД
+
 - **JWT-аутентификация** — access-токены (Bearer) + refresh-токены (httpOnly cookies)
 - **Оптимистичный UI** — мгновенные обновления через TanStack Query
 
@@ -26,7 +25,7 @@ MyMoney — полнофункциональное приложение для �
 | Ant Design 6 | DatePicker и доп. компоненты |
 | Recharts 3 | Круговые диаграммы |
 | TanStack Query 5 | Серверное состояние и оптимистичные обновления |
-| Socket.IO Client 4 | AI-чат в реальном времени |
+
 | Framer Motion 12 | Анимации |
 | React Hook Form 7 | Формы |
 | Sonner | Toast-уведомления |
@@ -39,7 +38,7 @@ MyMoney — полнофункциональное приложение для �
 | MySQL 8.0 | База данных |
 | JWT + Passport | Аутентификация |
 | Argon2 | Хеширование паролей |
-| Socket.IO 4 | WebSocket для AI-чата |
+
 | Decimal.js | Точные финансовые расчёты |
 | Cache Manager | Кеширование |
 
@@ -51,7 +50,7 @@ MyMoney — полнофункциональное приложение для �
 | nginx | `80` → `3001` |
 | MySQL 8.0 | `3306` |
 | phpMyAdmin | `80` → `8080` |
-| Ollama | `11434` |
+
 
 ## Структура проекта
 
@@ -64,9 +63,7 @@ mymoney/
 │   │   ├── account/             # CRUD счетов (банк, наличные и т.д.)
 │   │   ├── category/            # Иерархические категории доходов/расходов
 │   │   ├── transaction/         # Доходы / расходы / переводы
-│   │   ├── chat/                # WebSocket AI-чат + интеграция с Ollama
-│   │   │   ├── gateway.ts       # Socket.IO gateway
-│   │   │   └── services/        # Анализ намерений, извлечение периода, сборка промпта
+
 │   │   ├── currency/            # Курсы валют через API ЦБ РФ
 │   │   ├── prisma/              # Prisma-сервис
 │   │   ├── config/              # JWT-конфиг, токен-конфиг
@@ -82,10 +79,10 @@ mymoney/
 │   │   ├── app/                 # App Router: auth, dashboard (me/)
 │   │   ├── components/          # UI-примитивы + компоненты дашборда
 │   │   │   ├── ui/              # shadcn/ui, кнопки, карточки, модалки
-│   │   │   ├── dashboard/       # Sidebar, счета, категории, транзакции, чат
+│   │   │   ├── dashboard/       # Sidebar, счета, категории, транзакции
 │   │   │   └── dashboard/.../skeletons/  # Скелетоны загрузки
-│   │   ├── hooks/               # useProfile, useAccounts, useTransactions, useChat и др.
-│   │   ├── services/            # API-клиенты (auth, account, category, transaction, chat WS)
+│   │   ├── hooks/               # useProfile, useAccounts, useTransactions и др.
+│   │   ├── services/            # API-клиенты (auth, account, category, transaction)
 │   │   ├── types/               # TypeScript-интерфейсы (IAccount, ICategory, ...)
 │   │   ├── config/              # Константы маршрутов
 │   │   ├── constants/           # SEO-метаданные
@@ -93,11 +90,11 @@ mymoney/
 │   │   └── api/                 # Axios-интерсепторы, обработка ошибок
 │   └── Dockerfile(.dev/.prod)
 ├── nginx/
-│   └── nginx.conf               # Обратный прокси (frontend + API + Socket.IO)
-├── docker-compose.yml           # Весь стек (MySQL, backend, frontend, nginx, phpMyAdmin, Ollama)
+│   └── nginx.conf               # Обратный прокси (frontend + API)
+├── docker-compose.yml           # Весь стек (MySQL, backend, frontend, nginx, phpMyAdmin)
 ├── docker-compose.dev.yml       # Dev-расширения (порты, volumes)
 ├── docker-compose.prod.yml      # Prod-расширения
-├── Modelfile                    # Кастомная модель Ollama financial-advisor
+
 ├── deploy.sh                    # Скрипт деплоя (macOS/Linux)
 ├── deploy.bat                   # Скрипт деплоя (Windows)
 └── Insomnia_mymoney.yaml        # Коллекция API-запросов для Insomnia
@@ -109,7 +106,7 @@ mymoney/
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) или Docker Engine (Linux)
 - Git
-- Свободные порты: `3001`, `3306`, `8080`, `11434`
+- Свободные порты: `3001`, `3306`, `8080`
 
 ### 1. Клонируйте и настройте
 
@@ -128,9 +125,7 @@ DATABASE_URL=mysql://root:ваш_пароль@db:3306/mymoneydb
 JWT_SECRET=ваш-секретный-ключ
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
-OLLAMA_URL=http://ollama:11434
-OLLAMA_MODEL=financial-advisor
-NEXT_PUBLIC_SOCKET_URL=http://localhost:3000 # для prod используйте 3001
+NEXT_PUBLIC_API_URL=http://localhost:3000/api # для prod используйте 3001
 NEXT_PUBLIC_API_URL=http://localhost:3000/api # для prod используйте 3001
 ```
 
@@ -150,7 +145,7 @@ deploy.bat
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 ```
 
-При первом запуске скачается модель `llama3.1` (~4 ГБ) и создастся кастомная модель `financial-advisor`. Это может занять несколько минут.
+
 
 ### 3. Откройте в браузере
 
@@ -158,7 +153,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 |---|---|
 | Фронтенд | http://localhost:3001 |
 | phpMyAdmin | http://localhost:8080 (пользователь: `root`) |
-| Ollama API | http://localhost:11434 |
+
 
 ## API-справочник
 
@@ -209,44 +204,6 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 | DELETE `/:id` | JWT | Удалить (обратный баланс) |
 
 **Фильтры:** `take`, `cursor`, `accountId`, `type`, `from`, `to`
-
-### Чат (`/api/chat`)
-| Метод | Auth | Описание |
-|---|---|---|
-| GET | JWT | Последние 10 сообщений |
-| DELETE | JWT | Очистить историю |
-
-### WebSocket — AI-чат
-
-Подключение: `ws://localhost:3001/socket.io` с `auth.token` = JWT access-токен.
-
-| Событие | Направление | Данные | Описание |
-|---|---|---|---|
-| `chat:send` | → | `{text, tempId?}` | Отправить сообщение |
-| `chat:message` | ← | `{id, content, role, createdAt}` | Сохранённое сообщение |
-| `chat:partial` | ← | `{id, chunk}` | Чанк стриминга ответа |
-| `chat:complete` | ← | `{id, finalId, response}` | Полный ответ |
-| `chat:error` | ← | `{error, tempId?}` | Ошибка |
-
-## AI-финансовый консультант
-
-- **Модель:** `financial-advisor` (кастомная, на базе `llama3.1` через Ollama)
-- **Язык:** только русский
-- **Триггер:** ключевые слова *анализ, расход, доход, отчет, финанс, оптимиз, сводка, статист, эконом, бюджет*
-- **Данные:** полная финансовая сводка (доходы/расходы по категориям, помесячная разбивка, балансы счетов, норма сбережения)
-- **Извлечение периода** из естественного языка: "за прошлый месяц", "последние 30 дней", "с 1 марта по 17 апреля"
-- **Стриминг:** ответ передаётся по WebSocket чанками в реальном времени
-
-**Что умеет:**
-- Определяет топ категорий расходов и их долю
-- Выявляет растущие категории и необычные паттерны
-- Даёт конкретные рекомендации с цифрами (сколько сократить, какой лимит установить)
-
-**Что НЕ делает:**
-- Никогда не придумывает данные, которых нет в ваших записях
-- Не даёт инвестиционных советов
-- Работает полностью локально — данные не покидают ваш компьютер
-
 ## Разработка
 
 ### Бэкенд
@@ -278,7 +235,7 @@ npm run lint
 docker compose up -d --build
 docker compose logs -f backend
 docker compose down
-docker compose down -v   # Сброс БД + данных Ollama
+docker compose down -v   # Сброс БД
 ```
 
 ## База данных
@@ -290,7 +247,7 @@ docker compose down -v   # Сброс БД + данных Ollama
 | **Category** | Иерархическая (самоссылающаяся), в рамках пользователя, флаг дохода/расхода |
 | **Transaction** | INCOME / EXPENSE / TRANSFER, атомарное обновление баланса |
 | **Currency** | RUB, USD, EUR, BTC |
-| **ChatMessage** | UUID, связь с пользователем, роль (USER/ASSISTANT), содержимое |
+
 
 Все суммы — `DECIMAL(15,2)`. Кодировка: `utf8mb4_unicode_ci`.
 
@@ -304,6 +261,6 @@ docker compose down -v   # Сброс БД + данных Ollama
 
 ## Примечания
 
-- Интерфейс на русском языке; AI-консультант отвечает только на русском
+- Интерфейс на русском языке
 - Курсы валют загружаются через API Центрального Банка России (ЦБ РФ)
 - Все финансовые расчёты через `Decimal.js` — никаких проблем с плавающей точкой
