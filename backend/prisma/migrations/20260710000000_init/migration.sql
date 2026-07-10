@@ -57,27 +57,16 @@ CREATE TABLE `accounts` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `default_categories` (
-    `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(100) NOT NULL,
-    `icon` VARCHAR(50) NOT NULL DEFAULT 'default',
-    `currency_code` CHAR(3) NOT NULL,
-    `is_expense` BOOLEAN NOT NULL,
-    `parent_id` INTEGER UNSIGNED NULL,
-
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
 CREATE TABLE `categories` (
     `id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
     `user_id` CHAR(36) NOT NULL,
     `name` VARCHAR(100) NOT NULL,
     `icon` VARCHAR(50) NOT NULL DEFAULT 'default',
     `currency_code` CHAR(3) NOT NULL,
+    `color` VARCHAR(7) NULL DEFAULT '',
     `is_expense` BOOLEAN NOT NULL,
     `parent_id` INTEGER UNSIGNED NULL,
-    `default_category_id` INTEGER UNSIGNED NULL,
+    `isArchived` BOOLEAN NOT NULL DEFAULT false,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `categories_user_id_is_expense_idx`(`user_id`, `is_expense`),
@@ -99,8 +88,9 @@ CREATE TABLE `transactions` (
     `type` ENUM('INCOME', 'EXPENSE', 'TRANSFER') NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    INDEX `transactions_user_id_transaction_date_idx`(`user_id`, `transaction_date`),
+    INDEX `transactions_user_id_transaction_date_id_idx`(`user_id`, `transaction_date`, `id`),
     INDEX `transactions_account_id_transaction_date_idx`(`account_id`, `transaction_date`),
+    INDEX `transactions_category_id_idx`(`category_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -117,12 +107,6 @@ ALTER TABLE `accounts` ADD CONSTRAINT `accounts_type_id_fkey` FOREIGN KEY (`type
 ALTER TABLE `accounts` ADD CONSTRAINT `accounts_currency_code_fkey` FOREIGN KEY (`currency_code`) REFERENCES `currencies`(`code`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `default_categories` ADD CONSTRAINT `default_categories_parent_id_fkey` FOREIGN KEY (`parent_id`) REFERENCES `default_categories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `default_categories` ADD CONSTRAINT `default_categories_currency_code_fkey` FOREIGN KEY (`currency_code`) REFERENCES `currencies`(`code`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `categories` ADD CONSTRAINT `categories_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -130,9 +114,6 @@ ALTER TABLE `categories` ADD CONSTRAINT `categories_parent_id_fkey` FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE `categories` ADD CONSTRAINT `categories_currency_code_fkey` FOREIGN KEY (`currency_code`) REFERENCES `currencies`(`code`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `categories` ADD CONSTRAINT `categories_default_category_id_fkey` FOREIGN KEY (`default_category_id`) REFERENCES `default_categories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `transactions` ADD CONSTRAINT `transactions_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
