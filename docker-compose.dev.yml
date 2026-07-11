@@ -8,8 +8,6 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
-    ports:
-      - "3000:3000"
 
   frontend:
     build:
@@ -18,11 +16,5 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    ports:
-      - "3001:3000"
     environment:
       NODE_ENV: development
-
-  nginx:
-    ports:
-      - "3002:80"

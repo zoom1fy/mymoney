@@ -125,8 +125,9 @@ DATABASE_URL=mysql://root:your_pass@db:3306/mymoneydb
 JWT_SECRET=your-secret-key
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
-NEXT_PUBLIC_API_URL=http://localhost:3000/api # for prod use 3001
-NEXT_PUBLIC_API_URL=http://localhost:3000/api # for prod use 3001
+CORS_ORIGINS=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_COOKIE_DOMAIN=localhost
 ```
 
 ### 2. Start
