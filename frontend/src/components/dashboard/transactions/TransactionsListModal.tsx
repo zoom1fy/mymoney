@@ -80,7 +80,7 @@ export function TransactionsListModal({
       setCurrentPage(1)
     }
     return () => updateDebounced.cancel()
-  }, [open, updateDebounced])
+  }, [open, updateDebounced, onRangeChange])
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {

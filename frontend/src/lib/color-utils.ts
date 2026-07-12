@@ -11,12 +11,12 @@ export const isValidHex = (color: string) => {
   return /^#[0-9A-F]{6}$/i.test(color)
 }
 
-export function throttle<T extends (...args: any[]) => void>(
+export function throttle<T extends (...args: unknown[]) => void>(
   func: T,
   delay: number
 ): T {
   let timeout: ReturnType<typeof setTimeout> | null = null
-  return function (this: any, ...args: Parameters<T>) {
+  return function (this: unknown, ...args: Parameters<T>) {
     if (!timeout) {
       func.apply(this, args)
       timeout = setTimeout(() => {

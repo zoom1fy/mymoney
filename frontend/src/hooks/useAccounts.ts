@@ -58,16 +58,17 @@ export function useAccounts() {
       return { previousAccounts, tempId }
     },
 
-    onError: (error: any, newData, context) => {
+    onError: (error: Error, _newData, context) => {
       if (context?.previousAccounts) {
         queryClient.setQueryData<IAccount[]>(
           ['accounts'],
           context.previousAccounts
         )
       }
+      const err = error as { response?: { data?: { message?: string } } }
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
+        err.response?.data?.message ||
+        error.message ||
         'Ошибка создания счёта'
       toast.error(message)
     },
@@ -106,9 +107,9 @@ export function useAccounts() {
       toast.success('Счёт обновлён!')
     },
 
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message || error?.message || 'Ошибка обновления'
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || error.message || 'Ошибка обновления'
       toast.error(message)
     }
   })

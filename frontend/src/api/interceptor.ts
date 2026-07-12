@@ -19,14 +19,12 @@ const axiosWithAuth = axios.create(options)
 
 // Лог запросов
 axiosClassic.interceptors.request.use(config => {
-  console.log('➡️ Sending request to:', (config.baseURL || '') + config.url)
   return config
 })
 
 // Лог ответов
 axiosClassic.interceptors.response.use(
   response => {
-    console.log('✅ Response:', response.status, response.data)
     return response
   },
   error => {

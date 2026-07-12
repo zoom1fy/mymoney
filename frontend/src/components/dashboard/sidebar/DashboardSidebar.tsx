@@ -1,8 +1,6 @@
 'use client'
 
 import { Wallet } from 'lucide-react'
-import { usePathname } from 'next/navigation'
-
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +16,6 @@ import {
 import {
   AccountCategoryEnum,
   AccountCategoryNameMap,
-  AccountIcons,
   IAccount
 } from '@/types/account.types'
 

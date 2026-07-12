@@ -33,9 +33,9 @@ export function useCategories(isExpense: boolean) {
       ])
       toast.success('Категория создана')
     },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message || 'Ошибка создания категории'
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Ошибка создания категории'
       toast.error(message)
     }
   })
@@ -50,8 +50,9 @@ export function useCategories(isExpense: boolean) {
       )
       toast.success('Категория обновлена')
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Ошибка обновления'
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Ошибка обновления'
       toast.error(message)
     }
   })
@@ -69,8 +70,9 @@ export function useCategories(isExpense: boolean) {
 
       toast.success('Категория перемещена в архив')
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Ошибка архивирования'
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Ошибка архивирования'
       toast.error(message)
     }
   })
@@ -92,8 +94,9 @@ export function useCategories(isExpense: boolean) {
 
       toast.success('Категория восстановлена')
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Ошибка восстановления'
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Ошибка восстановления'
       toast.error(message)
     }
   })

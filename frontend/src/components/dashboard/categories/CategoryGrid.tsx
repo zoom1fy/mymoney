@@ -14,7 +14,7 @@ interface Props {
   categories: ICategory[]
   isExpense: boolean
   editMode: boolean
-  donutData?: any[]
+  donutData?: { id: number; value: number; color?: string }[]
   loading?: boolean
 }
 

@@ -111,7 +111,7 @@ export function useTransactions() {
         tempId
       }
     },
-    onError: (error: any, variables, context) => {
+    onError: (error: Error, _variables, context) => {
       // ОТКАТ при ошибке
       if (context?.previousTransactions) {
         queryClient.setQueryData(['transactions'], context.previousTransactions)
@@ -120,10 +120,11 @@ export function useTransactions() {
         queryClient.setQueryData(['accounts'], context.previousAccounts)
       }
 
+      const err = error as { response?: { data?: { message?: string } } }
       let errorMessage = 'Ошибка при создании транзакции'
-      if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message
-      } else if (error?.message) {
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message
+      } else if (error.message) {
         errorMessage = error.message
       }
 
@@ -196,8 +197,9 @@ export function useTransactions() {
       toast.success('Транзакция обновлена')
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Ошибка обновления')
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      toast.error(err.response?.data?.message || 'Ошибка обновления')
     }
   })
 
@@ -220,8 +222,9 @@ export function useTransactions() {
       toast.success('Транзакция удалена')
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Ошибка удаления')
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      toast.error(err.response?.data?.message || 'Ошибка удаления')
     }
   })
 

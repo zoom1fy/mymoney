@@ -28,14 +28,12 @@ function AuthForm({
   type,
   loginMutation,
   registerMutation,
-  onSubmit,
-  toggleAuthType
+  onSubmit
 }: {
   type: AuthType
-  loginMutation: any
-  registerMutation: any
+  loginMutation: { isPending: boolean }
+  registerMutation: { isPending: boolean }
   onSubmit: SubmitHandler<IAuthFormExtended>
-  toggleAuthType: () => void
 }) {
   const {
     register,
@@ -93,10 +91,10 @@ function AuthForm({
       <AnimatePresence mode="sync">
         {type === 'register' && (
           <motion.div
-            key="confirm"
             animate={{ opacity: 1, height: 100, marginTop: 0 }}
             exit={{ opacity: 0, height: 0, marginTop: -30 }}
             initial={{ opacity: 0, height: 0, marginTop: 50 }}
+            key="confirm"
             transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
           >
             <Label className="text-lg font-medium" htmlFor="confirmPassword">
@@ -156,9 +154,9 @@ function VerifyScreen({
   email: string
   onVerify: (e: React.FormEvent<HTMLFormElement>) => void
   onBack: () => void
-  resendMutation: any
+  resendMutation: { isPending: boolean; mutate: (...args: unknown[]) => void }
   cooldown: number
-  verifyMutation: any
+  verifyMutation: { isPending: boolean; isError: boolean }
   setCooldown: (n: number) => void
 }) {
   const [code, setCode] = useState('')
@@ -203,18 +201,18 @@ function VerifyScreen({
             transition={{ duration: 0.4 }}
           >
             <Input
+              autoComplete="one-time-code"
               className={`mt-3 h-14 text-2xl text-center tracking-[0.5em] px-5 transition-all duration-300 ${
                 shake
                   ? 'border-destructive shadow-[0_0_0_3px_hsl(var(--destructive)/0.3)]'
                   : 'focus-visible:shadow-[0_0_0_3px_hsl(var(--ring)/0.3)]'
               }`}
               id="code"
+              inputMode="numeric"
               maxLength={6}
               name="code"
               placeholder="000000"
               type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
               value={code}
               onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
             />
@@ -252,8 +250,8 @@ function VerifyScreen({
       <div className="mt-8 text-center space-y-4">
         <motion.button
           className="text-base text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
-          type="button"
           disabled={resendMutation.isPending || cooldown > 0}
+          type="button"
           whileTap={cooldown === 0 ? { scale: 0.95 } : {}}
           onClick={() => {
             resendMutation.mutate(email)
@@ -303,9 +301,9 @@ export function Auth() {
       router.push(DASHBOARD_PAGES.HOME)
       router.refresh()
     },
-    onError(error: any) {
-      const message =
-        error?.response?.data?.message || 'Неверный email или пароль'
+    onError(error: Error) {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Неверный email или пароль'
       toast.error(message)
     }
   })
@@ -318,9 +316,9 @@ export function Auth() {
       setPendingEmail(data.data.email)
       setCooldown(60)
     },
-    onError(error: any) {
-      const message =
-        error?.response?.data?.message || 'Ошибка при регистрации'
+    onError(error: Error) {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Ошибка при регистрации'
       toast.error(message)
     }
   })
@@ -335,8 +333,9 @@ export function Auth() {
       router.push(DASHBOARD_PAGES.HOME)
       router.refresh()
     },
-    onError(error: any) {
-      const message = error?.response?.data?.message || 'Неверный код'
+    onError(error: Error) {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Неверный код'
       toast.error(message)
     }
   })
@@ -347,9 +346,9 @@ export function Auth() {
     onSuccess() {
       toast.success('Новый код отправлен на почту')
     },
-    onError(error: any) {
-      const message =
-        error?.response?.data?.message || 'Ошибка при отправке кода'
+    onError(error: Error) {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Ошибка при отправке кода'
       toast.error(message)
     }
   })
@@ -395,28 +394,28 @@ export function Auth() {
           <AnimatePresence mode="wait">
             {pendingEmail ? (
               <motion.div
-                key="verify"
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 initial={{ opacity: 0, y: 20 }}
+                key="verify"
                 transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
               >
                 <VerifyScreen
                   cooldown={cooldown}
                   email={pendingEmail}
                   resendMutation={resendMutation}
-                  verifyMutation={verifyMutation}
                   setCooldown={setCooldown}
+                  verifyMutation={verifyMutation}
                   onBack={() => setPendingEmail(null)}
                   onVerify={onVerify}
                 />
               </motion.div>
             ) : (
               <motion.div
-                key="form"
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 initial={{ opacity: 0, y: -20 }}
+                key="form"
                 transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
               >
                 <div className="text-center mb-10">
@@ -432,7 +431,6 @@ export function Auth() {
                   registerMutation={registerMutation}
                   type={type}
                   onSubmit={onSubmit}
-                  toggleAuthType={toggleAuthType}
                 />
 
                 <div className="mt-10 text-center">

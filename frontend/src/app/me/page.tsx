@@ -31,7 +31,7 @@ export default function DashboardPage() {
   const { data: chartTransactions = [], isLoading: chartLoading } =
     useTransactionsForPeriod(chartRange.from, chartRange.to)
 
-  const { data: modalTransactions = [], isLoading: modalLoading } =
+  const { data: modalTransactions = [], isLoading: _modalLoading } =
     useTransactionsForPeriod(modalRange.from, modalRange.to)
 
   const {

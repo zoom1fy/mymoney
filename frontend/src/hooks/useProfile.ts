@@ -30,8 +30,9 @@ export function useProfile() {
       router.push('/auth')
       router.refresh()
     },
-    onError: (error: any) => {
-      const message = error?.response?.data?.message || 'Ошибка при выходе'
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Ошибка при выходе'
       toast.error(message)
 
       // Даже если ошибка, попробуем очистить токен и выкинуть пользователя
@@ -46,13 +47,13 @@ export function useProfile() {
       password?: string
       currentPassword: string
     }) => userService.updateProfile(data),
-    onSuccess: async (updatedProfile: any) => {
+    onSuccess: async (updatedProfile: Record<string, unknown>) => {
       queryClient.setQueryData(['profile'], updatedProfile)
       toast.success('Профиль обновлён')
     },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message || 'Ошибка при обновлении профиля'
+    onError: (error: Error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Ошибка при обновлении профиля'
       toast.error(message)
     }
   })

@@ -407,7 +407,7 @@ export function TransactionModal({
                       >
                         <Calendar
                           className="p-3"
-                          locale={ru as any}
+                          locale={ru}
                           mode="single"
                           selected={watch('date')}
                           onSelect={d =>

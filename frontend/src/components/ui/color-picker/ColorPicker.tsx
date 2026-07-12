@@ -1,7 +1,7 @@
 'use client'
 
 import { Shuffle } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { HexColorPicker } from 'react-colorful'
 
 import { Button } from '@/components/ui/shadui/button'
@@ -46,8 +46,8 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
     setLocalColor(value)
   }, [value])
 
-  const throttledOnChange = useCallback(
-    throttle((val: string) => onChange(val), 100),
+  const throttledOnChange = useMemo(
+    () => throttle((val: string) => onChange(val), 100),
     [onChange]
   )
 
