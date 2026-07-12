@@ -27,8 +27,8 @@ describe('AccountService', () => {
 
     service = module.get<AccountService>(AccountService);
     // Reset all mock implementations and calls
-    Object.values(mockPrisma.account).forEach((mock) => {
-      (mock as jest.Mock).mockReset();
+    Object.values(mockPrisma.account as Record<string, jest.Mock>).forEach((mock) => {
+      mock.mockReset();
     });
   });
 
@@ -177,16 +177,7 @@ describe('AccountService', () => {
         createdAt: new Date('2020-01-01'),
         updatedAt: new Date(),
       };
-      const a2 = {
-        id: 2,
-        userId,
-        name: 'B',
-        isDeleted: true,
-        currentBalance: new Decimal(20),
-        icon: 'default',
-        createdAt: new Date('2019-01-01'),
-        updatedAt: new Date(),
-      };
+      // a2 simulates a deleted account not returned by Prisma's isDeleted:false filter
       // Prisma filters isDeleted: false server-side, so mock returns only active accounts
       mockPrisma.account.findMany.mockResolvedValue([a1]);
 

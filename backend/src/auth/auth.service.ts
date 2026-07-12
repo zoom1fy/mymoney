@@ -1,4 +1,11 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthDto } from './dto/auth.dto';
 import { UserService } from '../user/user.service';
@@ -145,19 +152,23 @@ export class AuthService {
     const passwordHash = await hash(newPassword);
     await this.prisma.$transaction([
       this.prisma.user.update({ where: { id: user.id }, data: { passwordHash } }),
-      this.prisma.passwordResetToken.update({ where: { id: resetToken.id }, data: { usedAt: new Date() } }),
+      this.prisma.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { usedAt: new Date() },
+      }),
     ]);
 
     return { message: 'Пароль успешно изменён' };
   }
 
   async getNewTokens(refreshToken: string) {
-    const result = await this.jwt.verifyAsync(refreshToken);
+    const result = await this.jwt.verifyAsync<{ id: string }>(refreshToken);
     if (!result) throw new UnauthorizedException('Invalid refresh token');
 
     const userEntity = await this.userService.findById(result.id);
     if (!userEntity) throw new NotFoundException('User not found');
     const { passwordHash, ...user } = userEntity;
+    void passwordHash;
 
     const tokens = this.issueToken(user.id);
     return { user, ...tokens };

@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { tokenConfigProvider, TOKEN_CONFIG, TokenConfig } from './token.config';
+import { tokenConfigProvider, TokenConfig } from './token.config';
 
 describe('TokenConfig', () => {
   describe('tokenConfigProvider', () => {
@@ -14,7 +14,7 @@ describe('TokenConfig', () => {
       };
 
       const provider = tokenConfigProvider as any;
-      const config = provider.useFactory(mockConfigService as unknown as ConfigService) as TokenConfig;
+      const config = provider.useFactory(mockConfigService) as TokenConfig;
 
       expect(config.accessTokenExpiresIn).toBe('15m');
       expect(config.refreshTokenExpiresIn).toBe('7d');
@@ -36,7 +36,7 @@ describe('TokenConfig', () => {
       };
 
       const provider = tokenConfigProvider as any;
-      const config = provider.useFactory(mockConfigService as unknown as ConfigService) as TokenConfig;
+      const config = provider.useFactory(mockConfigService) as TokenConfig;
 
       expect(config.refreshTokenCookieOptions.secure).toBe(false);
     });

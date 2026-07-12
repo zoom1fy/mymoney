@@ -32,7 +32,12 @@ describe('AccountController', () => {
 
   describe('create()', () => {
     it('should call accountService.create with user id and dto', async () => {
-      const dto = { name: 'Savings', categoryId: 'bank' as any, typeId: 'bank' as any, currencyCode: 'RUB' as any };
+      const dto = {
+        name: 'Savings',
+        categoryId: 'bank' as any,
+        typeId: 'bank' as any,
+        currencyCode: 'RUB' as any,
+      };
       const expected = { id: 1, name: 'Savings' };
       mockAccountService.create.mockResolvedValue(expected);
 

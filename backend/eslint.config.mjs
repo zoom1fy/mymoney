@@ -33,7 +33,7 @@ export default tseslint.config(
   },
   {
     // Ослабленные правила для тестовых файлов
-    files: ['**/*.spec.ts', '**/*.test.ts', '**/__tests__/**'],
+    files: ['**/*.spec.ts', '**/*.e2e-spec.ts', '**/*.test.ts', '**/__tests__/**'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',

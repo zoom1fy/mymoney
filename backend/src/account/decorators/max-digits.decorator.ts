@@ -8,9 +8,9 @@ export function MaxDigits(maxDigits: number, validationOptions?: ValidationOptio
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: any) {
           if (value === null || value === undefined) return true;
-          const strValue = value.toString();
+          const strValue = String(value);
           return strValue.length <= maxDigits;
         },
         defaultMessage(args: ValidationArguments) {

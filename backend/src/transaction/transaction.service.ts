@@ -60,7 +60,7 @@ export class TransactionService {
         );
         break;
 
-      case TransactionType.TRANSFER:
+      case TransactionType.TRANSFER: {
         if (!targetAccountId) {
           throw new BadRequestException('Для перевода нужен целевой аккаунт');
         }
@@ -85,9 +85,10 @@ export class TransactionService {
           })
         );
         break;
+      }
 
       default:
-        throw new BadRequestException(`Неизвестный тип транзакции: ${type}`);
+        throw new BadRequestException(`Неизвестный тип транзакции: ${String(type)}`);
     }
 
     updates.push(
@@ -111,10 +112,10 @@ export class TransactionService {
 
   // --- Вспомогательные методы для findAll ---
 
-  private buildDateFilter(from?: string, to?: string) {
+  private buildDateFilter(from?: string, to?: string): { gte?: Date; lte?: Date } | undefined {
     if (!from && !to) return undefined;
 
-    const dateFilter: any = {};
+    const dateFilter: { gte?: Date; lte?: Date } = {};
     if (from) dateFilter.gte = new Date(from);
     if (to) dateFilter.lte = new Date(to);
 
@@ -123,7 +124,12 @@ export class TransactionService {
 
   private buildWhereClause(userId: string, query: GetTransactionsDto) {
     const { accountId, type, from, to } = query;
-    const where: any = { userId };
+    const where: {
+      userId: string;
+      accountId?: number;
+      type?: string;
+      transactionDate?: { gte?: Date; lte?: Date };
+    } = { userId };
 
     if (accountId) where.accountId = accountId;
     if (type) where.type = type;
@@ -137,14 +143,14 @@ export class TransactionService {
   private async applyPagination<T>(
     queryBuilder: Promise<T[]>,
     take: number,
-    cursor?: number
+    _cursor?: number // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<{ data: T[]; nextCursor: number | null }> {
     const results = await queryBuilder;
     let nextCursor: number | null = null;
 
     if (results.length > take) {
       const nextItem = results.pop();
-      nextCursor = (nextItem as any).id;
+      nextCursor = (nextItem as { id: number }).id;
     }
 
     return { data: results, nextCursor };
@@ -207,7 +213,7 @@ export class TransactionService {
     const amount = Number(transaction.amount);
     const updates: any[] = [];
 
-    if (transaction.type === TransactionType.INCOME) {
+    if (transaction.type === 'INCOME') {
       // Откат дохода → вычесть деньги
       updates.push(
         this.prisma.account.update({
@@ -215,7 +221,7 @@ export class TransactionService {
           data: { currentBalance: { decrement: amount } },
         })
       );
-    } else if (transaction.type === TransactionType.EXPENSE) {
+    } else if (transaction.type === 'EXPENSE') {
       // Откат расхода → вернуть деньги
       updates.push(
         this.prisma.account.update({
@@ -223,7 +229,7 @@ export class TransactionService {
           data: { currentBalance: { increment: amount } },
         })
       );
-    } else if (transaction.type === TransactionType.TRANSFER) {
+    } else if (transaction.type === 'TRANSFER') {
       // Откат перевода → вернуть деньги на исходный счёт, списать с целевого
       updates.push(
         this.prisma.account.update({
@@ -284,21 +290,21 @@ export class TransactionService {
     const newType = dto.type ?? oldType;
 
     // 1. Откат старой транзакции
-    if (oldType === TransactionType.INCOME) {
+    if (oldType === 'INCOME') {
       updates.push(
         this.prisma.account.update({
           where: { id: transaction.accountId },
           data: { currentBalance: { decrement: oldAmount } },
         })
       );
-    } else if (oldType === TransactionType.EXPENSE) {
+    } else if (oldType === 'EXPENSE') {
       updates.push(
         this.prisma.account.update({
           where: { id: transaction.accountId },
           data: { currentBalance: { increment: oldAmount } },
         })
       );
-    } else if (oldType === TransactionType.TRANSFER) {
+    } else if (oldType === 'TRANSFER') {
       updates.push(
         this.prisma.account.update({
           where: { id: transaction.accountId },

@@ -2,6 +2,8 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryService } from './category.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 type Category = {
   id: number;
@@ -46,14 +48,14 @@ describe('CategoryService', () => {
 
   describe('create()', () => {
     it('should create category with all fields', async () => {
-      const dto: any = {
+      const dto = {
         name: 'Groceries',
         icon: 'shopping',
         color: '#AA00AA',
         isExpense: true,
-        currencyCode: 'RUB',
+        currencyCode: 'RUB' as const,
         parentId: null,
-      };
+      } as unknown as CreateCategoryDto;
       const created: Category = {
         id: 5,
         name: dto.name,
@@ -76,13 +78,13 @@ describe('CategoryService', () => {
     });
 
     it('should default icon to "default" if not provided', async () => {
-      const dto: any = {
+      const dto = {
         name: 'Utilities',
         color: '#000000',
         isExpense: true,
-        currencyCode: 'RUB',
+        currencyCode: 'RUB' as const,
         parentId: null,
-      };
+      } as unknown as CreateCategoryDto;
       const created: Category = {
         id: 6,
         name: dto.name,
@@ -104,7 +106,11 @@ describe('CategoryService', () => {
     });
 
     it('should default color to "" if not provided', async () => {
-      const dto: any = { name: 'Transport', isExpense: false, currencyCode: 'RUB' };
+      const dto = {
+        name: 'Transport',
+        isExpense: false,
+        currencyCode: 'RUB' as const,
+      } as unknown as CreateCategoryDto;
       const created: Category = {
         id: 7,
         name: dto.name,
@@ -126,27 +132,46 @@ describe('CategoryService', () => {
     });
 
     it('should throw BadRequestException if category with same name exists (isArchived: false)', async () => {
-      const dto: any = { name: 'Groceries', isExpense: true, currencyCode: 'RUB' };
+      const dto = {
+        name: 'Groceries',
+        isExpense: true,
+        currencyCode: 'RUB' as const,
+      } as unknown as CreateCategoryDto;
       mockPrisma.category.findFirst.mockResolvedValue({ id: 99, isArchived: false });
       await expect(service.create(userId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should throw BadRequestException if parent category not found', async () => {
-      const dto: any = { name: 'New Sub', parentId, isExpense: true, currencyCode: 'RUB' };
+      const dto = {
+        name: 'New Sub',
+        parentId,
+        isExpense: true,
+        currencyCode: 'RUB' as const,
+      } as unknown as CreateCategoryDto;
       mockPrisma.category.findFirst.mockResolvedValueOnce(null);
       mockPrisma.category.findFirst.mockResolvedValueOnce(null);
       await expect(service.create(userId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should throw BadRequestException if parent category is archived', async () => {
-      const dto: any = { name: 'Child', parentId, isExpense: true, currencyCode: 'RUB' };
+      const dto = {
+        name: 'Child',
+        parentId,
+        isExpense: true,
+        currencyCode: 'RUB' as const,
+      } as unknown as CreateCategoryDto;
       mockPrisma.category.findFirst.mockResolvedValueOnce(null);
       mockPrisma.category.findFirst.mockResolvedValueOnce({ id: parentId, isArchived: true });
       await expect(service.create(userId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should allow creating subcategory with valid parent', async () => {
-      const dto: any = { name: 'Sub', parentId, isExpense: true, currencyCode: 'RUB' };
+      const dto = {
+        name: 'Sub',
+        parentId,
+        isExpense: true,
+        currencyCode: 'RUB' as const,
+      } as unknown as CreateCategoryDto;
       const parent = { id: parentId, isArchived: false };
       const created: Category = {
         id: 8,
@@ -203,7 +228,11 @@ describe('CategoryService', () => {
   describe('update()', () => {
     it('updates category fields', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
-      const dto: any = { name: 'New Name', color: '#123456', parentId: 3 };
+      const dto = {
+        name: 'New Name',
+        color: '#123456',
+        parentId: 3,
+      } as unknown as UpdateCategoryDto;
       mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(null);
       mockPrisma.category.findFirst.mockResolvedValueOnce({ id: 3, isArchived: false });
       mockPrisma.category.update.mockResolvedValueOnce({ ...current, ...dto });

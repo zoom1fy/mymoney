@@ -4,6 +4,8 @@ import { TransactionService } from './transaction.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CurrencyService } from '../currency/currency.service';
 import { TransactionType } from './enums/transaction-type.enum';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import Decimal from 'decimal.js';
 
 // Realistic test data
@@ -44,7 +46,6 @@ const mockCurrencyService = {
 describe('TransactionService', () => {
   let service: TransactionService;
   let prisma: typeof mockPrisma;
-  let currencyService: typeof mockCurrencyService;
 
   beforeEach(async () => {
     // Reset mocks before each test
@@ -59,7 +60,6 @@ describe('TransactionService', () => {
 
     service = module.get<TransactionService>(TransactionService);
     prisma = module.get<PrismaService>(PrismaService) as any;
-    currencyService = module.get<CurrencyService>(CurrencyService) as any;
     // Reset all mock implementations
     Object.values(mockPrisma.account).forEach((m) => m.mockReset());
     Object.values(mockPrisma.category).forEach((m) => m.mockReset());
@@ -99,7 +99,7 @@ describe('TransactionService', () => {
         transactionDate: new Date('2020-01-01'),
       };
 
-      const result = await service.create(userId, input);
+      const result = await service.create(userId, input as CreateTransactionDto);
 
       expect(result).toBeDefined();
       expect(result[result.length - 1].type).toBe(TransactionType.INCOME);
@@ -130,7 +130,7 @@ describe('TransactionService', () => {
         description: 'expense test',
       };
 
-      const result = await service.create(userId, input);
+      const result = await service.create(userId, input as CreateTransactionDto);
       expect(result[result.length - 1].type).toBe(TransactionType.EXPENSE);
       expect(prisma.account.update).toHaveBeenCalledWith({
         where: { id: accountId },
@@ -156,7 +156,7 @@ describe('TransactionService', () => {
         description: 'transfer test',
       };
 
-      const result = await service.create(userId, input);
+      const result = await service.create(userId, input as CreateTransactionDto);
       expect(result[result.length - 1].type).toBe(TransactionType.TRANSFER);
       // Source decrement, target increment
       expect(prisma.account.update).toHaveBeenCalledWith({
@@ -178,7 +178,9 @@ describe('TransactionService', () => {
         type: TransactionType.INCOME,
         currencyCode: 'RUB',
       };
-      await expect(service.create(userId, input)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.create(userId, input as CreateTransactionDto)).rejects.toBeInstanceOf(
+        NotFoundException
+      );
     });
 
     it('should throw NotFoundException if target account not found for TRANSFER', async () => {
@@ -192,7 +194,9 @@ describe('TransactionService', () => {
         type: TransactionType.TRANSFER,
         currencyCode: 'RUB',
       };
-      await expect(service.create(userId, input)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.create(userId, input as CreateTransactionDto)).rejects.toBeInstanceOf(
+        NotFoundException
+      );
     });
 
     it('should throw NotFoundException if category not found for INCOME/EXPENSE', async () => {
@@ -209,7 +213,9 @@ describe('TransactionService', () => {
         type: TransactionType.INCOME,
         currencyCode: 'RUB',
       };
-      await expect(service.create(userId, input)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.create(userId, input as CreateTransactionDto)).rejects.toBeInstanceOf(
+        NotFoundException
+      );
     });
 
     it('should throw BadRequestException if categoryId is undefined for INCOME/EXPENSE', async () => {
@@ -219,7 +225,9 @@ describe('TransactionService', () => {
         userId,
       });
       const input: any = { accountId, amount, type: TransactionType.INCOME, currencyCode: 'RUB' };
-      await expect(service.create(userId, input)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.create(userId, input as CreateTransactionDto)).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('should throw BadRequestException if amount <= 0', async () => {
@@ -235,7 +243,9 @@ describe('TransactionService', () => {
         type: TransactionType.INCOME,
         currencyCode: 'RUB',
       };
-      await expect(service.create(userId, input)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.create(userId, input as CreateTransactionDto)).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('should throw BadRequestException if TRANSFER without targetAccountId', async () => {
@@ -245,7 +255,9 @@ describe('TransactionService', () => {
         userId,
       });
       const input: any = { accountId, amount, type: TransactionType.TRANSFER, currencyCode: 'RUB' };
-      await expect(service.create(userId, input)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.create(userId, input as CreateTransactionDto)).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('should throw BadRequestException for unknown transaction type', async () => {
@@ -255,7 +267,9 @@ describe('TransactionService', () => {
         userId,
       });
       const input: any = { accountId, categoryId, amount, type: 'UNKNOWN', currencyCode: 'RUB' };
-      await expect(service.create(userId, input)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.create(userId, input as CreateTransactionDto)).rejects.toBeInstanceOf(
+        BadRequestException
+      );
     });
 
     it('should use current date if transactionDate not provided', async () => {
@@ -275,7 +289,7 @@ describe('TransactionService', () => {
         currencyCode: 'RUB',
       };
 
-      const result = await service.create(userId, input);
+      await service.create(userId, input as CreateTransactionDto);
       const createCall = mockPrisma.transaction.create.mock.calls[0][0];
       expect(createCall.data.transactionDate).toBeInstanceOf(Date);
     });
@@ -402,7 +416,7 @@ describe('TransactionService', () => {
       mockPrisma.account.findMany.mockResolvedValueOnce([{ id: accountId, isDeleted: false }]);
       mockPrisma.$transaction.mockResolvedValueOnce([{}]);
       const dto: any = { amount: 150, type: TransactionType.EXPENSE };
-      const result = await service.update(userId, 20, dto);
+      const result = await service.update(userId, 20, dto as UpdateTransactionDto);
       expect(result).toBeDefined();
       expect(mockPrisma.$transaction).toHaveBeenCalled();
     });

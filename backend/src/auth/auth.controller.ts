@@ -9,7 +9,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { AuthDto } from './dto/auth.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -73,7 +73,9 @@ export class AuthController {
   @HttpCode(200)
   @Post('login/access-token')
   async getNewTokens(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const refreshTokenFromCookies = req.cookies[this.authService.tokenConfig.refreshTokenName];
+    const refreshTokenFromCookies = (req.cookies as Record<string, string>)[
+      this.authService.tokenConfig.refreshTokenName
+    ];
 
     if (!refreshTokenFromCookies) {
       this.authService.removeRefreshTokenFromResponse(res);
@@ -90,7 +92,7 @@ export class AuthController {
 
   @HttpCode(200)
   @Post('logout')
-  async logout(@Res({ passthrough: true }) res: Response) {
+  logout(@Res({ passthrough: true }) res: Response) {
     this.authService.removeRefreshTokenFromResponse(res);
 
     return true;

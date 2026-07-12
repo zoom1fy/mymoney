@@ -1,11 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { UserService } from '../user/user.service';
 
 jest.mock('passport-jwt', () => ({
   ExtractJwt: { fromAuthHeaderAsBearerToken: () => jest.fn() },
   Strategy: class MockStrategy {
-    constructor(_opts: any, _verify?: any) {}
+    constructor(_opts: unknown, _verify?: unknown) {
+      void _opts;
+      void _verify;
+    }
   },
 }));
 
@@ -35,6 +36,7 @@ describe('JwtStrategy', () => {
 
     const { JwtStrategy } = await import('./jwt.strategy');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     strategy = new JwtStrategy(mockConfigService as unknown as ConfigService, mockUserService);
   });
 

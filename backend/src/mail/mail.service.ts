@@ -15,13 +15,13 @@ export class MailService {
 
     if (host && user && pass) {
       const ssl = this.configService.get<string>('SMTP_SSL') === 'true';
-      const tlsMode = this.configService.get<string>('SMTP_TLS') === 'true';
+      const tls = this.configService.get<string>('SMTP_TLS') === 'true';
       const effectivePort = port || (ssl ? 465 : 587);
 
       this.transporter = nodemailer.createTransport({
         host,
         port: effectivePort,
-        secure: ssl || effectivePort === 465,
+        secure: ssl || (effectivePort === 465 && !tls),
         auth: { user, pass },
         tls: { rejectUnauthorized: false },
         connectionTimeout: 10000,

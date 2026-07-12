@@ -1,7 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
-import type { AxiosResponse } from 'axios';
+
+interface ValuteEntry {
+  Value: number;
+  Nominal: number;
+}
+
+interface CbrResponse {
+  Valute: Record<string, ValuteEntry>;
+}
 
 @Injectable()
 export class CurrencyService {
@@ -11,8 +19,7 @@ export class CurrencyService {
     if (from === to) return 1;
 
     const url = 'https://www.cbr-xml-daily.ru/daily_json.js';
-    const response$: Promise<AxiosResponse<any>> = lastValueFrom(this.httpService.get(url));
-    const { data } = await response$;
+    const { data } = await lastValueFrom(this.httpService.get<CbrResponse>(url));
     const rates = data.Valute;
 
     if (from === 'RUB') {

@@ -53,7 +53,7 @@ export class UserService {
   }
 
   async update(id: string, dto: Partial<AuthDto>) {
-    const updateData: any = {};
+    const updateData: { passwordHash?: string; email?: string } = {};
 
     if (dto.password) {
       updateData.passwordHash = await hash(dto.password);
@@ -75,6 +75,7 @@ export class UserService {
   async getProfile(id: string) {
     const profile = await this.findById(id);
     const { passwordHash, ...safeProfile } = profile;
+    void passwordHash;
 
     return {
       ...safeProfile,
@@ -97,7 +98,7 @@ export class UserService {
       }
     }
 
-    const updateData: any = {};
+    const updateData: { passwordHash?: string; email?: string } = {};
 
     if (dto.email) {
       updateData.email = dto.email;
@@ -113,6 +114,7 @@ export class UserService {
     });
 
     const { passwordHash, ...safeProfile } = updatedUser;
+    void passwordHash;
 
     return {
       ...safeProfile,

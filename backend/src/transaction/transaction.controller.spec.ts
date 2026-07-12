@@ -33,7 +33,12 @@ describe('TransactionController', () => {
 
   describe('create()', () => {
     it('should call transactionService.create with user id and dto', async () => {
-      const dto = { accountId: 1, amount: 100, type: TransactionType.INCOME, currencyCode: 'RUB' as any };
+      const dto = {
+        accountId: 1,
+        amount: 100,
+        type: TransactionType.INCOME,
+        currencyCode: 'RUB' as any,
+      };
       const expected = { id: 1, amount: 100 };
       mockTransactionService.create.mockResolvedValue(expected);
 

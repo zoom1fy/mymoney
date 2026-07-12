@@ -32,7 +32,7 @@ describe('CurrentUser Decorator factory', () => {
   it('should return undefined if user is not on request', () => {
     const mockContext = {
       switchToHttp: () => ({
-        getRequest: () => ({ }),
+        getRequest: () => ({}),
       }),
     };
 
@@ -48,7 +48,7 @@ describe('CurrentUser Decorator factory', () => {
       }),
     };
 
-    const result = factoryFn('nonexistent' as any, mockContext);
+    const result = factoryFn('nonexistent', mockContext);
     expect(result).toBeUndefined();
   });
 });

@@ -5,6 +5,7 @@ import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import { JwtService } from '@nestjs/jwt';
 import jwt from 'jsonwebtoken';
+import type { Express } from 'express';
 import { AuthModule } from '../src/auth/auth.module';
 import { AccountModule } from '../src/account/account.module';
 import { CategoryModule } from '../src/category/category.module';
@@ -80,9 +81,9 @@ function createMockPrisma() {
 
 function createMockJwtService() {
   return {
-    sign: jest.fn().mockImplementation((payload: any, options: any) => {
-      if (options?.expiresIn === '15m') return VALID_TOKEN;
-      if (options?.expiresIn === '7d') return VALID_REFRESH;
+    sign: jest.fn().mockImplementation((payload: any, options: { expiresIn?: string }) => {
+      if (options.expiresIn === '15m') return VALID_TOKEN;
+      if (options.expiresIn === '7d') return VALID_REFRESH;
       return 'mock-token';
     }),
     verifyAsync: jest.fn().mockResolvedValue({ id: TEST_USER_ID }),
@@ -172,7 +173,7 @@ describe('MyMoney API (e2e)', () => {
         lastLogin: new Date(),
       });
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .post('/api/auth/register')
         .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
         .expect(200);
@@ -183,21 +184,21 @@ describe('MyMoney API (e2e)', () => {
 
     it('should return 404 if user already exists', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'existing' });
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/auth/register')
         .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
         .expect(404);
     });
 
     it('should return 400 for invalid email format', async () => {
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/auth/register')
         .send({ email: 'not-an-email', password: TEST_PASSWORD })
         .expect(400);
     });
 
     it('should return 400 for password shorter than 6 characters', async () => {
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/auth/register')
         .send({ email: TEST_EMAIL, password: '123' })
         .expect(400);
@@ -213,7 +214,7 @@ describe('MyMoney API (e2e)', () => {
         lastLogin: new Date(),
       });
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .post('/api/auth/login')
         .send({ email: TEST_EMAIL, password: TEST_PASSWORD })
         .expect(200);
@@ -224,7 +225,7 @@ describe('MyMoney API (e2e)', () => {
 
     it('should return 404 if user not found', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce(null);
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/auth/login')
         .send({ email: 'nonexistent@example.com', password: TEST_PASSWORD })
         .expect(404);
@@ -233,7 +234,9 @@ describe('MyMoney API (e2e)', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should clear refresh token cookie', async () => {
-      const response = await request(app.getHttpServer()).post('/api/auth/logout').expect(200);
+      const response = await request(app.getHttpServer() as Express)
+        .post('/api/auth/logout')
+        .expect(200);
       expect(response.header['set-cookie']).toBeDefined();
     });
   });
@@ -253,7 +256,7 @@ describe('MyMoney API (e2e)', () => {
         updatedAt: new Date(),
       });
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .post('/api/accounts')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({
@@ -266,7 +269,7 @@ describe('MyMoney API (e2e)', () => {
         })
         .expect(201);
 
-      expect(response.body.name).toBe('Сбербанк');
+      expect((response.body as { name: string }).name).toBe('Сбербанк');
     });
 
     it('should return 400 for duplicate account name', async () => {
@@ -275,7 +278,7 @@ describe('MyMoney API (e2e)', () => {
         name: 'Сбербанк',
         isDeleted: false,
       });
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/accounts')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({ name: 'Сбербанк', categoryId: 1, typeId: 1, currencyCode: 'RUB' })
@@ -283,7 +286,7 @@ describe('MyMoney API (e2e)', () => {
     });
 
     it('should return 400 for missing required fields', async () => {
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/accounts')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({})
@@ -312,13 +315,13 @@ describe('MyMoney API (e2e)', () => {
         },
       ]);
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .get('/api/accounts')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBe(2);
+      expect((response.body as unknown[]).length).toBe(2);
     });
   });
 
@@ -332,17 +335,17 @@ describe('MyMoney API (e2e)', () => {
         isDeleted: false,
       });
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .get('/api/accounts/1')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
 
-      expect(response.body.name).toBe('Сбербанк');
+      expect((response.body as { name: string }).name).toBe('Сбербанк');
     });
 
     it('should return 404 for non-existent account', async () => {
       mockPrisma.account.findFirst.mockResolvedValueOnce(null);
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .get('/api/accounts/999')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(404);
@@ -365,13 +368,13 @@ describe('MyMoney API (e2e)', () => {
         currentBalance: new Decimal(2000),
       });
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .patch('/api/accounts/1')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({ name: 'Updated', currentBalance: 2000 })
         .expect(200);
 
-      expect(response.body.name).toBe('Updated');
+      expect((response.body as { name: string }).name).toBe('Updated');
     });
   });
 
@@ -385,7 +388,7 @@ describe('MyMoney API (e2e)', () => {
       });
       mockPrisma.account.update.mockResolvedValueOnce({ id: 1, isDeleted: true });
 
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .delete('/api/accounts/1')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
@@ -411,18 +414,18 @@ describe('MyMoney API (e2e)', () => {
         currencyCode: 'RUB',
       });
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .post('/api/category')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({ name: 'Еда', currencyCode: 'RUB', color: '#FF0000', isExpense: true, icon: 'food' })
         .expect(201);
 
-      expect(response.body.name).toBe('Еда');
+      expect((response.body as { name: string }).name).toBe('Еда');
     });
 
     it('should return 400 for duplicate category name', async () => {
       mockPrisma.category.findFirst.mockResolvedValueOnce({ id: 1, isArchived: false });
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/category')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({ name: 'Еда', currencyCode: 'RUB', isExpense: true })
@@ -430,7 +433,7 @@ describe('MyMoney API (e2e)', () => {
     });
 
     it('should return 400 for name exceeding max length', async () => {
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/category')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({ name: 'ThisNameIsWayTooLongForCategory', currencyCode: 'RUB', isExpense: true })
@@ -445,13 +448,13 @@ describe('MyMoney API (e2e)', () => {
         { id: 2, name: 'Зарплата', isArchived: false, isExpense: false },
       ]);
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .get('/api/category')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBe(2);
+      expect((response.body as unknown[]).length).toBe(2);
     });
   });
 
@@ -461,12 +464,12 @@ describe('MyMoney API (e2e)', () => {
         { id: 3, name: 'Old Category', isArchived: true },
       ]);
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .get('/api/category/archived')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
 
-      expect(response.body.length).toBe(1);
+      expect((response.body as unknown[]).length).toBe(1);
     });
   });
 
@@ -481,7 +484,7 @@ describe('MyMoney API (e2e)', () => {
       mockPrisma.category.update.mockResolvedValueOnce({ id: 1, isArchived: true });
       mockPrisma.category.updateMany.mockResolvedValueOnce({ count: 2 });
 
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .delete('/api/category/1')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
@@ -502,7 +505,7 @@ describe('MyMoney API (e2e)', () => {
         { id: 100, amount: 100, type: 'INCOME' },
       ]);
 
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/transactions')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({
@@ -526,7 +529,7 @@ describe('MyMoney API (e2e)', () => {
         { id: 101, amount: 50, type: 'EXPENSE' },
       ]);
 
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/transactions')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({ accountId: 1, categoryId: 1, amount: 50, type: 'EXPENSE', currencyCode: 'RUB' })
@@ -537,7 +540,7 @@ describe('MyMoney API (e2e)', () => {
       // Service checks account & category BEFORE amount validation
       mockPrisma.account.findFirst.mockResolvedValueOnce({ id: 1, userId: TEST_USER_ID });
       mockPrisma.category.findFirst.mockResolvedValueOnce({ id: 1, userId: TEST_USER_ID });
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .post('/api/transactions')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({ accountId: 1, categoryId: 1, amount: -10, type: 'INCOME', currencyCode: 'RUB' })
@@ -551,7 +554,7 @@ describe('MyMoney API (e2e)', () => {
         { id: 1, amount: 100, type: 'INCOME' },
       ]);
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .get('/api/transactions')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
@@ -561,7 +564,7 @@ describe('MyMoney API (e2e)', () => {
 
     it('should support filtering by accountId', async () => {
       mockPrisma.transaction.findMany.mockResolvedValueOnce([]);
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .get('/api/transactions?accountId=1')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
@@ -582,7 +585,7 @@ describe('MyMoney API (e2e)', () => {
       });
       mockPrisma.$transaction.mockResolvedValueOnce([{}, {}]);
 
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .delete('/api/transactions/1')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(204);
@@ -592,7 +595,7 @@ describe('MyMoney API (e2e)', () => {
 
     it('should return 404 for non-existent transaction', async () => {
       mockPrisma.transaction.findFirst.mockResolvedValueOnce(null);
-      await request(app.getHttpServer())
+      await request(app.getHttpServer() as Express)
         .delete('/api/transactions/999')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(404);
@@ -609,13 +612,13 @@ describe('MyMoney API (e2e)', () => {
         lastLogin: new Date(),
       });
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .get('/api/user/profile')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .expect(200);
 
-      expect(response.body.email).toBe(TEST_EMAIL);
-      expect(response.body.passwordHash).toBeUndefined();
+      expect((response.body as { email: string }).email).toBe(TEST_EMAIL);
+      expect((response.body as { passwordHash?: string }).passwordHash).toBeUndefined();
     });
   });
 
@@ -646,28 +649,34 @@ describe('MyMoney API (e2e)', () => {
         lastLogin: new Date(),
       });
 
-      const response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer() as Express)
         .patch('/api/user/profile')
         .set('Authorization', `Bearer ${VALID_TOKEN}`)
         .send({ email: newEmail })
         .expect(200);
 
-      expect(response.body.email).toBe(newEmail);
+      expect((response.body as { email: string }).email).toBe(newEmail);
     });
   });
 
   // ─── Unauthorized Access ───────────────────────────────────
   describe('Unauthorized access', () => {
     it('should return 401 for accounts without auth token', async () => {
-      await request(app.getHttpServer()).get('/api/accounts').expect(401);
+      await request(app.getHttpServer() as Express)
+        .get('/api/accounts')
+        .expect(401);
     });
 
     it('should return 401 for category without auth token', async () => {
-      await request(app.getHttpServer()).get('/api/category').expect(401);
+      await request(app.getHttpServer() as Express)
+        .get('/api/category')
+        .expect(401);
     });
 
     it('should return 401 for transactions without auth token', async () => {
-      await request(app.getHttpServer()).get('/api/transactions').expect(401);
+      await request(app.getHttpServer() as Express)
+        .get('/api/transactions')
+        .expect(401);
     });
   });
 });

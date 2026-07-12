@@ -16,10 +16,7 @@ describe('SeedService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        SeedService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [SeedService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     service = module.get<SeedService>(SeedService);

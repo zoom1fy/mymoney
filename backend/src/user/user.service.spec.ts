@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -24,14 +24,14 @@ describe('UserService', () => {
 
   beforeAll(() => {
     // Freeze time for deterministic lastLogin values
-    // @ts-ignore
+    // @ts-expect-error: jest types mismatch for modern mode
     jest.useFakeTimers('modern');
-    // @ts-ignore
+    // @ts-expect-error: jest types mismatch for setSystemTime
     jest.setSystemTime(now);
   });
 
   afterAll(() => {
-    // @ts-ignore
+    // @ts-expect-error: jest types mismatch for useRealTimers
     jest.useRealTimers();
   });
 
@@ -51,8 +51,8 @@ describe('UserService', () => {
 
     service = module.get<UserService>(UserService);
     // Reset all mock implementations and calls
-    Object.values(mockPrisma.user).forEach((mock) => {
-      (mock as jest.Mock).mockReset();
+    Object.values(mockPrisma.user as Record<string, jest.Mock>).forEach((mock) => {
+      mock.mockReset();
     });
     mockArgon2Verify.mockResolvedValue(true);
   });
@@ -115,7 +115,7 @@ describe('UserService', () => {
   describe('create()', () => {
     it('should create user with hashed password and set lastLogin', async () => {
       // Prepare input
-      const dto = { email, password } as any;
+      const dto = { email, password };
 
       mockPrisma.user.create.mockResolvedValueOnce({
         id: userId,
@@ -183,7 +183,7 @@ describe('UserService', () => {
       } as any);
 
       const profile = await service.getProfile(userId);
-      expect((profile as any).passwordHash).toBeUndefined();
+      expect(profile.passwordHash).toBeUndefined();
       expect(profile.email).toBe(email);
       expect(profile.name).toBe('test'); // derived from email before '@'
     });
@@ -221,7 +221,7 @@ describe('UserService', () => {
         data: { email: updatedEmail },
       });
       expect(updated.email).toBe(updatedEmail);
-      expect((updated as any).passwordHash).toBeUndefined();
+      expect(updated.passwordHash).toBeUndefined();
       expect(updated.name).toBe('new'); // computed from updated email
     });
 
@@ -250,7 +250,7 @@ describe('UserService', () => {
         where: { id: userId },
         data: { passwordHash: passwordHash },
       });
-      expect((updated as any).passwordHash).toBeUndefined();
+      expect(updated.passwordHash).toBeUndefined();
     });
 
     it('should throw ConflictException if new email already in use', async () => {
@@ -294,7 +294,7 @@ describe('UserService', () => {
         data: { email },
       });
       expect(updated.email).toBe(email);
-      expect((updated as any).passwordHash).toBeUndefined();
+      expect(updated.passwordHash).toBeUndefined();
     });
 
     it('should throw BadRequestException if current password is wrong', async () => {
@@ -309,7 +309,6 @@ describe('UserService', () => {
         transactions: [],
       } as any);
 
-      const { BadRequestException } = require('@nestjs/common');
       await expect(
         service.updateProfile(userId, { email: updatedEmail, currentPassword: 'wrong' })
       ).rejects.toThrow(BadRequestException);

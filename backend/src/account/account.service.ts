@@ -83,14 +83,13 @@ export class AccountService {
       }
     }
 
-    const updateData: any = { ...dto };
-    if (dto.currentBalance !== undefined) {
-      updateData.currentBalance = new Decimal(dto.currentBalance);
-    }
-
     return this.prisma.account.update({
       where: { id },
-      data: updateData,
+      data: {
+        ...dto,
+        currentBalance:
+          dto.currentBalance !== undefined ? new Decimal(dto.currentBalance) : undefined,
+      },
     });
   }
 

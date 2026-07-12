@@ -14,8 +14,7 @@ describe('AuthController', () => {
     return res;
   };
 
-  const mockRequest = (cookies: Record<string, string> = {}): Request =>
-    ({ cookies } as Request);
+  const mockRequest = (cookies: Record<string, string> = {}): Request => ({ cookies }) as Request;
 
   beforeEach(async () => {
     mockAuthService = {
@@ -46,7 +45,11 @@ describe('AuthController', () => {
   describe('login()', () => {
     it('should return user and accessToken, set refresh cookie', async () => {
       const dto = { email: 'test@test.com', password: 'pass' };
-      const loginResult = { user: { id: '1', email: 'test@test.com' }, accessToken: 'access', refreshToken: 'refresh' };
+      const loginResult = {
+        user: { id: '1', email: 'test@test.com' },
+        accessToken: 'access',
+        refreshToken: 'refresh',
+      };
       mockAuthService.login.mockResolvedValue(loginResult);
       const res = mockResponse();
 
@@ -75,7 +78,11 @@ describe('AuthController', () => {
     it('should return new tokens when refresh token exists', async () => {
       const req = mockRequest({ refresh_token: 'valid-refresh' });
       const res = mockResponse();
-      const tokensResult = { user: { id: '1' }, accessToken: 'new-access', refreshToken: 'new-refresh' };
+      const tokensResult = {
+        user: { id: '1' },
+        accessToken: 'new-access',
+        refreshToken: 'new-refresh',
+      };
       mockAuthService.getNewTokens.mockResolvedValue(tokensResult);
 
       const result = await controller.getNewTokens(req, res);
@@ -95,10 +102,10 @@ describe('AuthController', () => {
   });
 
   describe('logout()', () => {
-    it('should clear refresh cookie and return true', async () => {
+    it('should clear refresh cookie and return true', () => {
       const res = mockResponse();
 
-      const result = await controller.logout(res);
+      const result = controller.logout(res);
 
       expect(mockAuthService.removeRefreshTokenFromResponse).toHaveBeenCalledWith(res);
       expect(result).toBe(true);
@@ -108,7 +115,11 @@ describe('AuthController', () => {
   describe('verifyEmail()', () => {
     it('should verify email and return tokens', async () => {
       const dto = { email: 'test@test.com', code: '123456' };
-      const verifyResult = { user: { id: '1', email: 'test@test.com' }, accessToken: 'access', refreshToken: 'refresh' };
+      const verifyResult = {
+        user: { id: '1', email: 'test@test.com' },
+        accessToken: 'access',
+        refreshToken: 'refresh',
+      };
       mockAuthService.verifyEmail.mockResolvedValue(verifyResult);
       const res = mockResponse();
 
@@ -125,7 +136,7 @@ describe('AuthController', () => {
       const dto = { email: 'test@test.com' };
       mockAuthService.resendCode.mockResolvedValue({ message: 'Новый код отправлен на почту' });
 
-      const result = await controller.resendCode(dto);
+      await controller.resendCode(dto);
 
       expect(mockAuthService.resendCode).toHaveBeenCalledWith(dto.email);
     });
@@ -134,9 +145,11 @@ describe('AuthController', () => {
   describe('forgotPassword()', () => {
     it('should send password reset code', async () => {
       const dto = { email: 'test@test.com' };
-      mockAuthService.forgotPassword.mockResolvedValue({ message: 'Код для восстановления пароля отправлен на почту' });
+      mockAuthService.forgotPassword.mockResolvedValue({
+        message: 'Код для восстановления пароля отправлен на почту',
+      });
 
-      const result = await controller.forgotPassword(dto);
+      await controller.forgotPassword(dto);
 
       expect(mockAuthService.forgotPassword).toHaveBeenCalledWith(dto.email);
     });
@@ -147,7 +160,7 @@ describe('AuthController', () => {
       const dto = { email: 'test@test.com', code: '123456', password: 'newPass1' };
       mockAuthService.resetPassword.mockResolvedValue({ message: 'Пароль успешно изменён' });
 
-      const result = await controller.resetPassword(dto);
+      await controller.resetPassword(dto);
 
       expect(mockAuthService.resetPassword).toHaveBeenCalledWith(dto.email, dto.code, dto.password);
     });

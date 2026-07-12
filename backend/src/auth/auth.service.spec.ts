@@ -120,7 +120,7 @@ describe('AuthService', () => {
       return 'TOKEN';
     });
 
-    (jwtService.verifyAsync as jest.Mock).mockImplementation(async () => null);
+    (jwtService.verifyAsync as jest.Mock).mockImplementation(() => null);
     (verify as jest.Mock).mockResolvedValue(true);
   });
 
@@ -173,7 +173,13 @@ describe('AuthService', () => {
   describe('verifyEmail()', () => {
     it('should verify email and return tokens', async () => {
       const code = '123456';
-      const pendingUser = { id: 'pending-1', email: TEST_EMAIL, passwordHash: 'hash', code, sentAt: new Date() };
+      const pendingUser = {
+        id: 'pending-1',
+        email: TEST_EMAIL,
+        passwordHash: 'hash',
+        code,
+        sentAt: new Date(),
+      };
       prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
       (userService.createFromHash as jest.Mock).mockResolvedValueOnce(mockUser);
       prismaService.pendingUser.delete.mockResolvedValueOnce({});
@@ -187,7 +193,13 @@ describe('AuthService', () => {
     it('should throw BadRequestException if code expired', async () => {
       const code = '123456';
       const oldDate = new Date(Date.now() - 20 * 60 * 1000);
-      const pendingUser = { id: 'pending-1', email: TEST_EMAIL, passwordHash: 'hash', code, sentAt: oldDate };
+      const pendingUser = {
+        id: 'pending-1',
+        email: TEST_EMAIL,
+        passwordHash: 'hash',
+        code,
+        sentAt: oldDate,
+      };
       prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
 
       await expect(service.verifyEmail(TEST_EMAIL, code)).rejects.toThrow('истёк');
@@ -196,7 +208,11 @@ describe('AuthService', () => {
 
   describe('resendCode()', () => {
     it('should generate new code and send email', async () => {
-      const pendingUser = { id: 'pending-1', email: TEST_EMAIL, sentAt: new Date(Date.now() - 120 * 1000) };
+      const pendingUser = {
+        id: 'pending-1',
+        email: TEST_EMAIL,
+        sentAt: new Date(Date.now() - 120 * 1000),
+      };
       prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
 
       const result = await service.resendCode(TEST_EMAIL);
@@ -220,7 +236,13 @@ describe('AuthService', () => {
   describe('resetPassword()', () => {
     it('should reset password with valid token', async () => {
       const code = '123456';
-      const resetToken = { id: 'token-id', userId: TEST_USER_ID, code, expiresAt: new Date(Date.now() + 60000), usedAt: null };
+      const resetToken = {
+        id: 'token-id',
+        userId: TEST_USER_ID,
+        code,
+        expiresAt: new Date(Date.now() + 60000),
+        usedAt: null,
+      };
       (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
       prismaService.passwordResetToken.findFirst.mockResolvedValueOnce(resetToken);
       prismaService.$transaction.mockResolvedValueOnce([{}, {}]);
