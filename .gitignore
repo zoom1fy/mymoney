@@ -17,6 +17,7 @@ backend/coverage/
 backend/tsconfig.build.tsbuildinfo
 frontend/.next/
 frontend/package-lock.json
+frontend/*.tsbuildinfo
 
 # Игнорировать временные файлы и логи
 *.log

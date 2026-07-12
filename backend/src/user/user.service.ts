@@ -46,6 +46,12 @@ export class UserService {
     return this.prisma.user.create({ data: user });
   }
 
+  async createFromHash(email: string, passwordHash: string) {
+    return this.prisma.user.create({
+      data: { email, passwordHash, lastLogin: new Date() },
+    });
+  }
+
   async update(id: string, dto: Partial<AuthDto>) {
     const updateData: any = {};
 
@@ -62,7 +68,6 @@ export class UserService {
     });
   }
 
-  // Вспомогательный метод для получения имени из email
   private getNameFromEmail(email: string): string {
     return email.split('@')[0];
   }
@@ -71,7 +76,6 @@ export class UserService {
     const profile = await this.findById(id);
     const { passwordHash, ...safeProfile } = profile;
 
-    // Добавляем вычисляемое поле name
     return {
       ...safeProfile,
       name: this.getNameFromEmail(profile.email),
@@ -81,13 +85,11 @@ export class UserService {
   async updateProfile(id: string, dto: UpdateProfileDto) {
     const user = await this.findById(id);
 
-    // Проверяем текущий пароль
     const isValidPassword = await verify(user.passwordHash, dto.currentPassword);
     if (!isValidPassword) {
       throw new BadRequestException('Неверный текущий пароль');
     }
 
-    // Если обновляем email, проверяем уникальность
     if (dto.email && dto.email !== user.email) {
       const existingUser = await this.getByEmail(dto.email);
       if (existingUser) {
@@ -112,7 +114,6 @@ export class UserService {
 
     const { passwordHash, ...safeProfile } = updatedUser;
 
-    // Возвращаем с вычисляемым именем
     return {
       ...safeProfile,
       name: this.getNameFromEmail(updatedUser.email),

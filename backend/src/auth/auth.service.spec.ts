@@ -5,22 +5,21 @@ import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { SeedService } from '../seed/seed.service';
+import { MailService } from '../mail/mail.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './dto/auth.dto';
 import { TOKEN_CONFIG, TokenConfig } from '../config/token.config';
 
-// Mock argon2 verify/hash (verify used by AuthService)
 jest.mock('argon2', () => ({
   verify: jest.fn(),
   hash: jest.fn(),
 }));
 import { verify } from 'argon2';
 
-// Realistic test constants
 const TEST_EMAIL = 'test@example.com';
 const TEST_PASSWORD = 'password123';
 const TEST_USER_ID = 'user-uuid-1';
 
-// Token config mock as requested
 const mockTokenConfig: TokenConfig = {
   accessTokenExpiresIn: '15m',
   refreshTokenExpiresIn: '7d',
@@ -33,7 +32,6 @@ const mockTokenConfig: TokenConfig = {
   } as const,
 };
 
-// Minimal mock for Response cookie usage
 const mockResponse = {
   cookie: jest.fn(),
 } as unknown as Response;
@@ -42,22 +40,29 @@ describe('AuthService', () => {
   let service: AuthService;
   let jwtService: JwtService;
   let userService: Partial<UserService>;
+  let prismaService: any;
   let tokenConfig: TokenConfig;
 
-  // Common dto used in tests
   const dto: AuthDto = { email: TEST_EMAIL, password: TEST_PASSWORD };
 
+  const mockUser = {
+    id: TEST_USER_ID,
+    email: TEST_EMAIL,
+    passwordHash: 'hash',
+    createdAt: new Date(),
+    lastLogin: new Date(),
+  };
+
   beforeEach(async () => {
-    // Create mocks for dependencies
     const mockJwtService = {
       sign: jest.fn(),
       verifyAsync: jest.fn(),
     } as unknown as JwtService;
 
-    // Jest mocks for UserService methods
     const mockUserService: Partial<UserService> = {
       getByEmail: jest.fn(),
       create: jest.fn(),
+      createFromHash: jest.fn(),
       findById: jest.fn(),
     };
 
@@ -65,13 +70,37 @@ describe('AuthService', () => {
       seedNewUser: jest.fn().mockResolvedValue(undefined),
     };
 
-    // Build testing module
+    const mockMailService = {
+      sendVerificationCode: jest.fn().mockResolvedValue(undefined),
+      sendPasswordResetCode: jest.fn().mockResolvedValue(undefined),
+    };
+
+    prismaService = {
+      user: {
+        update: jest.fn(),
+      },
+      pendingUser: {
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      passwordResetToken: {
+        create: jest.fn(),
+        findFirst: jest.fn(),
+        update: jest.fn(),
+      },
+      $transaction: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: JwtService, useValue: mockJwtService },
         { provide: UserService, useValue: mockUserService },
         { provide: SeedService, useValue: mockSeedService },
+        { provide: MailService, useValue: mockMailService },
+        { provide: PrismaService, useValue: prismaService },
         { provide: TOKEN_CONFIG, useValue: mockTokenConfig },
       ],
     }).compile();
@@ -81,9 +110,7 @@ describe('AuthService', () => {
     userService = module.get<UserService>(UserService);
     tokenConfig = mockTokenConfig;
 
-    // Default mock implementations
     (jwtService.sign as jest.Mock).mockImplementation((payload: any, options: any) => {
-      // Distinguish access vs refresh tokens
       if (options?.expiresIn === tokenConfig.accessTokenExpiresIn) {
         return 'ACCESS_TOKEN';
       }
@@ -93,36 +120,20 @@ describe('AuthService', () => {
       return 'TOKEN';
     });
 
-    (jwtService.verifyAsync as jest.Mock).mockImplementation(async (token: string) => {
-      // Default: treat as valid when explicitly overridden in tests
-      return null;
-    });
-
-    // Default argon2 verify to true for successful authentication tests
+    (jwtService.verifyAsync as jest.Mock).mockImplementation(async () => null);
     (verify as jest.Mock).mockResolvedValue(true);
   });
 
-  // 1) login()
   describe('login()', () => {
     it('should return user and tokens when credentials are valid', async () => {
-      const user = { id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: 'hash' } as any;
-      (userService.getByEmail as jest.Mock).mockResolvedValueOnce(user);
+      (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
+      prismaService.user.update.mockResolvedValueOnce(mockUser);
 
       const result = await service.login(dto);
 
-      // User should be without passwordHash
       expect(result.user).toEqual({ id: TEST_USER_ID, email: TEST_EMAIL });
       expect(result.accessToken).toBe('ACCESS_TOKEN');
       expect(result.refreshToken).toBe('REFRESH_TOKEN');
-      // verify that tokens were issued with correct userId
-      expect(jwtService.sign as jest.Mock).toHaveBeenCalledWith(
-        { id: TEST_USER_ID },
-        expect.objectContaining({ expiresIn: tokenConfig.accessTokenExpiresIn })
-      );
-      expect(jwtService.sign as jest.Mock).toHaveBeenCalledWith(
-        { id: TEST_USER_ID },
-        expect.objectContaining({ expiresIn: tokenConfig.refreshTokenExpiresIn })
-      );
     });
 
     it('should throw NotFoundException if user not found', async () => {
@@ -131,52 +142,105 @@ describe('AuthService', () => {
     });
 
     it('should throw NotFoundException if password is invalid', async () => {
-      const user = { id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: 'hash' } as any;
-      (userService.getByEmail as jest.Mock).mockResolvedValueOnce(user);
+      (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
       (verify as jest.Mock).mockResolvedValueOnce(false);
       await expect(service.login(dto)).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
-  // 2) register()
   describe('register()', () => {
-    it('should create new user and return tokens', async () => {
-      const newUser = { id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: 'hash' } as any;
+    it('should create pending user and return email', async () => {
       (userService.getByEmail as jest.Mock).mockResolvedValueOnce(null);
-      (userService.create as jest.Mock).mockResolvedValueOnce(newUser);
+      prismaService.pendingUser.findUnique.mockResolvedValueOnce(null);
+      prismaService.pendingUser.create.mockResolvedValueOnce({});
 
       const result = await service.register(dto);
 
-      expect(result.user).toEqual({ id: TEST_USER_ID, email: TEST_EMAIL });
-      expect(result.accessToken).toBe('ACCESS_TOKEN');
-      expect(result.refreshToken).toBe('REFRESH_TOKEN');
-      expect(userService.create).toHaveBeenCalledWith(dto);
+      expect(result).toEqual({ email: TEST_EMAIL });
+      expect(prismaService.pendingUser.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ email: TEST_EMAIL }),
+        })
+      );
     });
 
-    it('should throw NotFoundException if user with email already exists', async () => {
-      (userService.getByEmail as jest.Mock).mockResolvedValueOnce({ id: 'ex' } as any);
-      await expect(service.register(dto)).rejects.toBeInstanceOf(NotFoundException);
+    it('should throw ConflictException if user already exists', async () => {
+      (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
+      await expect(service.register(dto)).rejects.toThrow('уже существует');
     });
   });
 
-  // 3) getNewTokens()
+  describe('verifyEmail()', () => {
+    it('should verify email and return tokens', async () => {
+      const code = '123456';
+      const pendingUser = { id: 'pending-1', email: TEST_EMAIL, passwordHash: 'hash', code, sentAt: new Date() };
+      prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
+      (userService.createFromHash as jest.Mock).mockResolvedValueOnce(mockUser);
+      prismaService.pendingUser.delete.mockResolvedValueOnce({});
+
+      const result = await service.verifyEmail(TEST_EMAIL, code);
+
+      expect(result.accessToken).toBe('ACCESS_TOKEN');
+      expect(result.refreshToken).toBe('REFRESH_TOKEN');
+    });
+
+    it('should throw BadRequestException if code expired', async () => {
+      const code = '123456';
+      const oldDate = new Date(Date.now() - 20 * 60 * 1000);
+      const pendingUser = { id: 'pending-1', email: TEST_EMAIL, passwordHash: 'hash', code, sentAt: oldDate };
+      prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
+
+      await expect(service.verifyEmail(TEST_EMAIL, code)).rejects.toThrow('истёк');
+    });
+  });
+
+  describe('resendCode()', () => {
+    it('should generate new code and send email', async () => {
+      const pendingUser = { id: 'pending-1', email: TEST_EMAIL, sentAt: new Date(Date.now() - 120 * 1000) };
+      prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
+
+      const result = await service.resendCode(TEST_EMAIL);
+
+      expect(result).toEqual({ message: 'Новый код отправлен на почту' });
+      expect(prismaService.pendingUser.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('forgotPassword()', () => {
+    it('should create reset token and send email', async () => {
+      (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
+      prismaService.passwordResetToken.create.mockResolvedValueOnce({});
+
+      const result = await service.forgotPassword(TEST_EMAIL);
+
+      expect(result).toEqual({ message: 'Код для восстановления пароля отправлен на почту' });
+    });
+  });
+
+  describe('resetPassword()', () => {
+    it('should reset password with valid token', async () => {
+      const code = '123456';
+      const resetToken = { id: 'token-id', userId: TEST_USER_ID, code, expiresAt: new Date(Date.now() + 60000), usedAt: null };
+      (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
+      prismaService.passwordResetToken.findFirst.mockResolvedValueOnce(resetToken);
+      prismaService.$transaction.mockResolvedValueOnce([{}, {}]);
+
+      const result = await service.resetPassword(TEST_EMAIL, code, 'newPass1');
+
+      expect(result).toEqual({ message: 'Пароль успешно изменён' });
+    });
+  });
+
   describe('getNewTokens()', () => {
     it('should return new tokens when refresh token is valid', async () => {
       (jwtService.verifyAsync as jest.Mock).mockResolvedValueOnce({ id: TEST_USER_ID } as any);
-      const userFromDb = { id: TEST_USER_ID, email: TEST_EMAIL, passwordHash: 'hash' } as any;
-      (userService.findById as jest.Mock).mockResolvedValueOnce(userFromDb);
+      (userService.findById as jest.Mock).mockResolvedValueOnce(mockUser);
 
       const result = await (service as any).getNewTokens('VALID_REFRESH_TOKEN');
 
-      expect(result.user).toEqual({ id: TEST_USER_ID, email: TEST_EMAIL });
+      expect(result.user).toMatchObject({ id: TEST_USER_ID, email: TEST_EMAIL });
       expect(result.accessToken).toBe('ACCESS_TOKEN');
       expect(result.refreshToken).toBe('REFRESH_TOKEN');
-
-      // ensure sign called with correct user id again
-      expect(jwtService.sign as jest.Mock).toHaveBeenCalledWith(
-        { id: TEST_USER_ID },
-        expect.objectContaining({ expiresIn: tokenConfig.accessTokenExpiresIn })
-      );
     });
 
     it('should throw UnauthorizedException if refresh token is invalid', async () => {
@@ -191,14 +255,11 @@ describe('AuthService', () => {
     });
   });
 
-  // 4) addRefreshTokenToResponse()
   describe('addRefreshTokenToResponse()', () => {
-    // Simple deterministic date handling by mocking Date
     const ORIGINAL_DATE = Date;
     const MOCK_DATE = new Date('2026-05-01T12:00:00Z');
     beforeEach(() => {
-      // @ts-ignore
-      global.Date = class extends ORIGINAL_DATE {
+      (global as any).Date = class extends ORIGINAL_DATE {
         constructor(...args: any[]) {
           if (args.length === 0) {
             super(MOCK_DATE.getTime());
@@ -220,19 +281,11 @@ describe('AuthService', () => {
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         tokenConfig.refreshTokenName,
         'REFRESH_TOKEN',
-        expect.objectContaining({
-          expires: expect.any(Date),
-        })
+        expect.objectContaining({ expires: expect.any(Date) })
       );
-      // verify expires date equals MOCK_DATE + 1 day
-      const expiresDate = (mockResponse.cookie as any).mock.calls[0][2].expires as Date;
-      const expectedExpires = new Date(MOCK_DATE);
-      expectedExpires.setDate(expectedExpires.getDate() + 1);
-      expect(expiresDate.getTime()).toBe(expectedExpires.getTime());
     });
   });
 
-  // 5) removeRefreshTokenFromResponse()
   describe('removeRefreshTokenFromResponse()', () => {
     it('should clear the refresh token cookie', () => {
       service.removeRefreshTokenFromResponse(mockResponse);

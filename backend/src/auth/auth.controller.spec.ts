@@ -21,6 +21,10 @@ describe('AuthController', () => {
     mockAuthService = {
       login: jest.fn(),
       register: jest.fn(),
+      verifyEmail: jest.fn(),
+      resendCode: jest.fn(),
+      forgotPassword: jest.fn(),
+      resetPassword: jest.fn(),
       getNewTokens: jest.fn(),
       addRefreshTokenToResponse: jest.fn(),
       removeRefreshTokenFromResponse: jest.fn(),
@@ -55,17 +59,15 @@ describe('AuthController', () => {
   });
 
   describe('register()', () => {
-    it('should return user and accessToken, set refresh cookie', async () => {
+    it('should send verification code and return email', async () => {
       const dto = { email: 'new@test.com', password: 'pass' };
-      const registerResult = { user: { id: '2', email: 'new@test.com' }, accessToken: 'access', refreshToken: 'refresh' };
+      const registerResult = { email: 'new@test.com' };
       mockAuthService.register.mockResolvedValue(registerResult);
-      const res = mockResponse();
 
-      const result = await controller.register(dto, res);
+      const result = await controller.register(dto);
 
       expect(mockAuthService.register).toHaveBeenCalledWith(dto);
-      expect(mockAuthService.addRefreshTokenToResponse).toHaveBeenCalledWith(res, 'refresh');
-      expect(result).toEqual({ user: { id: '2', email: 'new@test.com' }, accessToken: 'access' });
+      expect(result).toEqual(registerResult);
     });
   });
 
@@ -100,6 +102,54 @@ describe('AuthController', () => {
 
       expect(mockAuthService.removeRefreshTokenFromResponse).toHaveBeenCalledWith(res);
       expect(result).toBe(true);
+    });
+  });
+
+  describe('verifyEmail()', () => {
+    it('should verify email and return tokens', async () => {
+      const dto = { email: 'test@test.com', code: '123456' };
+      const verifyResult = { user: { id: '1', email: 'test@test.com' }, accessToken: 'access', refreshToken: 'refresh' };
+      mockAuthService.verifyEmail.mockResolvedValue(verifyResult);
+      const res = mockResponse();
+
+      const result = await controller.verifyEmail(dto, res);
+
+      expect(mockAuthService.verifyEmail).toHaveBeenCalledWith(dto.email, dto.code);
+      expect(mockAuthService.addRefreshTokenToResponse).toHaveBeenCalledWith(res, 'refresh');
+      expect(result).toEqual({ user: { id: '1', email: 'test@test.com' }, accessToken: 'access' });
+    });
+  });
+
+  describe('resendCode()', () => {
+    it('should resend verification code', async () => {
+      const dto = { email: 'test@test.com' };
+      mockAuthService.resendCode.mockResolvedValue({ message: 'Новый код отправлен на почту' });
+
+      const result = await controller.resendCode(dto);
+
+      expect(mockAuthService.resendCode).toHaveBeenCalledWith(dto.email);
+    });
+  });
+
+  describe('forgotPassword()', () => {
+    it('should send password reset code', async () => {
+      const dto = { email: 'test@test.com' };
+      mockAuthService.forgotPassword.mockResolvedValue({ message: 'Код для восстановления пароля отправлен на почту' });
+
+      const result = await controller.forgotPassword(dto);
+
+      expect(mockAuthService.forgotPassword).toHaveBeenCalledWith(dto.email);
+    });
+  });
+
+  describe('resetPassword()', () => {
+    it('should reset password with valid code', async () => {
+      const dto = { email: 'test@test.com', code: '123456', password: 'newPass1' };
+      mockAuthService.resetPassword.mockResolvedValue({ message: 'Пароль успешно изменён' });
+
+      const result = await controller.resetPassword(dto);
+
+      expect(mockAuthService.resetPassword).toHaveBeenCalledWith(dto.email, dto.code, dto.password);
     });
   });
 });

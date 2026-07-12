@@ -8,6 +8,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getJwtConfig } from '../config/jwt.config';
 import { TokenConfigModule } from '../config/token.config';
 import { SeedModule } from '../seed/seed.module';
+import { MailModule } from '../mail/mail.module';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
   imports: [
@@ -20,9 +22,10 @@ import { SeedModule } from '../seed/seed.module';
     }),
     TokenConfigModule,
     SeedModule,
+    MailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, PrismaService],
   exports: [JwtModule],
 })
 export class AuthModule {}

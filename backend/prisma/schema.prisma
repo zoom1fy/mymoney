@@ -17,8 +17,36 @@ model User {
   accounts     Account[]     @relation("UserAccounts")
   categories   Category[]    @relation("UserCategories")
   transactions Transaction[] @relation("UserTransactions")
+  passwordResetTokens PasswordResetToken[] @relation("UserPasswordResetTokens")
   @@index([email])
   @@map("users")
+}
+
+model PendingUser {
+  id           String   @id @default(uuid()) @map("id") @db.Char(36)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.Char(255)
+  code         String   @map("code") @db.VarChar(6)
+  sentAt       DateTime @map("sent_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([email])
+  @@map("pending_users")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @map("id") @db.Char(36)
+  userId    String    @map("user_id") @db.Char(36)
+  code      String    @map("code") @db.Char(6)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation("UserPasswordResetTokens", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model Currency {
