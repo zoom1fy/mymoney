@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
+import type { DayPickerLocale } from 'react-day-picker/locale'
 import {
   Calendar as CalendarIcon,
   FileText,
@@ -407,7 +408,7 @@ export function TransactionModal({
                       >
                         <Calendar
                           className="p-3"
-                          locale={ru}
+                          locale={ru as unknown as DayPickerLocale}
                           mode="single"
                           selected={watch('date')}
                           onSelect={d =>

@@ -154,7 +154,7 @@ function VerifyScreen({
   email: string
   onVerify: (e: React.FormEvent<HTMLFormElement>) => void
   onBack: () => void
-  resendMutation: { isPending: boolean; mutate: (...args: unknown[]) => void }
+  resendMutation: { isPending: boolean; mutate: (email: string) => void }
   cooldown: number
   verifyMutation: { isPending: boolean; isError: boolean }
   setCooldown: (n: number) => void

@@ -47,7 +47,7 @@ export function useProfile() {
       password?: string
       currentPassword: string
     }) => userService.updateProfile(data),
-    onSuccess: async (updatedProfile: Record<string, unknown>) => {
+    onSuccess: async (updatedProfile) => {
       queryClient.setQueryData(['profile'], updatedProfile)
       toast.success('Профиль обновлён')
     },
