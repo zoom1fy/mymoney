@@ -175,6 +175,10 @@
   --color-ring: var(--ring);
 
   --radius: var(--radius);
+
+  --animate-pulse-slow: pulse-slow 4s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-delayed: float-delayed 6s ease-in-out infinite;
 }
 
 :root {
@@ -218,6 +222,21 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.08); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-35px); }
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(35px); }
 }
 
 @keyframes ios-wiggle {
