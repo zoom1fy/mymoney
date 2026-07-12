@@ -12,6 +12,9 @@ MyMoney — полнофункциональное приложение для �
 - **Аналитика трат** — круговые диаграммы (Recharts) с фильтрацией по периодам
 
 - **JWT-аутентификация** — access-токены (Bearer) + refresh-токены (httpOnly cookies)
+- **Email-верификация** — 6-значный код через SMTP (Яндекс), повтор через 60с, срок 15 мин
+- **Восстановление пароля** — забыли пароль? Код на почту, сброс
+- **Ограничение запросов** — nginx (30 запр/с общее, 5 запр/мин auth) + NestJS ThrottlerModule
 - **Оптимистичный UI** — мгновенные обновления через TanStack Query
 
 ## Технологический стек
@@ -38,6 +41,9 @@ MyMoney — полнофункциональное приложение для �
 | MySQL 8.0 | База данных |
 | JWT + Passport | Аутентификация |
 | Argon2 | Хеширование паролей |
+
+| Nodemailer | SMTP-отправка писем |
+| @nestjs/throttler | Ограничение запросов (за nginx) |
 
 | Decimal.js | Точные финансовые расчёты |
 | Cache Manager | Кеширование |
@@ -128,6 +134,14 @@ JWT_REFRESH_EXPIRES_IN=7d
 CORS_ORIGINS=http://localhost:3001
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 NEXT_PUBLIC_COOKIE_DOMAIN=localhost
+
+# SMTP (для верификации email и восстановления пароля)
+SMTP_HOST=smtp.yandex.ru
+SMTP_PORT=587
+SMTP_USER=your-email@yandex.ru
+SMTP_PASS=your-app-password
+SMTP_FROM=your-email@yandex.ru
+SMTP_TLS=true
 ```
 
 ### 2. Запустите
@@ -161,10 +175,16 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 ### Аутентификация (`/api/auth`)
 | Метод | Путь | Auth | Описание |
 |---|---|---|---|
-| POST | `/api/auth/register` | — | Регистрация `{email, password}` |
+| POST | `/api/auth/register` | — | Регистрация `{email, password}` → `{email}` |
+| POST | `/api/auth/verify-email` | — | Подтвердить код `{email, code}` → токены |
+| POST | `/api/auth/resend-code` | — | Отправить код заново `{email}` (60с кулдаун) |
+| POST | `/api/auth/forgot-password` | — | Запросить сброс пароля `{email}` |
+| POST | `/api/auth/reset-password` | — | Сбросить пароль `{email, code, password}` |
 | POST | `/api/auth/login` | — | Вход `{email, password}` |
 | POST | `/api/auth/login/access-token` | Cookie | Обновление access-токена |
 | POST | `/api/auth/logout` | — | Удаление refresh-куки |
+
+Все auth-эндпоинты ограничены — **5 запросов в минуту на IP** (nginx + NestJS).
 
 Ответ: `{ user: {id, email}, accessToken }` + `refresh_token` httpOnly cookie.
 
@@ -242,8 +262,10 @@ docker compose down -v   # Сброс БД
 ## База данных
 
 | Сущность | Описание |
-|---|---|
+|---|---|---|
 | **User** | UUID, email, хеш Argon2 |
+| **PendingUser** | Неподтверждённая регистрация (удаляется после верификации email) |
+| **PasswordResetToken** | 6-значный код с expiry для восстановления пароля |
 | **Account** | Привязан к пользователю, типу, категории, валюте; баланс DECIMAL(15,2) |
 | **Category** | Иерархическая (самоссылающаяся), в рамках пользователя, флаг дохода/расхода |
 | **Transaction** | INCOME / EXPENSE / TRANSFER, атомарное обновление баланса |
@@ -259,6 +281,9 @@ docker compose down -v   # Сброс БД
 - **Refresh-токен** в httpOnly, SameSite=Lax cookie (защита от XSS)
 - **Мягкое удаление** для счетов (`isDeleted`) и категорий (`isArchived`)
 - **CORS** ограничен origin фронтенда
+- **Ограничение запросов** двойной слой (nginx + NestJS) против brute-force и DDoS
+- **Email-верификация** обязательна перед активацией аккаунта
+- **60-секундный кулдаун** между повторными отправками кода
 
 ## Примечания
 

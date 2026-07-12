@@ -12,6 +12,9 @@ MyMoney is a full-stack personal finance application. Track income, expenses, an
 - **Spending analytics** — donut charts (Recharts) with period filtering
 
 - **JWT authentication** — access tokens (Bearer) + refresh tokens (httpOnly cookies)
+- **Email verification** — 6-digit code via SMTP (Yandex), 60s resend cooldown, 15min expiry
+- **Password recovery** — forgot/reset password with email code
+- **Rate limiting** — nginx (30r/s general, 5r/m auth) + NestJS ThrottlerModule (behind proxy)
 - **Optimistic UI** — instant updates with TanStack Query optimistic mutations
 
 ## Tech Stack
@@ -38,6 +41,9 @@ MyMoney is a full-stack personal finance application. Track income, expenses, an
 | MySQL 8.0 | Database |
 | JWT + Passport | Authentication |
 | Argon2 | Password hashing |
+
+| Nodemailer | SMTP email sending |
+| @nestjs/throttler | Rate limiting (behind nginx proxy) |
 
 | Decimal.js | Precise financial math |
 | Cache Manager | Response caching |
@@ -128,6 +134,14 @@ JWT_REFRESH_EXPIRES_IN=7d
 CORS_ORIGINS=http://localhost:3001
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 NEXT_PUBLIC_COOKIE_DOMAIN=localhost
+
+# SMTP (for email verification & password recovery)
+SMTP_HOST=smtp.yandex.ru
+SMTP_PORT=587
+SMTP_USER=your-email@yandex.ru
+SMTP_PASS=your-app-password
+SMTP_FROM=your-email@yandex.ru
+SMTP_TLS=true
 ```
 
 ### 2. Start
@@ -161,10 +175,16 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 ### Authentication (`/api/auth`)
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| POST | `/api/auth/register` | — | Register `{email, password}` |
+| POST | `/api/auth/register` | — | Register `{email, password}` → returns `{email}` |
+| POST | `/api/auth/verify-email` | — | Verify 6-digit code `{email, code}` → tokens |
+| POST | `/api/auth/resend-code` | — | Resend code `{email}` (60s cooldown) |
+| POST | `/api/auth/forgot-password` | — | Request password reset `{email}` |
+| POST | `/api/auth/reset-password` | — | Reset password `{email, code, password}` |
 | POST | `/api/auth/login` | — | Login `{email, password}` |
 | POST | `/api/auth/login/access-token` | Cookie | Refresh access token |
 | POST | `/api/auth/logout` | — | Clear refresh token |
+
+All auth endpoints are rate-limited to **5 requests per minute per IP** (nginx + NestJS).
 
 Response: `{ user: {id, email}, accessToken }` + `refresh_token` httpOnly cookie.
 
@@ -242,8 +262,10 @@ docker compose down -v   # Reset DB
 ## Database
 
 | Entity | Description |
-|---|---|
+|---|---|---|
 | **User** | UUID, email, Argon2 hash |
+| **PendingUser** | Unverified registration (removed after email confirmation) |
+| **PasswordResetToken** | 6-digit code with expiry for password recovery |
 | **Account** | Linked to user, type, category, currency; DECIMAL(15,2) balance |
 | **Category** | Hierarchical (self-referencing), scoped to user, income/expense flag |
 | **Transaction** | INCOME / EXPENSE / TRANSFER, updates balances atomically |
@@ -259,6 +281,9 @@ All values use `DECIMAL(15,2)`. Collation: `utf8mb4_unicode_ci`.
 - **Refresh token** in httpOnly, SameSite=Lax cookie (XSS-resistant)
 - **Soft-delete** for accounts (`isDeleted`) and categories (`isArchived`)
 - **CORS** restricted to frontend origin
+- **Rate limiting** double layer (nginx + NestJS) against brute-force and DDoS
+- **Email verification** required before account activation
+- **60-second cooldown** between code resends
 
 ## Notes
 
