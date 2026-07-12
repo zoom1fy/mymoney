@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { CurrencyService } from '../currency/currency.service';
-import { TransactionType } from './enums/transaction-type.enum';
+import { TransactionType } from '../transaction/enums/transaction-type.enum';
 import { GetTransactionsDto } from './dto/get-transactions.dto';
 
 @Injectable()
@@ -127,7 +127,7 @@ export class TransactionService {
     const where: {
       userId: string;
       accountId?: number;
-      type?: string;
+      type?: TransactionType;
       transactionDate?: { gte?: Date; lte?: Date };
     } = { userId };
 

@@ -24,14 +24,11 @@ describe('UserService', () => {
 
   beforeAll(() => {
     // Freeze time for deterministic lastLogin values
-    // @ts-expect-error: jest types mismatch for modern mode
-    jest.useFakeTimers('modern');
-    // @ts-expect-error: jest types mismatch for setSystemTime
+    jest.useFakeTimers();
     jest.setSystemTime(now);
   });
 
   afterAll(() => {
-    // @ts-expect-error: jest types mismatch for useRealTimers
     jest.useRealTimers();
   });
 
@@ -183,7 +180,7 @@ describe('UserService', () => {
       } as any);
 
       const profile = await service.getProfile(userId);
-      expect(profile.passwordHash).toBeUndefined();
+      expect(profile).not.toHaveProperty('passwordHash');
       expect(profile.email).toBe(email);
       expect(profile.name).toBe('test'); // derived from email before '@'
     });
@@ -221,7 +218,7 @@ describe('UserService', () => {
         data: { email: updatedEmail },
       });
       expect(updated.email).toBe(updatedEmail);
-      expect(updated.passwordHash).toBeUndefined();
+      expect(updated).not.toHaveProperty('passwordHash');
       expect(updated.name).toBe('new'); // computed from updated email
     });
 
@@ -250,7 +247,7 @@ describe('UserService', () => {
         where: { id: userId },
         data: { passwordHash: passwordHash },
       });
-      expect(updated.passwordHash).toBeUndefined();
+      expect(updated).not.toHaveProperty('passwordHash');
     });
 
     it('should throw ConflictException if new email already in use', async () => {
@@ -294,7 +291,7 @@ describe('UserService', () => {
         data: { email },
       });
       expect(updated.email).toBe(email);
-      expect(updated.passwordHash).toBeUndefined();
+      expect(updated).not.toHaveProperty('passwordHash');
     });
 
     it('should throw BadRequestException if current password is wrong', async () => {
