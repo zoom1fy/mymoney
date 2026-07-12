@@ -1,4 +1,5 @@
 import axios, { CreateAxiosDefaults } from 'axios'
+import { toast } from 'sonner'
 
 import {
   getAccessToken,
@@ -30,6 +31,9 @@ axiosClassic.interceptors.response.use(
   },
   error => {
     if (error.response) {
+      if (error.response.status === 429) {
+        toast.error('Слишком много запросов. Пожалуйста, подождите.')
+      }
       console.error(
         '❌ Server Error:',
         error.response.status,
@@ -58,6 +62,11 @@ axiosWithAuth.interceptors.request.use(config => {
 axiosWithAuth.interceptors.response.use(
   config => config,
   async error => {
+    if (error?.response?.status === 429) {
+      toast.error('Слишком много запросов. Пожалуйста, подождите.')
+      throw error
+    }
+
     const originalRequest = error.config
 
     if (
