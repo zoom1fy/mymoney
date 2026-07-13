@@ -11,7 +11,7 @@ export const getJwtConfig = (configService: ConfigService): Promise<JwtModuleOpt
   return Promise.resolve({
     secret,
     signOptions: {
-      expiresIn: '1d',
+      expiresIn: '1d', // Fallback; overridden per-token in auth service via token.config
     },
   });
 };

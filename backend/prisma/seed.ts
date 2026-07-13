@@ -3,19 +3,17 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Начинаем заполнение базы данных...');
+  console.log('🌱 Seeding database...');
 
-  // Проверяем, пуста ли БД (например, по currencies)
+  // Skip if already seeded — makes the script idempotent for dev restarts
   const currencyCount = await prisma.currency.count();
   if (currencyCount > 0) {
-    console.log('✅ База данных уже заполнена — пропускаем seed.');
-    return; // ← Выходим, не чистим и не добавляем
+    console.log('✅ Database already seeded — skipping.');
+    return;
   }
 
-  // Очищаем таблицы в правильном порядке (учитывая внешние ключи)
-  console.log('Очистка таблиц...');
-
-  // Сначала удаляем зависимости
+  // Disable FK checks so tables can be cleared in any order without constraint violations
+  console.log('Clearing tables...');
   await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS = 0;`;
 
   await prisma.$executeRaw`DELETE FROM account_types;`;
@@ -27,8 +25,7 @@ async function main() {
 
   await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS = 1;`;
 
-  // Добавляем валюты
-  console.log('Добавление валют...');
+  console.log('Inserting currencies...');
   await prisma.$executeRaw`
     INSERT INTO currencies (code, name, symbol) VALUES
     ('RUB', 'Российский рубль', '₽'),
@@ -36,16 +33,14 @@ async function main() {
     ('EUR', 'Евро', '€');
   `;
 
-  // Добавляем категории счетов
-  console.log('Добавление категорий счетов...');
+  console.log('Inserting account categories...');
   await prisma.$executeRaw`
     INSERT INTO account_categories (id, name) VALUES
     (1, 'Счета'),
     (2, 'Накопительные');
   `;
 
-  // Добавляем типы счетов
-  console.log('Добавление типов счетов...');
+  console.log('Inserting account types...');
   await prisma.$executeRaw`
     INSERT INTO account_types (id, name) VALUES
     (1, 'Наличные'),
@@ -54,7 +49,7 @@ async function main() {
     (4, 'Инвестиционный счет');
   `;
 
-  console.log('✅ База данных успешно заполнена!');
+  console.log('✅ Database seeded successfully!');
 }
 
 main()

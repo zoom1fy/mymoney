@@ -26,13 +26,14 @@ export default tseslint.config(
   },
   {
     rules: {
+      // Permissive for the seed script; controlled re-enable per-source file as needed
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn'
     },
   },
   {
-    // Ослабленные правила для тестовых файлов
+    // Loosen strict type-checking rules in test files where mocks and any are unavoidable
     files: ['**/*.spec.ts', '**/*.e2e-spec.ts', '**/*.test.ts', '**/__tests__/**'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
+    // Stripped from compiled output; source maps serve debugging
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -10,6 +11,7 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
+    // Resolve bare imports from project root first, then src/
     "paths": {
       "*": [
         "./*",
@@ -20,9 +22,11 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
+    // Kept off to avoid excessive annotations on Prisma-generated types and existing code
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
+    // jest types available globally so tests compile without imports
     "types": [
       "jest",
       "node"

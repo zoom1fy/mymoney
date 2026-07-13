@@ -5,10 +5,12 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Parse cookies from incoming requests for refresh token handling
   app.use(cookieParser());
 
   app.setGlobalPrefix('api');
 
+  // Allow multiple origins via comma-separated env var; fallback to dev frontend port
   const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
     : ['http://localhost:3001'];
