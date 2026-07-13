@@ -10,7 +10,7 @@ export class SeedService {
   async seedNewUser(userId: string) {
     const currencyCode = CurrencyCode.RUB;
 
-    // 1. Income categories
+    // Income categories first — referenced by initial transactions created below
     const salaryCategory = await this.prisma.category.create({
       data: {
         userId,
@@ -33,7 +33,7 @@ export class SeedService {
       },
     });
 
-    // 2. Expense categories
+    // Expense categories
     const foodCategory = await this.prisma.category.create({
       data: {
         userId,
@@ -56,7 +56,7 @@ export class SeedService {
       },
     });
 
-    // 3. Accounts
+    // Accounts referencing the categories above
     const cashAccount = await this.prisma.account.create({
       data: {
         userId,
@@ -81,7 +81,7 @@ export class SeedService {
       },
     });
 
-    // 4. Transactions
+    // Sample transactions to give the new user immediate data to explore
     const now = new Date();
 
     await this.prisma.transaction.create({

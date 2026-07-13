@@ -42,7 +42,7 @@ export class AccountService {
 
   async findAll(userId: string) {
     const accounts = await this.prisma.account.findMany({
-      where: { userId, isDeleted: false }, // 🟢 только активные
+      where: { userId, isDeleted: false },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -61,12 +61,12 @@ export class AccountService {
 
     return {
       ...account,
-      currentBalance: Number(account.currentBalance), // Convert Decimal to number
+      currentBalance: Number(account.currentBalance),
     };
   }
 
   async update(userId: string, id: number, dto: UpdateAccountDto) {
-    const account = await this.findOne(userId, id); // проверка доступа
+    const account = await this.findOne(userId, id); // access check
 
     if (dto.name && dto.name !== account.name) {
       const conflict = await this.prisma.account.findFirst({
@@ -94,7 +94,7 @@ export class AccountService {
   }
 
   async remove(userId: string, id: number) {
-    await this.findOne(userId, id); // проверка доступа
+    await this.findOne(userId, id); // access check
 
     return this.prisma.account.update({
       where: { id },

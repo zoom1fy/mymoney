@@ -13,6 +13,8 @@ export class TransactionService {
     private currencyService: CurrencyService
   ) {}
 
+  // Runs balance updates + transaction creation inside a single Prisma transaction
+  // to prevent partial updates if any step fails (e.g., debit without credit).
   async create(userId: string, dto: CreateTransactionDto) {
     const { accountId, categoryId, targetAccountId, amount, currencyCode, description, type } = dto;
 
@@ -110,8 +112,6 @@ export class TransactionService {
     return this.prisma.$transaction(updates);
   }
 
-  // --- Вспомогательные методы для findAll ---
-
   private buildDateFilter(from?: string, to?: string): { gte?: Date; lte?: Date } | undefined {
     if (!from && !to) return undefined;
 
@@ -140,6 +140,8 @@ export class TransactionService {
     return where;
   }
 
+  // Fetches take+1 items so we can detect the next page without an extra count query.
+  // If results exceed take, the extra item becomes nextCursor; it is removed from data.
   private async applyPagination<T>(
     queryBuilder: Promise<T[]>,
     take: number,
@@ -156,7 +158,6 @@ export class TransactionService {
     return { data: results, nextCursor };
   }
 
-  // --- Основной метод findAll ---
   async findAll(userId: string, query: GetTransactionsDto) {
     const take = Number(query.take ?? 20);
     const cursor = query.cursor ? Number(query.cursor) : undefined;
@@ -214,7 +215,7 @@ export class TransactionService {
     const updates: any[] = [];
 
     if (transaction.type === 'INCOME') {
-      // Откат дохода → вычесть деньги
+      // Revert income: deduct money
       updates.push(
         this.prisma.account.update({
           where: { id: transaction.accountId },
@@ -222,7 +223,7 @@ export class TransactionService {
         })
       );
     } else if (transaction.type === 'EXPENSE') {
-      // Откат расхода → вернуть деньги
+      // Revert expense: refund money
       updates.push(
         this.prisma.account.update({
           where: { id: transaction.accountId },
@@ -230,7 +231,7 @@ export class TransactionService {
         })
       );
     } else if (transaction.type === 'TRANSFER') {
-      // Откат перевода → вернуть деньги на исходный счёт, списать с целевого
+      // Revert transfer: refund source, deduct from target
       updates.push(
         this.prisma.account.update({
           where: { id: transaction.accountId },
@@ -247,12 +248,13 @@ export class TransactionService {
       }
     }
 
-    // Удаление самой транзакции
     updates.push(this.prisma.transaction.delete({ where: { id } }));
 
     return this.prisma.$transaction(updates);
   }
 
+  // Reverts the old transaction effect on balances, then applies the new one.
+  // This supports changing amount, type, or account within a single operation.
   async update(userId: string, id: number, dto: UpdateTransactionDto) {
     const transaction = await this.prisma.transaction.findFirst({
       where: { id, account: { userId } },
@@ -269,7 +271,6 @@ export class TransactionService {
     if (newAccountId !== null) accountsToCheck.push(newAccountId);
     if (newTargetAccountId !== null) accountsToCheck.push(newTargetAccountId);
 
-    // Если нечего проверять — пропускаем
     if (accountsToCheck.length > 0) {
       const accounts = await this.prisma.account.findMany({
         where: { id: { in: accountsToCheck }, userId },
@@ -289,7 +290,7 @@ export class TransactionService {
     const oldType = transaction.type;
     const newType = dto.type ?? oldType;
 
-    // 1. Откат старой транзакции
+    // Reverse the original transaction's effect on balances to restore account state.
     if (oldType === 'INCOME') {
       updates.push(
         this.prisma.account.update({
@@ -321,7 +322,7 @@ export class TransactionService {
       }
     }
 
-    // 2. Применение новой транзакции
+    // Apply the updated transaction values (amount, type, account) to balances.
     const targetAccountId = dto.targetAccountId ?? transaction.targetAccountId;
 
     if (newType === TransactionType.INCOME) {
@@ -355,7 +356,7 @@ export class TransactionService {
       }
     }
 
-    // 3. Обновляем запись транзакции
+    // Persist the modified transaction record.
     updates.push(
       this.prisma.transaction.update({
         where: { id },

@@ -15,11 +15,10 @@ export interface TokenConfig {
   };
 }
 
-// Фабрика для создания конфигурации токенов
 export const tokenConfigProvider: Provider = {
   provide: TOKEN_CONFIG,
   useFactory: (config: ConfigService): TokenConfig => {
-    // Для Nest >= v2.2 можно заменить на config.getOrThrow<string>('…')
+    // For Nest >= v2.2 replace with config.getOrThrow<string>('…')
     const accessTokenExpiresIn = config.get<string>('JWT_ACCESS_EXPIRES_IN');
     const refreshTokenExpiresIn = config.get<string>('JWT_REFRESH_EXPIRES_IN');
     const refreshTokenName = 'refresh_token';
@@ -38,7 +37,7 @@ export const tokenConfigProvider: Provider = {
       refreshTokenName,
       refreshTokenCookieOptions: {
         httpOnly: true,
-        secure: isProduction,
+        secure: isProduction, // Only send over HTTPS in production; dev uses HTTP
         sameSite: 'lax',
         path: '/',
       },
@@ -47,7 +46,6 @@ export const tokenConfigProvider: Provider = {
   inject: [ConfigService],
 };
 
-// Модуль для импорта/экспорта TOKEN_CONFIG
 @Module({
   imports: [ConfigModule],
   providers: [tokenConfigProvider],

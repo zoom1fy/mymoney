@@ -17,7 +17,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AuthService } from './auth.service';
 
-@Throttle({ default: { ttl: 60000, limit: 5 } })
+@Throttle({ default: { ttl: 60000, limit: 5 } }) // 5 requests per minute per IP for all auth endpoints
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -72,6 +72,7 @@ export class AuthController {
 
   @HttpCode(200)
   @Post('login/access-token')
+  // Reads the refresh token from httpOnly cookie (not body) for XSS protection
   async getNewTokens(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshTokenFromCookies = (req.cookies as Record<string, string>)[
       this.authService.tokenConfig.refreshTokenName

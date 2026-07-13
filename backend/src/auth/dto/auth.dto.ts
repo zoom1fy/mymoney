@@ -17,6 +17,6 @@ export class AuthDto {
   @Matches(/^(?=.*[A-Za-z])(?=.*\d)[^\s]{6,128}$/, {
     message:
       'Пароль должен содержать хотя бы одну букву и одну цифру, и не должен содержать пробелы',
-  })
+  }) // Requires at least one letter, one digit, and no whitespace
   password: string;
 }

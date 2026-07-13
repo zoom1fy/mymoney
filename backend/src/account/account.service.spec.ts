@@ -26,7 +26,6 @@ describe('AccountService', () => {
     }).compile();
 
     service = module.get<AccountService>(AccountService);
-    // Reset all mock implementations and calls
     Object.values(mockPrisma.account as Record<string, jest.Mock>).forEach((mock) => {
       mock.mockReset();
     });
@@ -230,7 +229,7 @@ describe('AccountService', () => {
         updatedAt: new Date(),
       };
       mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
-      mockPrisma.account.findFirst.mockResolvedValueOnce(null); // no name conflict
+      mockPrisma.account.findFirst.mockResolvedValueOnce(null);
       mockPrisma.account.update.mockResolvedValue({
         ...existing,
         name: 'A+',
@@ -250,7 +249,7 @@ describe('AccountService', () => {
         isDeleted: false,
         currentBalance: new Decimal(50),
       };
-      // update() calls findOne() internally (1st findFirst), then checks for name conflict (2nd findFirst)
+      // findOne runs findFirst first, then update checks name uniqueness with a second findFirst
       mockPrisma.account.findFirst.mockResolvedValueOnce(existing).mockResolvedValueOnce({
         id: 2,
         userId,

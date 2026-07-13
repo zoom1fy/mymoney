@@ -46,6 +46,7 @@ export class UserService {
     return this.prisma.user.create({ data: user });
   }
 
+  // Used by OAuth / social sign-in where the password is already hashed by the provider
   async createFromHash(email: string, passwordHash: string) {
     return this.prisma.user.create({
       data: { email, passwordHash, lastLogin: new Date() },
@@ -72,6 +73,7 @@ export class UserService {
     return email.split('@')[0];
   }
 
+  // Returns user profile without sensitive passwordHash; derives display name from email prefix
   async getProfile(id: string) {
     const profile = await this.findById(id);
     const { passwordHash, ...safeProfile } = profile;
@@ -83,6 +85,7 @@ export class UserService {
     };
   }
 
+  // Requires currentPassword for any change; checks email uniqueness before update
   async updateProfile(id: string, dto: UpdateProfileDto) {
     const user = await this.findById(id);
 

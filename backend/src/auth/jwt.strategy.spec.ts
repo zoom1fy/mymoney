@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 
+// Mock passport-jwt and @nestjs/passport to avoid importing the actual JWT verification library
 jest.mock('passport-jwt', () => ({
   ExtractJwt: { fromAuthHeaderAsBearerToken: () => jest.fn() },
   Strategy: class MockStrategy {

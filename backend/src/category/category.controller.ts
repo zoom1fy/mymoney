@@ -44,6 +44,7 @@ export class CategoryController {
   }
 
   @Get('archived')
+  // Must be placed before @Get(':id') so Nest matches the literal 'archived' before the param wildcard
   getArchived(@CurrentUser() user: User) {
     return this.categoryService.getArchived(user.id);
   }

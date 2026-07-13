@@ -44,12 +44,17 @@ export class AuthService {
     return { user: { id: user.id, email: user.email }, ...tokens };
   }
 
+  // Uses a pending user table as a two-step registration:
+  // 1. User submits email+password → verification code sent
+  // 2. User submits the code → account created (verifyEmail)
+  // This prevents account creation with unverified emails.
   async register(dto: AuthDto) {
     const existingUser = await this.userService.getByEmail(dto.email);
     if (existingUser) throw new ConflictException('Пользователь с таким email уже существует');
 
     const pendingUser = await this.prisma.pendingUser.findUnique({ where: { email: dto.email } });
     if (pendingUser) {
+      // Enforce 1-minute cooldown to prevent abuse of the send-code endpoint
       if (Date.now() - pendingUser.sentAt.getTime() < 60 * 1000) {
         throw new BadRequestException('Код уже отправлен. Повторите через минуту.');
       }
@@ -74,6 +79,7 @@ export class AuthService {
     return { email: dto.email };
   }
 
+  // Completes registration: validates the code (15-min TTL), creates user, seeds starter data
   async verifyEmail(email: string, code: string) {
     const pending = await this.prisma.pendingUser.findUnique({ where: { email } });
     if (!pending) throw new BadRequestException('Код не запрашивался или истёк');
@@ -87,6 +93,7 @@ export class AuthService {
 
     const user = await this.userService.createFromHash(email, pending.passwordHash);
 
+    // Seed default categories, accounts, and sample transactions for the new user
     await this.seedService.seedNewUser(user.id).catch((err) => {
       console.error('Failed to seed data for new user:', err);
     });
@@ -102,6 +109,7 @@ export class AuthService {
     const pending = await this.prisma.pendingUser.findUnique({ where: { email } });
     if (!pending) throw new NotFoundException('Регистрация не найдена. Зарегистрируйтесь заново.');
 
+    // Same 1-minute cooldown as in register to prevent abuse
     if (Date.now() - pending.sentAt.getTime() < 60 * 1000) {
       throw new BadRequestException('Код уже отправлен. Повторите через минуту.');
     }
@@ -138,6 +146,7 @@ export class AuthService {
     return { message: 'Код для восстановления пароля отправлен на почту' };
   }
 
+  // Atomically updates the password and marks the reset token as used (prevents replay)
   async resetPassword(email: string, code: string, newPassword: string) {
     const user = await this.userService.getByEmail(email);
     if (!user) throw new NotFoundException('Пользователь не найден');
@@ -161,6 +170,7 @@ export class AuthService {
     return { message: 'Пароль успешно изменён' };
   }
 
+  // Verifies the refresh token JWT and issues a new token pair (rotation)
   async getNewTokens(refreshToken: string) {
     const result = await this.jwt.verifyAsync<{ id: string }>(refreshToken);
     if (!result) throw new UnauthorizedException('Invalid refresh token');
@@ -174,6 +184,7 @@ export class AuthService {
     return { user, ...tokens };
   }
 
+  // Signs both an access token (short-lived) and a refresh token (long-lived) with configurable expiry
   private issueToken(userId: string) {
     const data = { id: userId };
 
@@ -204,6 +215,7 @@ export class AuthService {
     return randomInt(100000, 999999).toString();
   }
 
+  // Sets the refresh token as an httpOnly cookie so the client cannot access it via JS
   addRefreshTokenToResponse(res: Response, refreshToken: string) {
     const expiresIn = new Date();
     expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);

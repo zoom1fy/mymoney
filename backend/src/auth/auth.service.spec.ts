@@ -54,6 +54,7 @@ describe('AuthService', () => {
   };
 
   beforeEach(async () => {
+    // Stub all external dependencies to isolate AuthService behavior
     const mockJwtService = {
       sign: jest.fn(),
       verifyAsync: jest.fn(),

@@ -10,6 +10,7 @@ describe('AccountController', () => {
   const mockUser = { id: 'user-uuid-1' } as User;
 
   beforeEach(async () => {
+    // Stub all service methods to isolate controller logic from service implementation
     mockAccountService = {
       create: jest.fn(),
       findAll: jest.fn(),

@@ -8,7 +8,6 @@ export class CategoryService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateCategoryDto) {
-    // Проверка имени
     const existing = await this.prisma.category.findFirst({
       where: {
         userId,
@@ -21,7 +20,7 @@ export class CategoryService {
       throw new BadRequestException('Категория с таким именем уже существует');
     }
 
-    // Проверка parent — запрещаем архивных родителей
+    // Prevent assigning an archived parent
     if (dto.parentId) {
       const parent = await this.prisma.category.findFirst({
         where: { id: dto.parentId, userId },
@@ -46,6 +45,7 @@ export class CategoryService {
     });
   }
 
+  // Return only active (non-archived) categories so the UI doesn't show deleted ones
   async findAll(userId: string) {
     return this.prisma.category.findMany({
       where: {
@@ -75,7 +75,6 @@ export class CategoryService {
       throw new BadRequestException('Нельзя редактировать архивную категорию');
     }
 
-    // Проверка имени
     if (dto.name && dto.name !== category.name) {
       const exists = await this.prisma.category.findFirst({
         where: {
@@ -91,7 +90,7 @@ export class CategoryService {
       }
     }
 
-    // Проверка на parentId
+    // Validate the new parent only if it actually changed — skip redundant DB checks
     if (dto.parentId && dto.parentId !== category.parentId) {
       const parent = await this.prisma.category.findFirst({
         where: { id: dto.parentId, userId },
@@ -113,10 +112,10 @@ export class CategoryService {
     const category = await this.findOne(userId, id);
 
     if (category.isArchived) {
-      return category; // уже архивная — ничего не делаем
+      return category; // already archived
     }
 
-    // Архивируем саму категорию + всех детей
+    // Archive the category and all children
     await this.prisma.category.update({
       where: { id },
       data: { isArchived: true },
@@ -144,10 +143,10 @@ export class CategoryService {
     const category = await this.findOne(userId, id);
 
     if (!category.isArchived) {
-      return category; // уже активна — ничего делать не нужно
+      return category; // already active
     }
 
-    // Проверяем, можно ли разархивировать
+    // Prevent unarchiving under an archived parent — child can't exist without a valid parent
     if (category.parentId) {
       const parent = await this.prisma.category.findFirst({
         where: { id: category.parentId, userId },
@@ -164,13 +163,13 @@ export class CategoryService {
       }
     }
 
-    // 1. Разархивируем саму категорию
+    // Unarchive the category first, then all its children
     await this.prisma.category.update({
       where: { id },
       data: { isArchived: false },
     });
 
-    // 2. Разархивируем все её подкатегории
+    // Always keep children in sync — archived parent with active children breaks the hierarchy
     await this.prisma.category.updateMany({
       where: {
         parentId: id,

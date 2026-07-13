@@ -22,6 +22,7 @@ describe('CategoryService', () => {
   const categoryId = 1;
   const parentId = 2;
 
+  // Mock Prisma client to control DB responses without a real database
   const mockPrisma = {
     category: {
       findFirst: jest.fn(),
@@ -40,7 +41,6 @@ describe('CategoryService', () => {
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
-    // Reset all mock implementations and calls
     Object.values(mockPrisma.category).forEach((mock) => {
       mock.mockReset();
     });

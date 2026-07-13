@@ -8,14 +8,13 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import Decimal from 'decimal.js';
 
-// Realistic test data
 const userId = 'user-uuid-1';
 const accountId = 1;
 const targetAccountId = 2;
 const categoryId = 1;
 const amount = 100;
 
-// Mock PrismaService with required methods
+// Mock the full Prisma client to control DB responses without a real database
 const mockPrisma = {
   account: {
     findFirst: jest.fn(),
@@ -38,7 +37,6 @@ const mockPrisma = {
 // Make $transaction return the provided operations array (atomic block simulation)
 mockPrisma.$transaction.mockImplementation((updates: any[]) => Promise.resolve(updates));
 
-// Mock CurrencyService (exchange rates not central to tests but a dependency)
 const mockCurrencyService = {
   getExchangeRate: jest.fn(),
 };
@@ -48,8 +46,6 @@ describe('TransactionService', () => {
   let prisma: typeof mockPrisma;
 
   beforeEach(async () => {
-    // Reset mocks before each test
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionService,
@@ -60,7 +56,6 @@ describe('TransactionService', () => {
 
     service = module.get<TransactionService>(TransactionService);
     prisma = module.get<PrismaService>(PrismaService) as any;
-    // Reset all mock implementations
     Object.values(mockPrisma.account).forEach((m) => m.mockReset());
     Object.values(mockPrisma.category).forEach((m) => m.mockReset());
     Object.values(mockPrisma.transaction).forEach((m) => m.mockReset());
@@ -68,7 +63,6 @@ describe('TransactionService', () => {
     mockPrisma.$transaction.mockImplementation((updates: any[]) => Promise.resolve(updates));
     mockCurrencyService.getExchangeRate.mockReset();
     mockCurrencyService.getExchangeRate.mockResolvedValue(1);
-    // Default sensible mocks
     mockPrisma.account.findFirst.mockResolvedValue({
       id: accountId,
       currentBalance: new Decimal(1000),
@@ -103,7 +97,6 @@ describe('TransactionService', () => {
 
       expect(result).toBeDefined();
       expect(result[result.length - 1].type).toBe(TransactionType.INCOME);
-      // Balance should be increased
       expect(prisma.account.update).toHaveBeenCalledWith({
         where: { id: accountId },
         data: { currentBalance: { increment: amount } },
@@ -158,7 +151,6 @@ describe('TransactionService', () => {
 
       const result = await service.create(userId, input as CreateTransactionDto);
       expect(result[result.length - 1].type).toBe(TransactionType.TRANSFER);
-      // Source decrement, target increment
       expect(prisma.account.update).toHaveBeenCalledWith({
         where: { id: accountId },
         data: { currentBalance: { decrement: amount } },

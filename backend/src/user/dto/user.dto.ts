@@ -9,6 +9,7 @@ export class UpdateProfileDto {
   @MinLength(6)
   password?: string;
 
+  // Required for any profile change — verifies the user's identity before applying updates
   @IsString()
   currentPassword!: string;
 }

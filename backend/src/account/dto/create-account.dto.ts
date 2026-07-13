@@ -22,7 +22,7 @@ export class CreateAccountDto {
 
   @IsOptional()
   @IsNumber(
-    { allowNaN: false, allowInfinity: false, maxDecimalPlaces: 2 },
+    { allowNaN: false, allowInfinity: false, maxDecimalPlaces: 2 }, // Financial precision: no more than 2 decimal places
     { message: 'Баланс должен быть числом с максимум двумя знаками после запятой' }
   )
   @MaxDigits(9, { message: 'Баланс не должен превышать 9 цифр' })

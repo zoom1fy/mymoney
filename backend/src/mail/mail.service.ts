@@ -8,6 +8,7 @@ export class MailService {
   private readonly logger = new Logger(MailService.name);
 
   constructor(private configService: ConfigService) {
+    // Configure SMTP transport conditionally — emails degrade to console log when unconfigured
     const host = this.configService.get<string>('SMTP_HOST');
     const port = this.configService.get<number>('SMTP_PORT');
     const user = this.configService.get<string>('SMTP_USER');
@@ -16,6 +17,7 @@ export class MailService {
     if (host && user && pass) {
       const ssl = this.configService.get<string>('SMTP_SSL') === 'true';
       const tls = this.configService.get<string>('SMTP_TLS') === 'true';
+      // Port 465 implies implicit SSL; otherwise default to 587 (STARTTLS)
       const effectivePort = port || (ssl ? 465 : 587);
 
       this.transporter = nodemailer.createTransport({
@@ -45,6 +47,7 @@ export class MailService {
     await this.send(email, subject, text);
   }
 
+  // Fallback to console log when SMTP transport is missing (dev mode) or sending fails
   private async send(to: string, subject: string, text: string): Promise<void> {
     if (!this.transporter) {
       this.logger.log(`[DEV] Email to ${to}: ${subject} — ${text}`);

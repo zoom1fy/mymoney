@@ -37,7 +37,7 @@ export class TransactionController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(204) // Standard REST convention: DELETE returns 204 No Content, no body
   async remove(@CurrentUser() user: User, @Param('id') id: string) {
     await this.transactionService.remove(user.id, Number(id));
   }

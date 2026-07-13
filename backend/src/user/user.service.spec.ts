@@ -47,7 +47,6 @@ describe('UserService', () => {
     }).compile();
 
     service = module.get<UserService>(UserService);
-    // Reset all mock implementations and calls
     Object.values(mockPrisma.user as Record<string, jest.Mock>).forEach((mock) => {
       mock.mockReset();
     });
@@ -111,7 +110,6 @@ describe('UserService', () => {
 
   describe('create()', () => {
     it('should create user with hashed password and set lastLogin', async () => {
-      // Prepare input
       const dto = { email, password };
 
       mockPrisma.user.create.mockResolvedValueOnce({
@@ -124,8 +122,6 @@ describe('UserService', () => {
       const result = await service.create(dto);
 
       expect(mockPrisma.user.create).toHaveBeenCalled();
-      // Ensure password is hashed using argon2.hash and stored as passwordHash
-      // The hashing function is mocked to return '$argon2id$hashed-password'
       expect(result.passwordHash).toBe(passwordHash);
       expect(result.email).toBe(email);
       expect(result.lastLogin).toBe(now);
@@ -188,7 +184,7 @@ describe('UserService', () => {
 
   describe('updateProfile()', () => {
     it('should update email and return user without passwordHash with computed name', async () => {
-      // First: findById returns current user
+      // findById fetches the current user from DB
       mockPrisma.user.findUnique.mockResolvedValueOnce({
         id: userId,
         email,
@@ -198,7 +194,7 @@ describe('UserService', () => {
         categories: [],
         transactions: [],
       } as any);
-      // Second: getByEmail returns null (no conflict for new email)
+      // getByEmail confirms the new email is not taken
       mockPrisma.user.findUnique.mockResolvedValueOnce(null);
       mockPrisma.user.update.mockResolvedValueOnce({
         id: userId,
@@ -251,7 +247,7 @@ describe('UserService', () => {
     });
 
     it('should throw ConflictException if new email already in use', async () => {
-      // First: findById returns current user
+      // findById fetches the current user
       mockPrisma.user.findUnique.mockResolvedValueOnce({
         id: userId,
         email,
@@ -261,7 +257,7 @@ describe('UserService', () => {
         categories: [],
         transactions: [],
       } as any);
-      // Second: getByEmail finds existing user with the new email
+      // getByEmail detects another user already owns the requested email
       mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'other', email: updatedEmail } as any);
       await expect(
         service.updateProfile(userId, { email: updatedEmail, currentPassword: password })
@@ -269,7 +265,6 @@ describe('UserService', () => {
     });
 
     it('should skip email uniqueness check if email unchanged', async () => {
-      // First call: findById needs a user
       mockPrisma.user.findUnique.mockResolvedValueOnce({
         id: userId,
         email,

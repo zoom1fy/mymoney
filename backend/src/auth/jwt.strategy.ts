@@ -11,11 +11,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private configService: ConfigService,
     private userService: UserService
   ) {
+    // Ensure JWT_SECRET is set at startup to fail fast rather than at first request
     const secret = configService.get<string>('JWT_SECRET');
     if (!secret) {
       throw new Error('JWT_SECRET is not defined in environment variables');
     }
 
+    // passport-jwt types are incompatible with strict TypeScript; eslint suppressions are required
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -25,6 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  // Passport calls validate after verifying the JWT; attach the full user to the request
   async validate(payload: { id: string }) {
     return this.userService.findById(payload.id);
   }
