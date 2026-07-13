@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Check backend package-lock.json
         run: |
           cd backend
@@ -24,7 +24,7 @@ jobs:
             exit 1
           fi
           echo "✅ backend/package-lock.json is in sync"
-      
+
       - name: Check frontend package-lock.json
         run: |
           cd frontend
@@ -38,7 +38,7 @@ jobs:
     name: Backend Lint
     needs: check-lockfile
     runs-on: ubuntu-latest
-    continue-on-error: true  # Оставляем, чтобы не ронял пайплайн
+    continue-on-error: true # Оставляем, чтобы не ронял пайплайн
     defaults:
       run:
         working-directory: backend
@@ -52,9 +52,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run lint
-        run: npm run lint  # Реальная проверка без || echo
+        run: npm run lint # Реальная проверка без || echo
       - name: TypeScript check
-        run: npx tsc --noEmit  # Реальная проверка без || echo
+        run: npx tsc --noEmit # Реальная проверка без || echo
 
   backend-test:
     name: Backend Tests
@@ -124,7 +124,7 @@ jobs:
     name: Frontend Lint
     needs: check-lockfile
     runs-on: ubuntu-latest
-    continue-on-error: true  # Оставляем, чтобы не ронял пайплайн
+    continue-on-error: true # Оставляем, чтобы не ронял пайплайн
     defaults:
       run:
         working-directory: frontend
@@ -138,9 +138,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run lint
-        run: npm run lint  # Реальная проверка без || echo
+        run: npm run lint # Реальная проверка без || echo
       - name: TypeScript check
-        run: npx tsc --noEmit  # Реальная проверка без || echo
+        run: npx tsc --noEmit # Реальная проверка без || echo
 
   frontend-build:
     name: Frontend Build
@@ -171,10 +171,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Show project structure
         run: |
           echo "=== Backend Dockerfiles ==="
@@ -182,7 +182,7 @@ jobs:
           echo ""
           echo "=== Frontend Dockerfiles ==="
           ls -la frontend/Dockerfile* 2>/dev/null || echo "No Dockerfiles found"
-      
+
       - name: Create test env file
         run: |
           cat > .env << EOF
@@ -197,27 +197,27 @@ jobs:
           NEXT_PUBLIC_COOKIE_DOMAIN=localhost
           DOCKER_DEFAULT_PLATFORM=linux/amd64
           EOF
-      
+
       - name: Build with docker-compose.dev.yml (development)
         run: |
           echo "Building with development config..."
           docker compose -f docker-compose.yml -f docker-compose.dev.yml build backend frontend
-      
+
       - name: Build with docker-compose.prod.yml (production)
         run: |
           echo "Building with production config..."
           docker compose -f docker-compose.yml -f docker-compose.prod.yml build backend frontend
-      
+
       - name: Start containers
         run: |
           docker compose \
             -f docker-compose.yml \
             -f docker-compose.prod.yml \
             up -d
-      
+
       - name: Wait for startup
         run: sleep 30
-      
+
       - name: Verify containers are running
         run: |
           docker compose \
@@ -231,7 +231,7 @@ jobs:
             echo "❌ Some containers exited"
             exit 1
           fi
-      
+
       - name: Show logs if failed
         if: failure()
         run: |
@@ -239,7 +239,7 @@ jobs:
             -f docker-compose.yml \
             -f docker-compose.prod.yml \
             logs
-      
+
       - name: Stop containers
         if: always()
         run: |
@@ -247,7 +247,7 @@ jobs:
             -f docker-compose.yml \
             -f docker-compose.prod.yml \
             down -v
-      
+
       - name: Verify Docker images
         run: |
           echo "=== Built Docker images ==="
@@ -255,7 +255,16 @@ jobs:
 
   notify:
     name: Notify
-    needs: [check-lockfile, backend-lint, backend-test, backend-build, frontend-lint, frontend-build, docker-build]
+    needs:
+      [
+        check-lockfile,
+        backend-lint,
+        backend-test,
+        backend-build,
+        frontend-lint,
+        frontend-build,
+        docker-build,
+      ]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -264,36 +273,36 @@ jobs:
         run: |
           FAILED_JOBS=""
           WARNING_JOBS=""
-          
+
           if [ "${{ needs.check-lockfile.result }}" != "success" ]; then
             FAILED_JOBS="${FAILED_JOBS}❌ Lockfile Check\n"
           fi
-          
+
           # Линтеры с continue-on-error: true могут иметь статус failure, но мы их считаем предупреждениями
           if [ "${{ needs.backend-lint.result }}" != "success" ]; then
             WARNING_JOBS="${WARNING_JOBS}⚠️ Backend Lint (warnings/errors found)\n"
           fi
-          
+
           if [ "${{ needs.backend-test.result }}" != "success" ]; then
             FAILED_JOBS="${FAILED_JOBS}❌ Backend Tests\n"
           fi
-          
+
           if [ "${{ needs.backend-build.result }}" != "success" ]; then
             FAILED_JOBS="${FAILED_JOBS}❌ Backend Build\n"
           fi
-          
+
           if [ "${{ needs.frontend-lint.result }}" != "success" ]; then
             WARNING_JOBS="${WARNING_JOBS}⚠️ Frontend Lint (warnings/errors found)\n"
           fi
-          
+
           if [ "${{ needs.frontend-build.result }}" != "success" ]; then
             FAILED_JOBS="${FAILED_JOBS}❌ Frontend Build\n"
           fi
-          
+
           if [ "${{ needs.docker-build.result }}" != "success" ]; then
             FAILED_JOBS="${FAILED_JOBS}❌ Docker Build\n"
           fi
-          
+
           if [ -z "$FAILED_JOBS" ] && [ -z "$WARNING_JOBS" ]; then
             echo "STATUS=success" >> $GITHUB_OUTPUT
             echo "EMOJI=✅" >> $GITHUB_OUTPUT
@@ -307,10 +316,10 @@ jobs:
             echo "EMOJI=❌" >> $GITHUB_OUTPUT
             echo "RESULT=Failed" >> $GITHUB_OUTPUT
           fi
-          
+
           echo "FAILED_JOBS=$FAILED_JOBS" >> $GITHUB_OUTPUT
           echo "WARNING_JOBS=$WARNING_JOBS" >> $GITHUB_OUTPUT
-      
+
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
         with:
@@ -318,13 +327,9 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
             ${{ steps.status.outputs.EMOJI }} CI Pipeline ${{ steps.status.outputs.RESULT }}
-            
             📦 Repository: ${{ github.repository }}
             🌿 Branch: ${{ github.ref_name }}
             👤 Author: ${{ github.actor }}
             💬 Message: ${{ github.event.head_commit.message }}
-            
-            ${{ steps.status.outputs.FAILED_JOBS }}
-            ${{ steps.status.outputs.WARNING_JOBS }}
-            
+            ${{ steps.status.outputs.FAILED_JOBS }}${{ steps.status.outputs.WARNING_JOBS }}
             🔗 View: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
