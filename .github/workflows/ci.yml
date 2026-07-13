@@ -38,7 +38,7 @@ jobs:
     name: Backend Lint
     needs: check-lockfile
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: true  # Оставляем, чтобы не ронял пайплайн
     defaults:
       run:
         working-directory: backend
@@ -50,14 +50,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
-        run: |
-          npm ci
+        run: npm ci
       - name: Run lint
-        run: |
-          npm run lint || echo "⚠️ Lint warnings found, but continuing..."
+        run: npm run lint  # Реальная проверка без || echo
       - name: TypeScript check
-        run: |
-          npx tsc --noEmit || echo "⚠️ TypeScript errors found, but continuing..."
+        run: npx tsc --noEmit  # Реальная проверка без || echo
 
   backend-test:
     name: Backend Tests
@@ -87,16 +84,13 @@ jobs:
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
-        run: |
-          npm ci
+        run: npm ci
       - name: Generate Prisma Client
         run: npx prisma generate
-
       - name: Run migrations
         env:
           DATABASE_URL: mysql://root:test_password@localhost:3306/test_db
         run: npx prisma migrate deploy
-
       - name: Run tests
         env:
           DATABASE_URL: mysql://root:test_password@localhost:3306/test_db
@@ -122,8 +116,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
-        run: |
-          npm ci
+        run: npm ci
       - run: npx prisma generate
       - run: npm run build
 
@@ -131,7 +124,7 @@ jobs:
     name: Frontend Lint
     needs: check-lockfile
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: true  # Оставляем, чтобы не ронял пайплайн
     defaults:
       run:
         working-directory: frontend
@@ -143,14 +136,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
-        run: |
-          npm ci
+        run: npm ci
       - name: Run lint
-        run: |
-          npm run lint || echo "⚠️ Lint warnings found, but continuing..."
+        run: npm run lint  # Реальная проверка без || echo
       - name: TypeScript check
-        run: |
-          npx tsc --noEmit || echo "⚠️ TypeScript errors found, but continuing..."
+        run: npx tsc --noEmit  # Реальная проверка без || echo
 
   frontend-build:
     name: Frontend Build
@@ -167,16 +157,12 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
-        run: |
-          npm ci
-      
+        run: npm ci
       - name: Create env file
         run: |
           echo "NEXT_PUBLIC_API_URL=http://localhost:3001/api" >> .env
-
           echo "NEXT_PUBLIC_COOKIE_DOMAIN=localhost" >> .env
           echo "NODE_ENV=development" >> .env
-      
       - run: npm run build
 
   docker-build:
@@ -207,7 +193,6 @@ jobs:
           JWT_ACCESS_EXPIRES_IN=15m
           JWT_REFRESH_EXPIRES_IN=7d
           NODE_ENV=development
-
           NEXT_PUBLIC_API_URL=http://localhost:3001/api
           NEXT_PUBLIC_COOKIE_DOMAIN=localhost
           DOCKER_DEFAULT_PLATFORM=linux/amd64
@@ -229,17 +214,16 @@ jobs:
             -f docker-compose.yml \
             -f docker-compose.prod.yml \
             up -d
-
+      
       - name: Wait for startup
         run: sleep 30
-
+      
       - name: Verify containers are running
         run: |
           docker compose \
             -f docker-compose.yml \
             -f docker-compose.prod.yml \
             ps
-
           if docker compose \
             -f docker-compose.yml \
             -f docker-compose.prod.yml \
@@ -247,7 +231,7 @@ jobs:
             echo "❌ Some containers exited"
             exit 1
           fi
-
+      
       - name: Show logs if failed
         if: failure()
         run: |
@@ -255,7 +239,7 @@ jobs:
             -f docker-compose.yml \
             -f docker-compose.prod.yml \
             logs
-
+      
       - name: Stop containers
         if: always()
         run: |
@@ -282,31 +266,32 @@ jobs:
           WARNING_JOBS=""
           
           if [ "${{ needs.check-lockfile.result }}" != "success" ]; then
-            FAILED_JOBS="$FAILED_JOBS ⚠️ Lockfile Check\n"
+            FAILED_JOBS="${FAILED_JOBS}❌ Lockfile Check\n"
           fi
           
+          # Линтеры с continue-on-error: true могут иметь статус failure, но мы их считаем предупреждениями
           if [ "${{ needs.backend-lint.result }}" != "success" ]; then
-            WARNING_JOBS="$WARNING_JOBS ⚠️ Backend Lint\n"
+            WARNING_JOBS="${WARNING_JOBS}⚠️ Backend Lint (warnings/errors found)\n"
           fi
           
           if [ "${{ needs.backend-test.result }}" != "success" ]; then
-            FAILED_JOBS="$FAILED_JOBS ❌ Backend Tests\n"
+            FAILED_JOBS="${FAILED_JOBS}❌ Backend Tests\n"
           fi
           
           if [ "${{ needs.backend-build.result }}" != "success" ]; then
-            FAILED_JOBS="$FAILED_JOBS ❌ Backend Build\n"
+            FAILED_JOBS="${FAILED_JOBS}❌ Backend Build\n"
           fi
           
           if [ "${{ needs.frontend-lint.result }}" != "success" ]; then
-            WARNING_JOBS="$WARNING_JOBS ⚠️ Frontend Lint\n"
+            WARNING_JOBS="${WARNING_JOBS}⚠️ Frontend Lint (warnings/errors found)\n"
           fi
           
           if [ "${{ needs.frontend-build.result }}" != "success" ]; then
-            FAILED_JOBS="$FAILED_JOBS ❌ Frontend Build\n"
+            FAILED_JOBS="${FAILED_JOBS}❌ Frontend Build\n"
           fi
           
           if [ "${{ needs.docker-build.result }}" != "success" ]; then
-            FAILED_JOBS="$FAILED_JOBS ❌ Docker Build\n"
+            FAILED_JOBS="${FAILED_JOBS}❌ Docker Build\n"
           fi
           
           if [ -z "$FAILED_JOBS" ] && [ -z "$WARNING_JOBS" ]; then
@@ -339,15 +324,7 @@ jobs:
             👤 Author: ${{ github.actor }}
             💬 Message: ${{ github.event.head_commit.message }}
             
-            Critical Jobs:
-            🔍 Lockfile Check: ${{ needs.check-lockfile.result == 'success' && '✅' || '❌' }}
-            🧪 Backend Tests: ${{ needs.backend-test.result == 'success' && '✅' || '❌' }}
-            🏗️ Backend Build: ${{ needs.backend-build.result == 'success' && '✅' || '❌' }}
-            🏗️ Frontend Build: ${{ needs.frontend-build.result == 'success' && '✅' || '❌' }}
-            🐳 Docker Build: ${{ needs.docker-build.result == 'success' && '✅' || '❌' }}
-            
-            Lint Checks:
-            🔍 Backend Lint: ${{ needs.backend-lint.result == 'success' && '✅' || '⚠️' }}
-            🔍 Frontend Lint: ${{ needs.frontend-lint.result == 'success' && '✅' || '⚠️' }}
+            ${{ steps.status.outputs.FAILED_JOBS }}
+            ${{ steps.status.outputs.WARNING_JOBS }}
             
             🔗 View: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
