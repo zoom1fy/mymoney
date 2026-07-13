@@ -1,180 +1,174 @@
 ---
 name: code-comments
-description: Always write production-quality code comments following modern web development industry standards. Use this skill whenever creating, editing, or refactoring source code in JavaScript, TypeScript, React, Next.js, Node.js, NestJS, Phaser, HTML, CSS, or similar projects.
+description: Enforce a modern production-grade commenting style for JavaScript, TypeScript, React, Next.js, NestJS, Phaser and other web projects. Apply this skill whenever generating, editing or refactoring code.
 ---
 
-# Production Code Commenting Standard
+# Modern Code Commenting Standard
 
 ## Goal
 
-Produce code that is understandable months later by another experienced developer.
+Write comments exactly as they appear in mature production codebases.
 
-Comments must explain **WHY**, not **WHAT**.
+Comments should help future developers understand the reasoning behind the implementation.
 
-Assume the reader already understands the programming language.
-
-Never generate unnecessary comments.
+Every comment must provide information that is not immediately obvious from reading the code.
 
 ---
 
-# Golden Rule
+# Primary Rule
 
 Good code explains **what**.
 
 Comments explain **why**.
 
+Never explain syntax.
+
+Never explain language features.
+
+Never explain obvious code.
+
+---
+
+# Responsibilities
+
+Whenever editing existing code, ALWAYS:
+
+- review every existing comment
+- rewrite outdated comments
+- improve poorly written comments
+- remove unnecessary comments
+- remove duplicated comments
+- add missing comments where complex logic exists
+
+Do not preserve comments simply because they already exist.
+
+Comments are part of the code and must be refactored together with it.
+
+---
+
+# Normalize Existing Comments
+
+Replace inconsistent commenting styles with a single professional style.
+
+Remove comments like:
+
+```ts
+// ==============================
+
+// ------------------------------
+
+// ###########
+
+// 1.
+
+// 2.
+
+// Step 1
+
+// Section
+
+// REGION
+
+// END REGION
+```
+
+Replace them with a normal sentence only if a comment is actually useful.
+
 Example:
 
-GOOD
-
-```ts
-// Cache avatar URLs to avoid hundreds of identical CDN requests.
-const avatarCache = new Map();
-```
-
 BAD
 
 ```ts
-// Create cache
-const avatarCache = new Map();
+// ====================
+// Physics
+// ====================
 ```
 
----
-
-# NEVER comment obvious code
-
-Never write comments like:
+GOOD
 
 ```ts
-// Increment counter
-counter++;
-
-// Return user
-return user;
-
-// Loop through array
-items.forEach(...)
+// Update the physics state before rendering.
 ```
 
-These comments lower code quality.
+If the separator adds no value, remove it completely.
 
 ---
 
-# ALWAYS comment
+# Comment Placement
 
-Write comments before:
+Comments belong immediately before the code they describe.
 
-- complex algorithms
-- non-obvious math
-- game mechanics
-- physics calculations
-- coordinate transformations
-- optimization tricks
-- browser hacks
-- WebGL tricks
-- Phaser rendering logic
-- collision systems
-- networking
-- concurrency
-- caching
-- memoization
-- custom serialization
-- binary operations
-- bit masks
-- recursion
-- state machines
-- procedural generation
-- AI logic
+Never place comments far away from the related logic.
+
+---
+
+# Functions
+
+Every exported function, public method or complex private function should begin with a short description.
+
+Example
+
+```ts
+/**
+ * Rebuilds the spatial grid after objects move to keep collision checks efficient.
+ */
+```
+
+Avoid documenting every parameter unless generating a reusable library API.
+
+---
+
+# Comment Logical Blocks
+
+Inside functions, comments should separate logical operations, not every statement.
+
+Example
+
+```ts
+// Skip inactive entities to avoid unnecessary collision checks.
+for (...) {
+
+}
+
+// Resolve overlapping bodies before applying velocity.
+...
+
+// Notify listeners only after the final state is stable.
+...
+```
+
+Functions longer than roughly 20–30 lines should usually contain comments describing major logical stages whenever those stages are not immediately obvious.
+
+---
+
+# Complex Logic
+
+Always comment:
+
+- algorithms
+- mathematical formulas
 - interpolation
 - easing
-- pathfinding
-- unusual edge cases
-- security checks
+- procedural generation
+- AI
+- physics
+- rendering
+- coordinate transformations
+- collision resolution
+- optimization
+- caching
+- memoization
+- networking
+- concurrency
+- asynchronous flows
+- recursion
+- binary operations
+- state machines
+- browser workarounds
+- security decisions
+- business rules
 
----
-
-# Function comments
-
-Every public function should start with a short explanation.
-
-Example
-
-```ts
-/**
- * Smoothly interpolates camera movement to avoid visible jitter.
- */
-```
-
-If parameters are obvious, do NOT describe every parameter.
-
-Instead explain the behavior.
-
-GOOD
-
-```ts
-/**
- * Rebuilds the spatial grid after objects move.
- * This keeps collision checks O(n) instead of O(n²).
- */
-```
-
-BAD
-
-```ts
-/**
- * @param x
- * @param y
- * @param width
- * @param height
- */
-```
-
-Only use full JSDoc when generating a reusable public API or library.
-
----
-
-# Inline comments
-
-Use inline comments sparingly.
-
-Example
-
-```ts
-// Keep one frame of overlap.
-// Without this the player can occasionally tunnel through thin walls.
-```
-
----
-
-# Block comments
-
-Use block comments to divide logical sections.
-
-Example
-
-```ts
-// --------------------------------
-// Physics update
-// --------------------------------
-```
-
-or
-
-```ts
-// Update soft-body constraints.
-```
-
----
-
-# Business logic
-
-Always explain business rules.
-
-Example
-
-```ts
-// Premium users may exceed the normal upload limit.
-```
+Explain the reason behind the implementation.
 
 ---
 
@@ -182,35 +176,41 @@ Example
 
 Always explain optimizations.
 
-Example
+GOOD
 
 ```ts
-// Reuse vectors to avoid unnecessary allocations every frame.
+// Reuse the existing vector to avoid creating thousands of temporary objects every frame.
 ```
 
 ---
 
-# Game development
+# Edge Cases
 
-For Phaser or games always explain:
+Always explain unusual conditions.
 
-- why an interpolation value exists
-- why a physics constant was chosen
-- why a timer exists
-- why a collision offset exists
+GOOD
+
+```ts
+// Clamp the value because floating-point precision may occasionally produce numbers slightly above 1.
+```
+
+---
+
+# Game Development
+
+For Phaser or game projects explain:
+
+- why constants exist
+- why interpolation values were chosen
+- why timers exist
+- why delays exist
 - why rendering order matters
+- why collision offsets exist
+- why physics values differ from real-world values
 
-GOOD
+Never explain what a sprite or body is doing.
 
-```ts
-// Render the shadow first so the cube appears grounded.
-```
-
-GOOD
-
-```ts
-// Apply a small bounce to make impacts feel less robotic.
-```
+Explain why.
 
 ---
 
@@ -218,27 +218,22 @@ GOOD
 
 Comment:
 
-- unusual hooks
 - memoization
 - dependency arrays
 - render optimizations
-
-GOOD
-
-```ts
-// Memoized because this component re-renders hundreds of times per second.
-```
+- unusual hooks
+- hydration workarounds
 
 ---
 
 # Next.js
 
-Explain:
+Comment:
 
 - server/client boundaries
-- caching
-- ISR
 - SSR
+- ISR
+- caching
 - hydration decisions
 
 ---
@@ -248,57 +243,62 @@ Explain:
 Comment:
 
 - transactions
+- authorization
 - guards
 - interceptors
 - decorators
-- authorization
-- database consistency
-
-Example
-
-```ts
-// Execute balance updates inside one transaction
-// to prevent partially applied transfers.
-```
+- validation
+- consistency guarantees
 
 ---
 
 # Database
 
-Explain:
+Comment:
 
 - indexes
-- constraints
 - migrations
-- locks
 - transactions
+- locks
+- constraints
 
 ---
 
 # Formatting
 
-Keep comments:
+Use only single-line comments.
 
-- short
-- precise
-- professional
-- grammatically correct
+Preferred style:
 
-Maximum:
+```ts
+// Explain why this block exists.
+```
 
-2–3 lines.
+Avoid decorative formatting.
+
+Do NOT use:
+
+```ts
+// =====================
+
+// ----------
+
+// ##########
+```
+
+Do NOT number sections.
+
+Do NOT write titles surrounded by separators.
+
+Keep comments short.
+
+Maximum three lines.
 
 ---
 
 # Language
 
-Write comments in the same language as the project.
-
-If the project already contains English comments,
-continue in English.
-
-If comments are Russian,
-continue in Russian.
+Use the language already used by the project.
 
 Never mix languages.
 
@@ -308,6 +308,10 @@ Never mix languages.
 
 Professional.
 
+Technical.
+
+Concise.
+
 No jokes.
 
 No emojis.
@@ -316,26 +320,17 @@ No conversational language.
 
 ---
 
-# Refactoring
+# Final Review Checklist
 
-When editing existing code:
+Before finishing code generation:
 
-- preserve useful comments
-- improve outdated comments
-- delete redundant comments
-- delete comments that only repeat the code
-
----
-
-# Final Review
-
-Before finishing any code generation:
-
-1. Remove obvious comments.
-2. Add comments explaining complex logic.
-3. Ensure every remaining comment explains WHY.
-4. Ensure comments are concise.
-5. Ensure comments follow production-level standards.
-6. Never exceed the amount of comments typically found in mature open-source projects.
-
-If uncertain whether a comment is necessary, remove it.
+- Remove decorative separators.
+- Remove numbered section comments.
+- Remove redundant comments.
+- Rewrite weak comments.
+- Preserve only useful comments.
+- Add comments before complex logical blocks inside functions.
+- Add comments before algorithms and non-obvious decisions.
+- Ensure every remaining comment explains WHY instead of WHAT.
+- Ensure all comments follow one consistent style across the project.
+- If a comment does not improve understanding, delete it.
