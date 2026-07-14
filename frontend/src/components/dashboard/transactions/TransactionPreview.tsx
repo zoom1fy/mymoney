@@ -21,6 +21,7 @@ interface TransactionPreviewProps {
   isEditMode?: boolean
 }
 
+// Live preview: shows amount, account → category flow, and balance forecast
 export function TransactionPreview({
   amount,
   date,
@@ -79,7 +80,7 @@ export function TransactionPreview({
   return (
     <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-muted/30 to-muted/10 border border-border/50 shadow-inner">
       <div className="flex flex-col items-center justify-center space-y-4">
-        {/* Сумма и дата */}
+        {/* Amount badge + date */}
         <div className="text-center">
           <motion.div
             animate={{ scale: 1, opacity: 1 }}
@@ -95,9 +96,9 @@ export function TransactionPreview({
           </p>
         </div>
 
-        {/* Визуальный путь транзакции */}
+        {/* Visual flow: Account → (arrow) → Category */}
         <div className="flex flex-col md:flex-row items-center justify-center space-y-3 md:space-y-0 md:space-x-6 w-full max-w-xl">
-          {/* Блок счета */}
+          {/* Source account block */}
           <div className="flex flex-col items-center space-y-2 flex-1">
             <motion.div
               className={cn(
@@ -120,7 +121,7 @@ export function TransactionPreview({
             </p>
           </div>
 
-          {/* Направление (Стрелка) */}
+          {/* Direction arrow (expense ↓ / income ↑) */}
           <div className="flex flex-col items-center justify-center">
             <div className="p-2 rounded-full bg-background border border-border shadow-sm">
               <ArrowRight
@@ -137,7 +138,7 @@ export function TransactionPreview({
             </span>
           </div>
 
-          {/* Блок категории */}
+          {/* Destination category block */}
           <div className="flex flex-col items-center space-y-2 flex-1">
             <motion.div
               className="size-16 rounded-xl flex items-center justify-center border-2 bg-background border-accent/40 shadow-sm"
@@ -151,7 +152,7 @@ export function TransactionPreview({
           </div>
         </div>
 
-        {/* Прогноз баланса */}
+        {/* Balance forecast: shows current vs projected balance */}
         <AnimatePresence mode="wait">
           {isShowForecast && (
             <motion.div

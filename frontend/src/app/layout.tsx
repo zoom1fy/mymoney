@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   }
 }
 
+// suppressHydrationWarning needed because next-themes injects a class on <html> before hydration
 export default function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {

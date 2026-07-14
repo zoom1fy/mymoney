@@ -38,7 +38,7 @@ export function CategoriesPanel({
               onChange={onExpenseChange}
             />
           </div>
-          {/* Кнопка архива */}
+          {/* Archive / edit mode buttons */}
           <ArchiveModal isExpense={isExpense} />
           <EditModeButton
             active={editMode}

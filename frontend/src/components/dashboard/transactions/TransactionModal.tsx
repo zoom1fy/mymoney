@@ -80,6 +80,7 @@ function normalizeDate(date: Date) {
   return d
 }
 
+// Form is disabled when editing a transaction on a deleted account (no edits allowed)
 export function TransactionModal({
   mode = 'create',
   transaction,
@@ -136,10 +137,10 @@ export function TransactionModal({
     }
   }, [isEdit, transaction, reset])
 
-  // Смотрим id из формы
+  // Watch the selected account ID from form
   const accountId = watch('accountId')
 
-  // Если локально не нашли — делаем запрос findOne
+  // Fallback: fetch account individually if not in local list (e.g. deleted account in edit mode)
   const { data: remoteAccount } = useAccountById(
     accountId && !accounts.find(a => a.id === Number(accountId))
       ? Number(accountId)
@@ -154,11 +155,11 @@ export function TransactionModal({
     return local || remoteAccount || undefined
   }, [accounts, accountsLoading, accountId, remoteAccount])
 
-  // Проверяем, заблокирована ли форма (только для редактирования и если счёт удалён)
+  // Block form editing when the account was deleted
   const isFormDisabled = isEdit && selectedAccount?.isDeleted === true
 
   const onSubmit = async (data: ITransactionForm) => {
-    // Дополнительная защита от отправки формы с удалённым счётом
+    // Prevent submit if account is deleted
     if (isFormDisabled) return
 
     const payload = {
@@ -251,13 +252,13 @@ export function TransactionModal({
             amount={watch('amount')}
             category={category}
             date={watch('date')}
-            isEditMode={isEdit} // Передаём флаг режима редактирования
+            isEditMode={isEdit}
             isExpense={isExpense}
-            originalTransaction={transaction} // Передаём исходную транзакцию
+            originalTransaction={transaction}
             selectedAccount={selectedAccount}
           />
 
-          {/* Показываем предупреждение, если счёт удалён */}
+          {/* Warning banner when editing a transaction on a deleted account */}
           {isFormDisabled && (
             <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
               <p className="text-center font-medium">
@@ -271,7 +272,7 @@ export function TransactionModal({
             onSubmit={handleSubmit(onSubmit)}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-              {/* Левая колонка */}
+              {/* Left column: amount + account */}
               <div className="space-y-8">
                 <div className={CONTAINER_CLASSES}>
                   <Label className="text-lg font-medium ml-1">Сумма</Label>
@@ -375,7 +376,7 @@ export function TransactionModal({
                 </div>
               </div>
 
-              {/* Правая колонка */}
+              {/* Right column: date + description */}
               <div className="space-y-8">
                 <div className={CONTAINER_CLASSES}>
                   <Label className="text-lg font-medium ml-1 flex items-center gap-2">

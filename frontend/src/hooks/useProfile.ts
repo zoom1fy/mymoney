@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
+// Profile rarely changes (cached 5 min) and never retries — if token is bad just redirect
 export function useProfile() {
   const queryClient = useQueryClient()
   const router = useRouter()
@@ -14,19 +15,18 @@ export function useProfile() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: () => userService.getProfile(),
-    staleTime: 1000 * 60 * 5, // 5 минут
+    staleTime: 1000 * 60 * 5,
     retry: false
   })
 
+  // On logout: wipe all query cache, remove token, redirect to /auth
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: async () => {
-      // Очищаем все кэши react-query
       await queryClient.clear()
 
       toast.success('Вы вышли из системы')
 
-      // Перенаправляем на страницу входа
       router.push('/auth')
       router.refresh()
     },
@@ -35,7 +35,6 @@ export function useProfile() {
       const message = err.response?.data?.message || 'Ошибка при выходе'
       toast.error(message)
 
-      // Даже если ошибка, попробуем очистить токен и выкинуть пользователя
       removeTokenStorage()
       router.push('/auth')
     }

@@ -43,11 +43,11 @@ export function CategoryGrid({
       <div className="h-[560px] overflow-y-auto pr-2 pt-1">
         <div className="grid grid-cols-3 gap-6">
           {loading
-            ? // Скелетоны вместо категорий
+            ? // Loading state: show skeleton placeholders
               Array.from({ length: skeletonCount }).map((_, index) => (
                 <CategoryItemSkeleton key={`skeleton-${index}`} />
               ))
-            : // Реальные категории
+            : // Actual categories
               rootCategories.map(cat => {
                 const info = dataMap.get(cat.id) || {
                   amount: 0,
@@ -73,7 +73,7 @@ export function CategoryGrid({
                 )
               })}
 
-          {/* Кнопка "Добавить" показываем ТОЛЬКО когда НЕ загружаемся */}
+          {/* Add button shown only after data has loaded */}
           {!loading && (
             <CategoryModal
               isExpense={isExpense}

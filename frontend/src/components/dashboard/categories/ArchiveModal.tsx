@@ -40,7 +40,7 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
   const { archived, unarchiveCategory, isUnarchiving } =
     useCategories(isExpense)
 
-  // Фильтрация и сортировка категорий
+  // Memoised filter + sort: tab → search → alphabetical
   const filteredCategories = useMemo(() => {
     let filtered = archived.filter(cat =>
       activeTab === 'expense' ? cat.isExpense : !cat.isExpense
@@ -51,7 +51,6 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
       filtered = filtered.filter(cat => cat.name.toLowerCase().includes(query))
     }
 
-    // Сортируем по названию
     return filtered.sort((a, b) => a.name.localeCompare(b.name))
   }, [archived, activeTab, searchQuery])
 
@@ -73,7 +72,7 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
     setSearchQuery('')
   }
 
-  // Подсчёт количества категорий по типам
+  // Tab badge counts
   const { expenseCount, incomeCount } = useMemo(
     () => ({
       expenseCount: archived.filter(cat => cat.isExpense).length,
@@ -84,7 +83,7 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
 
   return (
     <>
-      {/* Кнопка открытия архива */}
+      {/* Archive trigger button */}
       <button
         className={cn(
           'size-10 rounded-full border flex items-center justify-center transition-all cursor-pointer hover:bg-muted',
@@ -98,7 +97,7 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
         <Archive className="size-5" />
       </button>
 
-      {/* Модалка архива */}
+      {/* Archived categories dialog with tabbed search & unarchive */}
       <Dialog
         open={open}
         onOpenChange={setOpen}
@@ -134,7 +133,7 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
               )}
             </div>
 
-            {/* Табы для переключения между расходами и доходами */}
+            {/* Switch between expense / income archived categories */}
             <Tabs
               className="mt-6 flex-1 min-h-0 flex flex-col"
               value={activeTab}
@@ -185,7 +184,7 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Подтверждение восстановления */}
+      {/* Confirm before restoring a category from archive */}
       <ConfirmAlert
         cancelText="Отмена"
         confirmText="Восстановить"
@@ -205,7 +204,7 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
   )
 }
 
-// Упрощённый компонент для списка категорий
+// Renders archived category list or empty state
 interface CategoriesListProps {
   categories: ICategory[]
   onUnarchive: (category: ICategory) => void

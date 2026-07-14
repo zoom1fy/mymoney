@@ -7,6 +7,7 @@ import {
   TransactionType
 } from '../types/transaction.types'
 
+// API sends amount as string and type as string; normalise to number/enum on every read
 export const transactionService = {
   async create(data: ICreateTransaction) {
     const response = await axiosWithAuth.post<ITransaction>(
@@ -86,16 +87,16 @@ export const transactionService = {
   }
 }
 
-// Вспомогательная функция для преобразования строки в TransactionType
+// API returns transaction type as string; map to enum for consistent frontend usage
 function mapTransactionType(type: string | number): TransactionType {
   switch (type) {
     case 'INCOME':
-      return TransactionType.INCOME // 1
+      return TransactionType.INCOME
     case 'EXPENSE':
-      return TransactionType.EXPENSE // 2
+      return TransactionType.EXPENSE
     case 'TRANSFER':
-      return TransactionType.TRANSFER // 3
+      return TransactionType.TRANSFER
     default:
-      return type as TransactionType // Если уже число, возвращаем как есть
+      return type as TransactionType
   }
 }

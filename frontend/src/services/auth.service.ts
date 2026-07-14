@@ -4,6 +4,7 @@ import { IAuthForm, IAuthResponse } from '@/types/auth.types'
 
 import { removeTokenStorage, saveTokenStorage } from './auth-token.service'
 
+// Persist access token in a client-accessible cookie after any auth action that returns one
 export const authService = {
   async login(data: IAuthForm) {
     const response = await axiosClassic.post<IAuthResponse>(
@@ -37,6 +38,7 @@ export const authService = {
     })
   },
 
+  // Request a new access token using the httpOnly refresh cookie (sent automatically withCredentials)
   async getNewTokens() {
     const response = await axiosClassic.post<IAuthResponse>(
       '/auth/login/access-token'

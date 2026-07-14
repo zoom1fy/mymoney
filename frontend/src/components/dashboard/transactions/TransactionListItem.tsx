@@ -19,7 +19,7 @@ export function TransactionItem({ transaction: tx, category, onEdit }: Props) {
       onClick={onEdit}
     >
       <div className="p-4 hover:bg-accent/50 transition-colors touch-manipulation">
-        {/* Мобильный вид */}
+        {/* Mobile layout */}
         <div className="sm:hidden flex flex-col gap-2">
           <div className="flex justify-between items-start">
             <div className="flex-1 pr-3">
@@ -52,7 +52,7 @@ export function TransactionItem({ transaction: tx, category, onEdit }: Props) {
           </div>
         </div>
 
-        {/* Десктопный вид */}
+        {/* Desktop grid layout */}
         <div className="hidden sm:grid sm:grid-cols-12 sm:gap-4 sm:items-center">
           <div className="col-span-5">
             <p className="font-medium truncate">

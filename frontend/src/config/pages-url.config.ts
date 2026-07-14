@@ -1,3 +1,4 @@
+// Class pattern reuses the /me prefix so all dashboard routes stay under the same base
 class DASHBOARD {
   private root = '/me'
 

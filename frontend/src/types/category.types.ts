@@ -1,4 +1,3 @@
-// category.types.ts
 import {
   Airplay,
   Anchor,
@@ -71,9 +70,7 @@ import {
 import { CurrencyCode } from './account.types'
 import { IBase } from './root.types'
 
-/**
- * Интерфейс создания категории (фронт → бэк)
- */
+// Payload sent to POST /api/category
 export interface ICreateCategory {
   name: string
   currencyCode: CurrencyCode
@@ -83,87 +80,81 @@ export interface ICreateCategory {
   color: string
 }
 
-/**
- * Полная категория (бэк → фронт)
- */
+// Full category returned from the API
 export interface ICategory extends ICreateCategory, IBase {
   isArchived: boolean
 }
 
-/**
- * Интерфейс обновления категории (частичное обновление)
- */
+// Partial update — only changed fields are sent to PATCH /api/category/:id
 export type IUpdateCategory = Partial<ICreateCategory>
 
-/**
- * Расширенный объект с иконками категорий
- */
+// Icon lookup for the category picker UI — name → Lucide component
 export const CategoryIcons: Record<string, LucideIcon> = {
-  ShoppingCart, // 🛒 Покупки
-  Utensils, // 🍴 Еда
-  Car, // 🚗 Транспорт
-  Gamepad, // 🎮 Развлечения
-  Circle, // ⭕ Другое
-  Heart, // ❤️ Здоровье / любовь
-  Gift, // 🎁 Подарки
-  Home, // 🏠 Дом
-  Star, // ⭐ Разное / важное
-  Coffee, // ☕ Напитки
-  Beer, // 🍺 Алкоголь / бар
-  Book, // 📚 Образование / книги
-  Camera, // 📷 Фото / техника
-  Film, // 🎬 Кино / медиа
-  Music, // 🎵 Музыка
-  Paintbrush, // 🎨 Искусство / хобби
-  Truck, // 🚚 Логистика / доставка
-  Bus, // 🚌 Транспорт
-  Airplay, // 📡 Техника / гаджеты
-  Anchor, // ⚓ Путешествия
-  Leaf, // 🍃 Экология / природа
-  Globe, // 🌍 Путешествия / глобальные расходы
-  Sun, // ☀️ Отдых / лето
-  Moon, // 🌙 Ночь / развлечения
-  Cloud, // ☁️ Хобби / интернет
-  Zap, // ⚡ Электричество / техника
-  Shield, // 🛡 Страховки / безопасность
-  Key, // 🔑 Личные вещи
-  Lock, // 🔒 Безопасность
-  Mail, // 📧 Коммуникации
-  Phone, // 📱 Связь
-  Wallet, // 👛 Кошелёк
-  CreditCard, // 💳 Карта
-  PiggyBank, // 🏦 Сбережения
-  Briefcase, // 💼 Работа / бизнес
-  Calendar, // 📅 Планирование / события
-  DollarSign, // 💲 Финансы / доходы
-  FileText, // 📄 Документы
-  Headphones, // 🎧 Музыка / аудио
-  Hotel, // 🏨 Проживание / отель
-  Lightbulb, // 💡 Идеи / инновации
-  MapPin, // 📍 Местоположение / карты
-  Monitor, // 🖥 Работа / компьютеры
-  PieChart, // 📊 Аналитика / отчеты
-  Plane, // ✈️ Путешествия
-  Printer, // 🖨 Офис / печать
-  ShoppingBag, // 🛍 Шопинг
-  Smartphone, // 📱 Технологии / связь
-  TrendingUp, // 📈 Инвестиции / рост
-  Umbrella, // ☔ Страхование / защита
-  Users, // 👥 Социальные / встречи
-  Video, // 📹 Видео / мультимедиа
-  Watch, // ⌚ Время / часы
-  Wifi, // 📶 Интернет / связь
-  BarChart, // 📊 Статистика / данные
-  BookOpen, // 📖 Обучение / книги
-  Calculator, // 🧮 Расчеты / финансы
-  Carrot, // 🥕 Питание / здоровье
-  Clock, // ⏰ Время / планирование
-  Dumbbell, // 🏋️‍♂️ Спорт / фитнес
-  Hamburger, // 🍔 Быстрое питание
-  GraduationCap, // 🎓 Образование
-  HeartPulse, // 💓 Здоровье
-  Hospital, // 🏥 Медицина
-  Laptop // 💻 Техника / работа
+  ShoppingCart,
+  Utensils,
+  Car,
+  Gamepad,
+  Circle,
+  Heart,
+  Gift,
+  Home,
+  Star,
+  Coffee,
+  Beer,
+  Book,
+  Camera,
+  Film,
+  Music,
+  Paintbrush,
+  Truck,
+  Bus,
+  Airplay,
+  Anchor,
+  Leaf,
+  Globe,
+  Sun,
+  Moon,
+  Cloud,
+  Zap,
+  Shield,
+  Key,
+  Lock,
+  Mail,
+  Phone,
+  Wallet,
+  CreditCard,
+  PiggyBank,
+  Briefcase,
+  Calendar,
+  DollarSign,
+  FileText,
+  Headphones,
+  Hotel,
+  Lightbulb,
+  MapPin,
+  Monitor,
+  PieChart,
+  Plane,
+  Printer,
+  ShoppingBag,
+  Smartphone,
+  TrendingUp,
+  Umbrella,
+  Users,
+  Video,
+  Watch,
+  Wifi,
+  BarChart,
+  BookOpen,
+  Calculator,
+  Carrot,
+  Clock,
+  Dumbbell,
+  Hamburger,
+  GraduationCap,
+  HeartPulse,
+  Hospital,
+  Laptop
 }
 
 export type CategoryIconName = keyof typeof CategoryIcons

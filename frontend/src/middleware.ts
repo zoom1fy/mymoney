@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { EnumTokens } from './services/auth-token.service'
 
+// Redirect unauthenticated users to /auth and authenticated users away from /auth
 export async function middleware(request: NextRequest) {
   const { url, cookies } = request
 
@@ -23,6 +24,7 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
+// Only run on protected (/me) and public-auth (/auth) routes — not every page
 export const config = {
   matcher: ['/me/:path*', '/auth/:path*']
 }

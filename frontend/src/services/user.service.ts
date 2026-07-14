@@ -22,7 +22,6 @@ export const userService = {
   },
 
   async deleteUser(id: string) {
-    // если на бэке будет DELETE /user/:id
     const response = await axiosWithAuth.delete<void>(`/user/${id}`)
     return response.data
   }

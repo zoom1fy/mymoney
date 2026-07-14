@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/shadui/dialog'
 import { Input } from '@/components/ui/shadui/input'
 
-// Импорт нового компонента
 
 import { ICategory } from '@/types/category.types'
 import { ITransaction, TransactionType } from '@/types/transaction.types'
@@ -61,6 +60,7 @@ export function TransactionsListModal({
   const [showFilters, setShowFilters] = useState(false)
   const [editingTx, setEditingTx] = useState<ITransaction | null>(null)
 
+  // Debounce search input by 350ms before filtering to avoid UI lag
   const updateDebounced = useMemo(
     () =>
       debounce((val: string) => {
@@ -70,6 +70,7 @@ export function TransactionsListModal({
     []
   )
 
+  // Reset all filters when dialog opens; cancel debounce on unmount
   useEffect(() => {
     if (open) {
       setSearch('')
@@ -203,7 +204,7 @@ export function TransactionsListModal({
             )}
           </AnimatePresence>
 
-          {/* Список и пагинация остаются без изменений */}
+          {/* Column headers (desktop only) */}
           <div className="hidden sm:grid grid-cols-12 gap-4 mb-2 px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">
             <div className="col-span-5">Описание / Категория</div>
             <div className="col-span-3">Дата</div>
@@ -229,7 +230,7 @@ export function TransactionsListModal({
             )}
           </div>
 
-          {/* Пагинация упрощена для краткости примера */}
+          {/* Pagination with windowed page buttons */}
           {totalPages > 1 && (
             <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
               <p>
@@ -259,7 +260,7 @@ export function TransactionsListModal({
           )}
         </GlassCard>
 
-        {/* Модалка редактирования — одна на весь список */}
+        {/* Single edit modal reused for any selected transaction */}
         {categoryForEditing && (
           <TransactionModal
             category={categoryForEditing}

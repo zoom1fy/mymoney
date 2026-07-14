@@ -1,12 +1,11 @@
 'use client'
 
 import { Archive, Trash2, X } from 'lucide-react'
-// Добавлен Archive
 import { ReactNode } from 'react'
 
 import { Button } from '@/components/ui/shadui/button'
 
-// Тип для действия: удаление или архивация
+// Determines whether the action button shows Archive or Trash icon
 type ActionType = 'delete' | 'archive'
 
 interface ModalHeaderProps {
@@ -27,10 +26,10 @@ export function ModalHeader({
   onDelete,
   isDeleteLoading = false,
   showDelete = false,
-  actionType = 'delete', // По умолчанию — удаление
+  actionType = 'delete',
   deleteIcon
 }: ModalHeaderProps) {
-  // Определяем иконку по actionType или используем кастомную
+  // Pick icon based on action type (archive icon vs trash icon)
   const defaultDeleteIcon =
     actionType === 'archive' ? (
       <Archive className="size-5" />
@@ -40,7 +39,7 @@ export function ModalHeader({
 
   return (
     <div className="relative">
-      {/* Градиентный фон */}
+      {/* Decorative gradient blobs */}
       <div className="absolute -top-10 -left-10 w-32 h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-full blur-2xl" />
       <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-l from-primary/20 via-primary/10 to-transparent rounded-full blur-2xl" />
 
@@ -60,9 +59,9 @@ export function ModalHeader({
           </div>
         </div>
 
-        {/* Правая группа кнопок */}
+        {/* Right-side action buttons */}
         <div className="flex items-center gap-2">
-          {/* Кнопка удаления/архивации */}
+          {/* Archive / Delete action button */}
           {showDelete && onDelete && (
             <Button
               className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 h-12 w-12 rounded-full hover:scale-110 transition-all duration-300"
@@ -72,12 +71,11 @@ export function ModalHeader({
               variant="ghost"
               onClick={onDelete}
             >
-              {deleteIcon || defaultDeleteIcon}{' '}
-              {/* Используем кастомную иконку или дефолтную */}
+              {deleteIcon || defaultDeleteIcon}
             </Button>
           )}
 
-          {/* Кнопка закрытия */}
+          {/* Close button */}
           <Button
             className="rounded-full hover:bg-muted/50 transition-all duration-300 hover:scale-110 cursor-pointer h-12 w-12"
             size="icon"

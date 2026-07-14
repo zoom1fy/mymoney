@@ -18,7 +18,7 @@ export function AccentButton({
       className={cn(
         'rounded-full bg-accent text-accent-foreground font-medium cursor-pointer',
         'hover:bg-accent/90 transition-all',
-        // Разные размеры — чтобы было удобно использовать
+        // Semantic sizes that map cleanly to the design system
         size === 'lg' && 'h-12 px-10 text-xl',
         size === 'default' && 'h-11 px-8',
         size === 'sm' && 'h-10 px-6 text-sm',

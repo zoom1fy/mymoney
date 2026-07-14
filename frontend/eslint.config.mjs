@@ -10,7 +10,7 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  // Глобальные игноры
+  // Paths ESLint should never check (build output, vendored assets)
   {
     ignores: [
       '.next/**',
@@ -20,17 +20,16 @@ const eslintConfig = [
       'public/**',
     ],
   },
-  
-  // Основная конфигурация Next.js
+
+  // Next.js recommended rules including React hooks and accessibility
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  
-  // Правила для production кода
+
+  // Strict rules for production source code only (excludes test files)
   {
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['**/*.spec.*', '**/*.test.*', '**/__tests__/**'],
     rules: {
-      // Строгие правила для основного кода
-      '@typescript-eslint/no-unused-vars': ['error', { 
+      '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
       }],
@@ -41,8 +40,8 @@ const eslintConfig = [
       }],
     },
   },
-  
-  // Мягкие правила для тестов
+
+  // Relaxed rules for test files where mocks and any types are unavoidable
   {
     files: ['**/*.spec.*', '**/*.test.*', '**/__tests__/**'],
     rules: {

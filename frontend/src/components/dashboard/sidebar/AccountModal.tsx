@@ -70,6 +70,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
 
+  // Delete account via mutation (toast handled by useAccounts hook)
   const handleDelete = async () => {
     if (!account) return
 
@@ -78,7 +79,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
       setConfirmOpen(false)
       setOpen(false)
     } catch {
-      // toast уже есть
+      // toast handled by useAccounts hook
     }
   }
 
@@ -123,10 +124,11 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
       setOpen(false)
       reset()
     } catch {
-      // toast показывается в useAccounts
+      // toast handled by useAccounts hook
     }
   }
 
+  // Guard close with unsaved-changes confirmation
   const attemptClose = () => {
     if (isDirty) {
       setCloseConfirmOpen(true)
@@ -192,7 +194,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
             className="space-y-6"
             onSubmit={handleSubmit(onSubmit)}
           >
-            {/* Название и баланс */}
+            {/* Name + balance row */}
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-4">
                 <div className={CONTAINER_CLASSES}>
@@ -242,7 +244,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               </div>
             </div>
 
-            {/* Категория / Тип / Валюта */}
+            {/* Category / Type / Currency selects */}
             <div className="grid gap-8 md:grid-cols-3">
               <div className={CONTAINER_CLASSES}>
                 <Select
@@ -315,7 +317,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               </div>
             </div>
 
-            {/* Иконки */}
+            {/* Icon selector grid */}
             <ScrollArea className="h-64 rounded-xl border bg-background/50">
               <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-4 p-4">
                 {iconOptions.map(icon => {
@@ -341,7 +343,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               </div>
             </ScrollArea>
 
-            {/* Кнопки */}
+            {/* Submit / Cancel buttons */}
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
               <AccentButton
                 className="h-14 sm:flex-1"

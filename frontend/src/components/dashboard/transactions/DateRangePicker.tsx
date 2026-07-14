@@ -46,6 +46,7 @@ function getPresetFromRange(from: Dayjs, to: Dayjs): PresetKey | null {
   return null
 }
 
+// Preset-based date picker with dayjs; detects which preset matches the current range for highlight
 export function DateRangePicker({ value, onChange }: Props) {
   const fromD = dayjs(value.from)
   const toD = dayjs(value.to)
@@ -79,6 +80,7 @@ export function DateRangePicker({ value, onChange }: Props) {
     onChange({ from: from.toDate(), to: to.toDate() })
   }
 
+  // Move the range forward/backward by one preset unit
   const shiftRange = (dir: number) => {
     const preset = currentPreset ?? 'month'
     const newBase = fromD.add(dir, preset)

@@ -99,14 +99,14 @@ export function CategoryModal({
     }
   })
 
-  // Открыть модалку при редактировании
+  // Auto-open the dialog when editing (trigger-less mode)
   useEffect(() => {
     if (isEdit && category) {
       setOpen(true)
     }
   }, [isEdit, category])
 
-  // Инициализация формы при открытии
+  // Populate form fields when dialog opens (edit → prefill, create → defaults)
   useEffect(() => {
     if (!open) return
 

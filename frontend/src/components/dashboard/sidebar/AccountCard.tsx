@@ -37,8 +37,7 @@ export function AccountCard({ account }: Props) {
             isActive && 'border-accent/50 bg-card/60 ring-1 ring-accent/30'
           )}
         >
-          {/* градиент */}
-          <div
+          {/* Hover gradient overlay */}
             className={cn(
               'absolute inset-0 opacity-0 transition-opacity duration-700',
               'bg-gradient-to-br from-accent/5 via-transparent to-transparent',
@@ -47,8 +46,7 @@ export function AccountCard({ account }: Props) {
             )}
           />
 
-          {/* sweep */}
-          <div
+          {/* Light sweep animation on hover */}
             className="pointer-events-none absolute inset-0 opacity-0 hover:opacity-100 transition duration-700"
             style={{
               background:
@@ -92,6 +90,7 @@ export function AccountCard({ account }: Props) {
               </div>
             </div>
 
+            {/* Active indicator dot */}
             {isActive && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2 size-1.5 rounded-full bg-accent/80" />
             )}

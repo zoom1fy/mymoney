@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+// Matches Tailwind md breakpoint: anything below 768px is mobile
 const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {

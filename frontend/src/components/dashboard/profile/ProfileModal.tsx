@@ -35,6 +35,7 @@ interface Props {
   onOpenChange: (open: boolean) => void
 }
 
+// Only sends fields that actually changed (email, password) + always sends currentPassword
 export function ProfileModal({ open, onOpenChange }: Props) {
   const { profile, updateProfile, isUpdatingProfile } = useProfile()
 
@@ -50,6 +51,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
     mode: 'onChange'
   })
 
+  // Prefill form with current profile data on open
   useEffect(() => {
     if (open && profile) {
       reset({
@@ -61,6 +63,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
     }
   }, [open, profile, reset])
 
+  // Warn before closing with unsaved changes
   const attemptClose = () => {
     if (isDirty) {
       setCloseConfirmOpen(true)

@@ -23,6 +23,7 @@ export function DashboardHeader() {
   const { profile, logout, isLoggingOut } = useProfile()
   const [profileOpen, setProfileOpen] = useState(false)
 
+  // Generate avatar fallback from name or first two email chars
   const getInitials = () => {
     if (profile?.name) {
       return profile.name

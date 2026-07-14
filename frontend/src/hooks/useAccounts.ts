@@ -6,17 +6,18 @@ import { toast } from 'sonner'
 
 import { IAccount, ICreateAccount, IUpdateAccount } from '@/types/account.types'
 
+// API sends currentBalance as string; normalise to number on read + optimistic updates kept in sync
 export function useAccounts() {
   const queryClient = useQueryClient()
 
   const { data: accounts = [], isLoading } = useQuery({
     queryKey: ['accounts'],
     queryFn: () => accountService.getAll(),
-    staleTime: 1000 * 60, // 1 минута
+    staleTime: 1000 * 60,
     select: data =>
       data.map(acc => ({
         ...acc,
-        currentBalance: Number(acc.currentBalance) // Парсим в число
+        currentBalance: Number(acc.currentBalance)
       }))
   })
 
@@ -31,6 +32,7 @@ export function useAccounts() {
       })
     })
 
+  // Optimistic create: insert temp account instantly, swap with server response on success
   const createMutation = useMutation({
     mutationFn: (data: ICreateAccount) => accountService.create(data),
 
@@ -80,7 +82,7 @@ export function useAccounts() {
             ? {
                 ...acc,
                 ...newAccount,
-                currentBalance: Number(newAccount.currentBalance) // Парсим в число
+                currentBalance: Number(newAccount.currentBalance)
               }
             : acc
         )
@@ -99,7 +101,7 @@ export function useAccounts() {
             ? {
                 ...acc,
                 ...updatedAccount,
-                currentBalance: Number(updatedAccount.currentBalance) // Парсим в число
+                currentBalance: Number(updatedAccount.currentBalance)
               }
             : acc
         )

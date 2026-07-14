@@ -18,7 +18,7 @@ export function CategoryToggle({ isExpense, onChange }: Props) {
       )}
       onClick={() => onChange(!isExpense)}
     >
-      {/* БЕГУНОК */}
+      {/* Animated slider that follows active state */}
       <div
         className={cn(
           'absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full',
@@ -32,7 +32,7 @@ export function CategoryToggle({ isExpense, onChange }: Props) {
         }}
       />
 
-      {/* Текст: Доходы */}
+      {/* Income label */}
       <div className="relative z-10 flex-1 flex items-center justify-center">
         <span
           className={cn(
@@ -44,7 +44,7 @@ export function CategoryToggle({ isExpense, onChange }: Props) {
         </span>
       </div>
 
-      {/* Текст: Расходы */}
+      {/* Expense label */}
       <div className="relative z-10 flex-1 flex items-center justify-center">
         <span
           className={cn(

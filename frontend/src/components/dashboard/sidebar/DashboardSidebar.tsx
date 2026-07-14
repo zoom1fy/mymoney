@@ -33,7 +33,7 @@ export function DashboardSidebar() {
     AccountCategoryEnum.SAVINGS
   ]
 
-  // Группировка по категориям
+  // Group accounts by their category (accounts / savings)
   const groupedAccounts = accounts.reduce<
     Record<AccountCategoryEnum, IAccount[]>
   >(

@@ -6,24 +6,25 @@ import { toast } from 'sonner'
 
 import { ICategory, ICreateCategory } from '@/types/category.types'
 
+// Active + archived are fetched separately so the UI can show/hide archived categories
 export function useCategories(isExpense: boolean) {
   const queryClient = useQueryClient()
 
-  /** Активные категории */
+  /** Active categories (visible in dropdowns and panel) */
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ['categories', isExpense],
     queryFn: () => categoryService.getAll(),
     staleTime: 1000 * 60
   })
 
-  /** Архивные категории */
+  /** Soft-deleted categories available for unarchive */
   const { data: archived = [] } = useQuery({
     queryKey: ['categories_archived'],
     queryFn: () => categoryService.getArchived(),
     staleTime: 1000 * 60
   })
 
-  /** Создание */
+  /** Create a new category and add it to the active list optimistically */
   const createMutation = useMutation({
     mutationFn: (data: ICreateCategory) => categoryService.create(data),
     onSuccess: newCategory => {
@@ -40,7 +41,7 @@ export function useCategories(isExpense: boolean) {
     }
   })
 
-  /** Обновление */
+  /** Update category in-place without refetch */
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: ICreateCategory }) =>
       categoryService.update(id, data),
@@ -57,15 +58,13 @@ export function useCategories(isExpense: boolean) {
     }
   })
 
-  /** Архивация */
+  /** Archive: remove from active list and refresh the archived list */
   const deleteMutation = useMutation({
     mutationFn: (id: number) => categoryService.delete(id),
     onSuccess: (_, id) => {
-      // удаляем из активных
       queryClient.setQueryData<ICategory[]>(['categories', isExpense], old =>
         (old ?? []).filter(c => c.id !== id)
       )
-      // обновляем список архивных
       queryClient.invalidateQueries({ queryKey: ['categories_archived'] })
 
       toast.success('Категория перемещена в архив')
@@ -77,16 +76,14 @@ export function useCategories(isExpense: boolean) {
     }
   })
 
-  /** Разархивация */
+  /** Unarchive: move from archived list back to active */
   const unarchiveMutation = useMutation({
     mutationFn: (id: number) => categoryService.unarchive(id),
     onSuccess: unarchived => {
-      // убрали из архива
       queryClient.setQueryData<ICategory[]>(['categories_archived'], old =>
         (old ?? []).filter(c => c.id !== unarchived.id)
       )
 
-      // вернули в активные
       queryClient.setQueryData<ICategory[]>(['categories', isExpense], old => [
         ...(old ?? []),
         unarchived

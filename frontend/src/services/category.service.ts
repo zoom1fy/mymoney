@@ -5,6 +5,7 @@ import {
   IUpdateCategory
 } from '../types/category.types'
 
+// Archived categories are hidden by default; unarchive to re-activate
 export const categoryService = {
   async create(data: ICreateCategory) {
     const response = await axiosWithAuth.post<ICategory>('/category', data)

@@ -43,7 +43,7 @@ export default function DashboardPage() {
   const loading = chartLoading || catLoading
   const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
 
-  // === Слушаем события от хедера ===
+  // Header fires 'open-transactions' to open the transaction list from anywhere
   useEffect(() => {
     const openTx = () => setShowTxList(true)
     window.addEventListener('open-transactions', openTx)

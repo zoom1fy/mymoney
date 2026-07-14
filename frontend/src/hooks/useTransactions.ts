@@ -18,6 +18,7 @@ import {
   TransactionType
 } from '@/types/transaction.types'
 
+// Non-infinite query for bounded period (donut chart, transaction list modal)
 export function useTransactionsForPeriod(from: Date, to: Date) {
   return useQuery<ITransaction[]>({
     queryKey: ['transactions-period', from.toISOString(), to.toISOString()],
@@ -26,6 +27,7 @@ export function useTransactionsForPeriod(from: Date, to: Date) {
   })
 }
 
+// Infinite-scroll transaction list with optimistic create (updates both tx list + account balance)
 export function useTransactions() {
   const queryClient = useQueryClient()
 
@@ -47,16 +49,14 @@ export function useTransactions() {
   const createMutation = useMutation({
     mutationFn: (data: ICreateTransaction) => transactionService.create(data),
     onMutate: async newTransactionData => {
-      // 1. Отменяем текущие запросы для избежания конфликтов
       await queryClient.cancelQueries({ queryKey: ['transactions'] })
       await queryClient.cancelQueries({ queryKey: ['accounts'] })
 
-      // 2. Сохраняем предыдущие данные для отката
       const previousTransactions = queryClient.getQueryData(['transactions'])
       const previousAccounts = queryClient.getQueryData(['accounts'])
 
-      // 3. ОПТИМИСТИЧНОЕ ОБНОВЛЕНИЕ ТРАНЗАКЦИЙ
-      const tempId = Date.now() // Временный ID
+      // Prepend optimistic transaction to the first (most recent) page
+      const tempId = Date.now()
       const optimisticTransaction: ITransaction = {
         ...newTransactionData,
         id: tempId,
@@ -86,7 +86,7 @@ export function useTransactions() {
         }
       )
 
-      // 4. ОПТИМИСТИЧНОЕ ОБНОВЛЕНИЕ БАЛАНСА СЧЕТА
+      // Optimistically adjust the affected account's balance
       queryClient.setQueryData(['accounts'], (old: IAccount[] = []) =>
         old.map(acc => {
           if (acc.id === newTransactionData.accountId) {
@@ -104,7 +104,6 @@ export function useTransactions() {
         })
       )
 
-      // Возвращаем контекст для возможного отката
       return {
         previousTransactions,
         previousAccounts,
@@ -112,7 +111,6 @@ export function useTransactions() {
       }
     },
     onError: (error: Error, _variables, context) => {
-      // ОТКАТ при ошибке
       if (context?.previousTransactions) {
         queryClient.setQueryData(['transactions'], context.previousTransactions)
       }
@@ -164,7 +162,7 @@ export function useTransactions() {
       toast.success('Транзакция успешно добавлена')
     },
     onSettled: () => {
-      // Дополнительная гарантия актуальности
+      // Also refresh stale period queries in the background after any transaction mutation
       queryClient.invalidateQueries({
         predicate: query => {
           const queryKey = query.queryKey[0]

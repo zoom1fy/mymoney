@@ -281,6 +281,8 @@ function VerifyScreen({
   )
 }
 
+// Pending email means user just registered and must verify before proceeding
+// cooldown controls the resend-code button countdown
 export function Auth() {
   const [type, setType] = useState<AuthType>('register')
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
@@ -382,6 +384,7 @@ export function Auth() {
 
   return (
     <div className="relative min-h-screen overflow-hidden text-foreground">
+      {/* Animated background blobs */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[1000px] w-[1000px] rounded-full bg-accent/20 blur-3xl animate-pulse-slow" />
         <div className="absolute -left-48 top-0 h-[800px] w-[800px] rounded-full bg-accent/15 blur-3xl animate-float" />
@@ -391,6 +394,7 @@ export function Auth() {
 
       <div className="flex min-h-screen items-center justify-center px-6">
         <GlassCard className="w-full max-w-lg rounded-3xl border p-12 shadow-2xl backdrop-blur-xl overflow-hidden">
+          {/* AnimatePresence switches between the auth form and the verification screen */}
           <AnimatePresence mode="wait">
             {pendingEmail ? (
               <motion.div

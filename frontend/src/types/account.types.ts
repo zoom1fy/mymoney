@@ -57,7 +57,7 @@ export enum AccountTypeEnum {
   DEPOSIT = 5
 }
 
-// Объект с иконками вместо enum
+// Icon lookup for the account picker UI — name → Lucide component
 export const AccountIcons: Record<string, LucideIcon> = {
   BanknoteArrowDown,
   BanknoteArrowUp,
@@ -91,9 +91,7 @@ export const AccountIcons: Record<string, LucideIcon> = {
 
 export type AccountIconName = keyof typeof AccountIcons
 
-/**
- * Интерфейс создания аккаунта
- */
+// Payload sent to POST /api/accounts
 export interface ICreateAccount {
   name: string
   categoryId: AccountCategoryEnum
@@ -103,14 +101,10 @@ export interface ICreateAccount {
   currentBalance: number
 }
 
-/**
- * Полный аккаунт
- */
+// Full account returned from the API
 export interface IAccount extends IBase, ICreateAccount {
   isDeleted: boolean
 }
 
-/**
- * Интерфейс обновления аккаунта
- */
+// Partial update — only changed fields are sent to PATCH /api/accounts/:id
 export type IUpdateAccount = Partial<ICreateAccount>

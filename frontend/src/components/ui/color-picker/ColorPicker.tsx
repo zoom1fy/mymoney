@@ -41,11 +41,12 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
   const [open, setOpen] = useState(false)
   const [localColor, setLocalColor] = useState(value)
 
-  // Синхронизация при внешнем изменении (например, кнопка Shuffle в модалке)
+  // Sync local state when parent changes the value (e.g. shuffle button)
   useEffect(() => {
     setLocalColor(value)
   }, [value])
 
+  // Throttle live colour-picker changes to 100ms to reduce re-renders
   const throttledOnChange = useMemo(
     () => throttle((val: string) => onChange(val), 100),
     [onChange]

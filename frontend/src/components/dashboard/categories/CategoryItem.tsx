@@ -27,7 +27,8 @@ export function CategoryItem({
   color = 'hsl(var(--primary))'
 }: Props) {
   const IconComponent = CategoryIcons[icon]
-  const [isHovered, setIsHovered] = useState(false) // ✅ false вместо true
+  const [isHovered, setIsHovered] = useState(false)
+  // On hover the circle border/glow adopts the category's colour via hexWithAlpha
   const displayAmount = amount ?? 0
   const showErrorIcon = !IconComponent
 

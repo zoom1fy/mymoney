@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie'
 
+// Refresh token is httpOnly (server-set); access token is client-readable for Authorization header
 export const EnumTokens = {
   ACCESS_TOKEN: 'access_token',
   REFRESH_TOKEN: 'refresh_token'
@@ -14,7 +15,7 @@ export const saveTokenStorage = (accessToken: string) => {
   Cookies.set(EnumTokens.ACCESS_TOKEN, accessToken, {
     sameSite: 'lax',
     expires: 1,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // HTTPS-only in production
     path: '/'
   })
 }

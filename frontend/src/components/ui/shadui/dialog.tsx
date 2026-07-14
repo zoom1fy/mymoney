@@ -92,7 +92,7 @@ function DialogContent({
         data-slot="dialog-content"
         {...props}
       >
-        {/* Скрытый заголовок для доступности */}
+        {/* Hidden title for a11y — visual title is handled by ModalHeader */}
         <DialogPrimitive.Title className="sr-only">
           Диалоговое окно
         </DialogPrimitive.Title>

@@ -17,36 +17,29 @@ const options: CreateAxiosDefaults = {
 const axiosClassic = axios.create(options)
 const axiosWithAuth = axios.create(options)
 
-// Лог запросов
-axiosClassic.interceptors.request.use(config => {
-  return config
-})
-
-// Лог ответов
+// Log and handle API errors globally (rate limiting, network issues)
 axiosClassic.interceptors.response.use(
-  response => {
-    return response
-  },
+  response => response,
   error => {
     if (error.response) {
       if (error.response.status === 429) {
         toast.error('Слишком много запросов. Пожалуйста, подождите.')
       }
       console.error(
-        '❌ Server Error:',
+        'Server Error:',
         error.response.status,
         error.response.data
       )
     } else if (error.request) {
-      console.error('❌ No response received:', error.request)
+      console.error('No response received:', error.request)
     } else {
-      console.error('❌ Axios Error:', error.message)
+      console.error('Axios Error:', error.message)
     }
     throw error
   }
 )
 
-// Добавление токена в каждый запрос
+// Attach Bearer token from cookies to every authenticated request
 axiosWithAuth.interceptors.request.use(config => {
   const accessToken = getAccessToken()
 
@@ -57,6 +50,7 @@ axiosWithAuth.interceptors.request.use(config => {
   return config
 })
 
+// Auto-refresh access token on 401; retry the original request once
 axiosWithAuth.interceptors.response.use(
   config => config,
   async error => {

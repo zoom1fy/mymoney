@@ -8,6 +8,7 @@ export interface DonutItem {
   color: string
 }
 
+// Aggregates transaction amounts by category for a donut chart; filters by INCOME or EXPENSE
 export function buildDonutData(
   transactions: ITransaction[],
   type: TransactionType,
@@ -30,7 +31,7 @@ export function buildDonutData(
 
       const name = category?.name ?? 'Без категории'
 
-      // ❗ гарантия корректного цвета
+      // Fallback to gray when category lacks a valid hex color
       const color =
         category?.color && category.color.startsWith('#')
           ? category.color

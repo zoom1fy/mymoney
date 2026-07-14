@@ -35,7 +35,7 @@ export function TransactionFilters({
   return (
     <div className="space-y-4 pt-2">
       <div className="grid grid-cols-2 gap-4">
-        {/* Тип операции */}
+        {/* Transaction type filter */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
             Тип
@@ -55,7 +55,7 @@ export function TransactionFilters({
           </Select>
         </div>
 
-        {/* Категория */}
+        {/* Category filter */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
             Категория
@@ -84,7 +84,7 @@ export function TransactionFilters({
         </div>
       </div>
 
-      {/* Период */}
+      {/* Date range period */}
       <div className="space-y-1.5">
         <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2">
           <CalendarDays className="h-3 w-3" /> Период
