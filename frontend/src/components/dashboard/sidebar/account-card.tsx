@@ -3,7 +3,7 @@
 import { Wallet } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
-import { AccountIcons } from '@/types/account.type'
+import { accountIcons } from '@/types/account.type'
 import type { IAccount } from '@/types/account.type'
 
 import { formatCurrency } from '@/lib/format'
@@ -19,7 +19,7 @@ export function AccountCard({ account }: Props) {
   const pathname = usePathname()
   const isActive = pathname === `/dashboard/accounts/${account.id}`
 
-  const Icon = AccountIcons[account.icon || 'Wallet'] || Wallet
+  const Icon = accountIcons[account.icon || 'Wallet'] || Wallet
   const symbol =
     { RUB: '₽', USD: '$', EUR: '€', BTC: '₿' }[account.currencyCode] || '₽'
 

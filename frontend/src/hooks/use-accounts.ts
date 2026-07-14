@@ -67,9 +67,9 @@ export function useAccounts() {
           context.previousAccounts
         )
       }
-      const err = error as { response?: { data?: { message?: string } } }
+      const apiError = error as { response?: { data?: { message?: string } } }
       const message =
-        err.response?.data?.message ||
+        apiError.response?.data?.message ||
         error.message ||
         'Ошибка создания счёта'
       toast.error(message)
@@ -110,8 +110,8 @@ export function useAccounts() {
     },
 
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || error.message || 'Ошибка обновления'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || error.message || 'Ошибка обновления'
       toast.error(message)
     }
   })

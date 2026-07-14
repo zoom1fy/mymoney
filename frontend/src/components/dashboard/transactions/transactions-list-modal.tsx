@@ -34,7 +34,7 @@ const getCurrentMonthRange = () => {
 interface Props {
   transactions: ITransaction[]
   categories: ICategory[]
-  open: boolean
+  isOpen: boolean
   onClose: () => void
   range: { from: Date; to: Date }
   onRangeChange: (range: { from: Date; to: Date }) => void
@@ -44,7 +44,7 @@ interface Props {
 export function TransactionsListModal({
   transactions,
   categories,
-  open,
+  isOpen,
   onClose,
   range,
   onRangeChange,
@@ -57,14 +57,14 @@ export function TransactionsListModal({
   )
   const [filterCategory, setFilterCategory] = useState<number | 'all'>('all')
   const [currentPage, setCurrentPage] = useState(1)
-  const [showFilters, setShowFilters] = useState(false)
+  const [areFiltersVisible, setAreFiltersVisible] = useState(false)
   const [editingTx, setEditingTx] = useState<ITransaction | null>(null)
 
   // Debounce search input by 350ms before filtering to avoid UI lag
   const updateDebounced = useMemo(
     () =>
-      debounce((val: string) => {
-        setDebouncedSearch(val)
+      debounce((value: string) => {
+        setDebouncedSearch(value)
         setCurrentPage(1)
       }, 350),
     []
@@ -72,7 +72,7 @@ export function TransactionsListModal({
 
   // Reset all filters when dialog opens; cancel debounce on unmount
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       setSearch('')
       setDebouncedSearch('')
       setFilterType('all')
@@ -81,7 +81,7 @@ export function TransactionsListModal({
       setCurrentPage(1)
     }
     return () => updateDebounced.cancel()
-  }, [open, updateDebounced, onRangeChange])
+  }, [isOpen, updateDebounced, onRangeChange])
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
@@ -130,7 +130,7 @@ export function TransactionsListModal({
 
   return (
     <Dialog
-      open={open}
+      open={isOpen}
       onOpenChange={onClose}
     >
       <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto border-none bg-transparent shadow-none">
@@ -143,8 +143,8 @@ export function TransactionsListModal({
               <Button
                 className="relative flex items-center gap-2"
                 size="sm"
-                variant={showFilters ? 'secondary' : 'outline'}
-                onClick={() => setShowFilters(!showFilters)}
+                variant={areFiltersVisible ? 'secondary' : 'outline'}
+                onClick={() => setAreFiltersVisible(!areFiltersVisible)}
               >
                 <Filter className="h-4 w-4" />
                 Фильтры
@@ -152,7 +152,7 @@ export function TransactionsListModal({
                   <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background" />
                 )}
                 <motion.div
-                  animate={{ rotate: showFilters ? 180 : 0 }}
+                  animate={{ rotate: areFiltersVisible ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
                   <ChevronDown className="h-4 w-4" />
@@ -175,7 +175,7 @@ export function TransactionsListModal({
           </div>
 
           <AnimatePresence>
-            {showFilters && (
+            {areFiltersVisible && (
               <motion.div
                 animate={{ opacity: 1, height: 'auto' }}
                 className="overflow-hidden mb-6"
@@ -266,7 +266,7 @@ export function TransactionsListModal({
             category={categoryForEditing}
             isExpense={editingTx!.type === TransactionType.EXPENSE}
             mode="edit"
-            open={!!editingTx}
+            isOpen={!!editingTx}
             transaction={editingTx!}
             onOpenChange={isOpen => {
               if (!isOpen) setEditingTx(null)

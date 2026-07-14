@@ -14,7 +14,7 @@ interface ModalHeaderProps {
   onClose: () => void
   onDelete?: () => void
   isDeleteLoading?: boolean
-  showDelete?: boolean
+  isDeleteVisible?: boolean
   actionType?: ActionType
   deleteIcon?: ReactNode
 }
@@ -25,7 +25,7 @@ export function ModalHeader({
   onClose,
   onDelete,
   isDeleteLoading = false,
-  showDelete = false,
+  isDeleteVisible = false,
   actionType = 'delete',
   deleteIcon
 }: ModalHeaderProps) {
@@ -62,7 +62,7 @@ export function ModalHeader({
         {/* Right-side action buttons */}
         <div className="flex items-center gap-2">
           {/* Archive / Delete action button */}
-          {showDelete && onDelete && (
+          {isDeleteVisible && onDelete && (
             <Button
               className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 h-12 w-12 rounded-full hover:scale-110 transition-all duration-300"
               disabled={isDeleteLoading}

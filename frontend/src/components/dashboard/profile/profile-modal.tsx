@@ -27,19 +27,19 @@ interface IProfileForm {
   currentPassword: string
 }
 
-const FIELD_CLASSES =
+const fieldClasses =
   'h-14 w-full text-lg px-5 rounded-xl bg-background border-2'
 
 interface Props {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
 }
 
 // Only sends fields that actually changed (email, password) + always sends currentPassword
-export function ProfileModal({ open, onOpenChange }: Props) {
+export function ProfileModal({ isOpen, onOpenChange }: Props) {
   const { profile, updateProfile, isUpdatingProfile } = useProfile()
 
-  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
 
   const {
     register,
@@ -53,7 +53,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
 
   // Prefill form with current profile data on open
   useEffect(() => {
-    if (open && profile) {
+    if (isOpen && profile) {
       reset({
         email: profile.email || '',
         password: '',
@@ -61,19 +61,19 @@ export function ProfileModal({ open, onOpenChange }: Props) {
         currentPassword: ''
       })
     }
-  }, [open, profile, reset])
+    }, [isOpen, profile, reset])
 
   // Warn before closing with unsaved changes
   const attemptClose = () => {
     if (isDirty) {
-      setCloseConfirmOpen(true)
+      setIsCloseConfirmOpen(true)
       return
     }
     onOpenChange(false)
   }
 
   const confirmClose = () => {
-    setCloseConfirmOpen(false)
+    setIsCloseConfirmOpen(false)
     onOpenChange(false)
   }
 
@@ -105,7 +105,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog
-      open={open}
+      open={isOpen}
       onOpenChange={(newOpen) => {
         if (!newOpen) {
           attemptClose()
@@ -134,7 +134,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
             <div className="space-y-3">
               <Label className="text-lg font-medium">Email</Label>
               <Input
-                className={cn(FIELD_CLASSES)}
+                className={cn(fieldClasses)}
                 placeholder="you@example.com"
                 type="email"
                 {...register('email', {
@@ -155,7 +155,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
             <div className="space-y-3">
               <Label className="text-lg font-medium">Новый пароль</Label>
               <Input
-                className={cn(FIELD_CLASSES)}
+                className={cn(fieldClasses)}
                 placeholder="••••••••"
                 type="password"
                 {...register('password', {
@@ -177,7 +177,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
                 Повторите новый пароль
               </Label>
               <Input
-                className={cn(FIELD_CLASSES)}
+                className={cn(fieldClasses)}
                 placeholder="••••••••"
                 type="password"
                 {...register('confirmPassword', {
@@ -204,7 +204,7 @@ export function ProfileModal({ open, onOpenChange }: Props) {
                 </Label>
                 <Input
                   className={cn(
-                    FIELD_CLASSES,
+                    fieldClasses,
                     errors.currentPassword &&
                       'border-destructive focus-visible:border-destructive'
                   )}
@@ -252,11 +252,11 @@ export function ProfileModal({ open, onOpenChange }: Props) {
             cancelText="Остаться"
             confirmText="Закрыть"
             description="У вас есть несохранённые изменения. Вы уверены, что хотите закрыть?"
-            destructive={false}
-            open={closeConfirmOpen}
+            isDestructive={false}
+            isOpen={isCloseConfirmOpen}
             title="Несохранённые изменения"
             onConfirm={confirmClose}
-            onOpenChange={setCloseConfirmOpen}
+            onOpenChange={setIsCloseConfirmOpen}
           />
         </GlassCard>
       </DialogContent>

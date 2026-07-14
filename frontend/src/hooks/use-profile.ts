@@ -31,8 +31,8 @@ export function useProfile() {
       router.refresh()
     },
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Ошибка при выходе'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Ошибка при выходе'
       toast.error(message)
 
       removeTokenStorage()
@@ -51,8 +51,8 @@ export function useProfile() {
       toast.success('Профиль обновлён')
     },
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Ошибка при обновлении профиля'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Ошибка при обновлении профиля'
       toast.error(message)
     }
   })

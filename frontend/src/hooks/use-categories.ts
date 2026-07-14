@@ -35,8 +35,8 @@ export function useCategories(isExpense: boolean) {
       toast.success('Категория создана')
     },
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Ошибка создания категории'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Ошибка создания категории'
       toast.error(message)
     }
   })
@@ -52,8 +52,8 @@ export function useCategories(isExpense: boolean) {
       toast.success('Категория обновлена')
     },
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Ошибка обновления'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Ошибка обновления'
       toast.error(message)
     }
   })
@@ -70,8 +70,8 @@ export function useCategories(isExpense: boolean) {
       toast.success('Категория перемещена в архив')
     },
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Ошибка архивирования'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Ошибка архивирования'
       toast.error(message)
     }
   })
@@ -92,8 +92,8 @@ export function useCategories(isExpense: boolean) {
       toast.success('Категория восстановлена')
     },
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Ошибка восстановления'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Ошибка восстановления'
       toast.error(message)
     }
   })

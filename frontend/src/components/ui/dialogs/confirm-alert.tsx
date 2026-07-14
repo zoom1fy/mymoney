@@ -16,8 +16,8 @@ import {
 import { cn } from '@/lib/cn'
 
 interface ConfirmAlertProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
 
   title: string
   description?: ReactNode
@@ -26,24 +26,24 @@ interface ConfirmAlertProps {
   cancelText?: string
 
   onConfirm: () => void
-  loading?: boolean
-  destructive?: boolean
+  isLoading?: boolean
+  isDestructive?: boolean
 }
 
 export function ConfirmAlert({
-  open,
+  isOpen,
   onOpenChange,
   title,
   description,
   confirmText = 'Подтвердить',
   cancelText = 'Отмена',
   onConfirm,
-  loading = false,
-  destructive = true
+  isLoading = false,
+  isDestructive = true
 }: ConfirmAlertProps) {
   return (
     <AlertDialog
-      open={open}
+      open={isOpen}
       onOpenChange={onOpenChange}
     >
       <AlertDialogContent
@@ -72,7 +72,7 @@ export function ConfirmAlert({
         <AlertDialogFooter className="mt-10 gap-4">
           <AlertDialogCancel
             className="h-12 px-8 text-lg rounded-xl cursor-pointer"
-            disabled={loading}
+            disabled={isLoading}
           >
             {cancelText}
           </AlertDialogCancel>
@@ -80,10 +80,10 @@ export function ConfirmAlert({
           <AlertDialogAction
             className={cn(
               'h-12 px-8 text-lg rounded-xl cursor-pointer',
-              destructive &&
+              isDestructive &&
                 'bg-destructive text-destructive-foreground hover:bg-primary/90'
             )}
-            disabled={loading}
+            disabled={isLoading}
             onClick={onConfirm}
           >
             {confirmText}

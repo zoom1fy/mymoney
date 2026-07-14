@@ -15,7 +15,7 @@ import {
 
 import {
   AccountCategoryEnum,
-  AccountCategoryNameMap,
+  accountCategoryNameMap,
   IAccount
 } from '@/types/account.type'
 
@@ -28,7 +28,7 @@ import { AccountModal } from './account-modal'
 export function DashboardSidebar() {
   const { accounts, isLoading } = useAccounts()
 
-  const ACCOUNT_CATEGORIES: AccountCategoryEnum[] = [
+  const accountCategories: AccountCategoryEnum[] = [
     AccountCategoryEnum.ACCOUNTS,
     AccountCategoryEnum.SAVINGS
   ]
@@ -70,13 +70,13 @@ export function DashboardSidebar() {
 
       <SidebarContent>
         <ScrollArea className="flex-1 px-3 py-2">
-          {ACCOUNT_CATEGORIES.map(category => {
+          {accountCategories.map(category => {
             const accountsInCategory = groupedAccounts[category]
 
             if (!accountsInCategory || accountsInCategory.length === 0)
               return null
 
-            const categoryName = AccountCategoryNameMap[category]
+            const categoryName = accountCategoryNameMap[category]
 
             return (
               <SidebarGroup

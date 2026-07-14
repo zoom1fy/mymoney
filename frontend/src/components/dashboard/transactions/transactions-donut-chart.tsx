@@ -13,8 +13,8 @@ interface Props {
   total: number
   isExpense: boolean
   range: { from: Date; to: Date }
-  onRangeChange: (r: { from: Date; to: Date }) => void
-  loading?: boolean
+  onRangeChange: (range: { from: Date; to: Date }) => void
+  isLoading?: boolean
 }
 
 export function TransactionsDonutChart({
@@ -23,14 +23,14 @@ export function TransactionsDonutChart({
   isExpense,
   range,
   onRangeChange,
-  loading
+  isLoading
 }: Props) {
   return (
     /* Recharts donut chart with empty-state fallback and loading skeletons */
     <div className="space-y-6 min-w-0">
       {' '}
       <div className="flex justify-center">
-        {loading ? (
+        {isLoading ? (
           <DateRangePickerSkeleton />
         ) : (
           <DateRangePicker
@@ -40,7 +40,7 @@ export function TransactionsDonutChart({
         )}
       </div>
       <div className="relative h-[300px] sm:h-[450px] w-full">
-        {loading ? (
+        {isLoading ? (
           <TransactionsDonutChartSkeleton />
         ) : (
           <>
@@ -100,7 +100,7 @@ export function TransactionsDonutChart({
               </p>
 
               <p className="text-2xl md:text-3xl lg:text-4xl font-black mt-2 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
-                {(!donutData || donutData.length === 0) && !loading
+                {(!donutData || donutData.length === 0) && !isLoading
                   ? 'Данных нет'
                   : `${total.toLocaleString('ru-RU')} ₽`}
               </p>

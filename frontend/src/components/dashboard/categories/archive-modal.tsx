@@ -16,7 +16,7 @@ import {
   TabsTrigger
 } from '@/components/ui/shadui/tabs'
 
-import { CategoryIcons, ICategory } from '@/types/category.type'
+import { categoryIcons, ICategory } from '@/types/category.type'
 
 import { useCategories } from '@/hooks/use-categories'
 
@@ -27,8 +27,8 @@ interface ArchiveModalProps {
 }
 
 export function ArchiveModal({ isExpense }: ArchiveModalProps) {
-  const [open, setOpen] = useState(false)
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
     null
   )
@@ -56,14 +56,14 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
 
   const handleUnarchive = (category: ICategory) => {
     setSelectedCategory(category)
-    setConfirmOpen(true)
+    setIsConfirmOpen(true)
   }
 
   const confirmUnarchive = async () => {
     if (!selectedCategory) return
     try {
       await unarchiveCategory(selectedCategory.id)
-      setConfirmOpen(false)
+      setIsConfirmOpen(false)
       setSelectedCategory(null)
     } catch {}
   }
@@ -90,7 +90,7 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
           'aria-label="Открыть архив категорий"'
         )}
         onClick={() => {
-          setOpen(true)
+          setIsOpen(true)
           setActiveTab(isExpense ? 'expense' : 'income')
         }}
       >
@@ -99,8 +99,8 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
 
       {/* Archived categories dialog with tabbed search & unarchive */}
       <Dialog
-        open={open}
-        onOpenChange={setOpen}
+        open={isOpen}
+        onOpenChange={setIsOpen}
       >
         <DialogContent
           className="w-[95vw] max-w-4xl p-0 max-h-[90vh] flex flex-col"
@@ -109,9 +109,9 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
           <GlassCard className="rounded-3xl p-6 md:p-8 flex flex-col h-full">
             <ModalHeader
               icon={<Archive className="size-6 text-white" />}
-              showDelete={false}
+              isDeleteVisible={false}
               title="Архив категорий"
-              onClose={() => setOpen(false)}
+              onClose={() => setIsOpen(false)}
             />
 
             {/* Поиск */}
@@ -194,11 +194,11 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
             архива.
           </>
         }
-        loading={isUnarchiving}
-        open={confirmOpen}
+        isLoading={isUnarchiving}
+        isOpen={isConfirmOpen}
         title="Восстановить категорию?"
         onConfirm={confirmUnarchive}
-        onOpenChange={setConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
       />
     </>
   )
@@ -240,8 +240,8 @@ function CategoriesList({
     <div className="grid gap-2 pb-4">
       {categories.map(category => {
         const Icon =
-          category.icon && CategoryIcons[category.icon]
-            ? CategoryIcons[category.icon]
+          category.icon && categoryIcons[category.icon]
+            ? categoryIcons[category.icon]
             : HelpCircle
 
         return (

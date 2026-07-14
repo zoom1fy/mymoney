@@ -3,16 +3,16 @@
 import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 
-import { CategoryIconName, CategoryIcons } from '@/types/category.type'
+import { CategoryIconName, categoryIcons } from '@/types/category.type'
 
 import { cn } from '@/lib/cn'
-import { hexWithAlpha } from '@/lib/color-utils'
+import { applyAlphaToHex } from '@/lib/color-utils'
 
 
 interface Props {
   name: string
   icon?: CategoryIconName
-  editMode?: boolean
+  isEditMode?: boolean
   onClick?: () => void
   amount?: number
   color?: string
@@ -21,14 +21,14 @@ interface Props {
 export function CategoryItem({
   name,
   icon = 'Circle',
-  editMode = false,
+  isEditMode = false,
   onClick,
   amount = 0,
   color = 'hsl(var(--primary))'
 }: Props) {
-  const IconComponent = CategoryIcons[icon]
+  const IconComponent = categoryIcons[icon]
   const [isHovered, setIsHovered] = useState(false)
-  // On hover the circle border/glow adopts the category's colour via hexWithAlpha
+  // On hover the circle border/glow adopts the category's colour via applyAlphaToHex
   const displayAmount = amount ?? 0
   const showErrorIcon = !IconComponent
 
@@ -36,10 +36,10 @@ export function CategoryItem({
     <div
       className={cn(
         'flex flex-col items-center gap-2.5 cursor-pointer select-none transition-all duration-300 group',
-        editMode && 'animate-ios-wiggle'
+        isEditMode && 'animate-ios-wiggle'
       )}
       style={
-        editMode ? { animationDelay: `${Math.random() * 0.15}s` } : undefined
+        isEditMode ? { animationDelay: `${Math.random() * 0.15}s` } : undefined
       }
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
@@ -49,14 +49,14 @@ export function CategoryItem({
         className={cn(
           'size-16 sm:size-18 rounded-full border border-border flex items-center justify-center transition-all duration-300',
           'group-hover:scale-105 group-hover:shadow-lg',
-          editMode && 'animate-pulse-slow',
+          isEditMode && 'animate-pulse-slow',
           showErrorIcon && 'border-destructive/50 bg-destructive/10'
         )}
         style={{
           borderColor: isHovered ? color : undefined,
-          backgroundColor: isHovered ? hexWithAlpha(color, 0.1) : undefined,
+          backgroundColor: isHovered ? applyAlphaToHex(color, 0.1) : undefined,
           boxShadow: isHovered
-            ? `0 0 10px ${hexWithAlpha(color, 0.3)}`
+            ? `0 0 10px ${applyAlphaToHex(color, 0.3)}`
             : undefined
         }}
       >

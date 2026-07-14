@@ -6,7 +6,7 @@ import {
   removeTokenStorage
 } from '../services/auth-token.service'
 import { authService } from '../services/auth.service'
-import { errorCatch } from './error'
+import { catchError } from './error'
 
 const options: CreateAxiosDefaults = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
@@ -63,17 +63,17 @@ axiosWithAuth.interceptors.response.use(
 
     if (
       error?.response?.status === 401 ||
-      errorCatch(error) === 'jwt expired' ||
-      (errorCatch(error) === 'jwt must be provided' &&
+      catchError(error) === 'jwt expired' ||
+      (catchError(error) === 'jwt must be provided' &&
         error.config &&
-        !error.config._isRetry)
+        !error.config.isRetry)
     ) {
-      originalRequest._isRetry = true
+      originalRequest.isRetry = true
       try {
         await authService.getNewTokens()
         return axiosWithAuth.request(originalRequest)
       } catch (error) {
-        if (errorCatch(error) === 'jwt expired') removeTokenStorage()
+        if (catchError(error) === 'jwt expired') removeTokenStorage()
       }
     }
 

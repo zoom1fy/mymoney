@@ -1,4 +1,4 @@
-import { DASHBOARD_PAGES } from '@/config/pages-url.config'
+import { dashboardPages } from '@/config/pages-url.config'
 import { ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react'
 import Link from 'next/link'
 
@@ -43,7 +43,7 @@ export default function HomePage() {
           {/* actions */}
           <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4">
             <AccentButton asChild>
-              <Link href={DASHBOARD_PAGES.HOME}>
+              <Link href={dashboardPages.HOME}>
                 Начать бесплатно
                 <ArrowRight className="ml-2 size-4" />
               </Link>
@@ -122,7 +122,7 @@ export default function HomePage() {
               asChild
               className="mt-8"
             >
-              <Link href={DASHBOARD_PAGES.HOME}>Попробовать сейчас</Link>
+              <Link href={dashboardPages.HOME}>Попробовать сейчас</Link>
             </AccentButton>
           </div>
         </GlassCard>

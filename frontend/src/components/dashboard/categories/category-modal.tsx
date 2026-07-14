@@ -22,7 +22,7 @@ import { ScrollArea } from '@/components/ui/shadui/scroll-area'
 import { CurrencyCode } from '@/types/account.type'
 import {
   CategoryIconName,
-  CategoryIcons,
+  categoryIcons,
   ICategory,
   ICreateCategory
 } from '@/types/category.type'
@@ -33,7 +33,7 @@ import { getRandomColor } from '@/lib/color-utils'
 import { cn } from '@/lib/cn'
 import { ColorPicker } from '@/components/ui/color-picker/color-picker'
 
-const iconOptions = Object.keys(CategoryIcons) as CategoryIconName[]
+const iconOptions = Object.keys(categoryIcons) as CategoryIconName[]
 
 interface Props {
   isExpense: boolean
@@ -58,27 +58,27 @@ export function CategoryModal({
     isUpdating,
     isDeleting
   } = useCategories(isExpense)
-  const [open, setOpen] = useState(false)
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
   const isEdit = mode === 'edit'
   const isLoading = isCreating || isUpdating || isDeleting
 
   const handleClose = () => {
-    setOpen(false)
+    setIsOpen(false)
     if (isEdit) onClose?.()
   }
 
   const attemptClose = () => {
     if (isDirty) {
-      setCloseConfirmOpen(true)
+      setIsCloseConfirmOpen(true)
       return
     }
     handleClose()
   }
 
   const confirmClose = () => {
-    setCloseConfirmOpen(false)
+    setIsCloseConfirmOpen(false)
     handleClose()
   }
 
@@ -102,13 +102,13 @@ export function CategoryModal({
   // Auto-open the dialog when editing (trigger-less mode)
   useEffect(() => {
     if (isEdit && category) {
-      setOpen(true)
+      setIsOpen(true)
     }
   }, [isEdit, category])
 
   // Populate form fields when dialog opens (edit → prefill, create → defaults)
   useEffect(() => {
-    if (!open) return
+    if (!isOpen) return
 
     if (isEdit && category) {
       reset({
@@ -125,7 +125,7 @@ export function CategoryModal({
         color: getRandomColor()
       })
     }
-  }, [open, isEdit, category, reset, isExpense])
+  }, [isOpen, isEdit, category, reset, isExpense])
 
   const selectedIcon = watch('icon')
 
@@ -142,13 +142,13 @@ export function CategoryModal({
 
   return (
     <Dialog
-      open={open}
+      open={isOpen}
       onOpenChange={(newOpen) => {
         if (!newOpen) {
           attemptClose()
           return
         }
-        setOpen(true)
+        setIsOpen(true)
       }}
     >
       {mode === 'create' && (
@@ -179,10 +179,10 @@ export function CategoryModal({
                   <Plus className="size-6 text-white" />
                 )
               }
-              showDelete={isEdit && !!category}
+              isDeleteVisible={isEdit && !!category}
               title={isEdit ? 'Редактирование' : 'Новая категория'}
               onClose={attemptClose}
-              onDelete={() => setConfirmOpen(true)}
+              onDelete={() => setIsConfirmOpen(true)}
             />
           </DialogHeader>
 
@@ -209,7 +209,7 @@ export function CategoryModal({
               <ScrollArea className="h-64 rounded-xl border bg-background/50">
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-4 p-4">
                   {iconOptions.map(icon => {
-                    const Icon = CategoryIcons[icon]
+                    const Icon = categoryIcons[icon]
                     const active = selectedIcon === icon
                     return (
                       <button
@@ -272,26 +272,26 @@ export function CategoryModal({
             Категория <b>«{category?.name}»</b> будет перемещена в архив.
           </>
         }
-        loading={isDeleting}
-        open={confirmOpen}
+        isLoading={isDeleting}
+        isOpen={isConfirmOpen}
         title="Архивировать категорию?"
         onConfirm={async () => {
           if (category) await deleteCategory(category.id)
-          setConfirmOpen(false)
+          setIsConfirmOpen(false)
           handleClose()
         }}
-        onOpenChange={setConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
       />
 
       <ConfirmAlert
         cancelText="Остаться"
         confirmText="Закрыть"
         description="У вас есть несохранённые изменения. Вы уверены, что хотите закрыть?"
-        destructive={false}
-        open={closeConfirmOpen}
+        isDestructive={false}
+        isOpen={isCloseConfirmOpen}
         title="Несохранённые изменения"
         onConfirm={confirmClose}
-        onOpenChange={setCloseConfirmOpen}
+        onOpenChange={setIsCloseConfirmOpen}
       />
     </Dialog>
   )

@@ -13,7 +13,7 @@ import {
   PopoverTrigger
 } from '@/components/ui/shadui/popover'
 
-import { getRandomColor, isValidHex, throttle } from '@/lib/color-utils'
+import { getRandomColor, isValidHex, createThrottle } from '@/lib/color-utils'
 import { cn } from '@/lib/cn'
 
 interface Props {
@@ -22,7 +22,7 @@ interface Props {
   label?: string
 }
 
-const PRESET_COLORS = [
+const presetColors = [
   '#6366F1',
   '#22C55E',
   '#F59E0B',
@@ -38,7 +38,7 @@ const PRESET_COLORS = [
 ]
 
 export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
-  const [open, setOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const [localColor, setLocalColor] = useState(value)
 
   // Sync local state when parent changes the value (e.g. shuffle button)
@@ -48,7 +48,7 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
 
   // Throttle live colour-picker changes to 100ms to reduce re-renders
   const throttledOnChange = useMemo(
-    () => throttle((val: string) => onChange(val), 100),
+    () => createThrottle((value: string) => onChange(value), 100),
     [onChange]
   )
 
@@ -65,8 +65,8 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
       <Label className="text-lg">{label}</Label>
 
       <Popover
-        open={open}
-        onOpenChange={setOpen}
+        open={isOpen}
+        onOpenChange={setIsOpen}
       >
         <PopoverTrigger asChild>
           <button
@@ -108,7 +108,7 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
             </div>
 
             <div className="grid grid-cols-6 gap-2">
-              {PRESET_COLORS.map(c => (
+              {presetColors.map(c => (
                 <button
                   className={cn(
                     'size-8 rounded-md border transition-all hover:scale-110',

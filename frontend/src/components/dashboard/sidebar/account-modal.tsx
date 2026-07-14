@@ -29,7 +29,7 @@ import {
 import {
   AccountCategoryEnum,
   AccountIconName,
-  AccountIcons,
+  accountIcons,
   AccountTypeEnum,
   CurrencyCode,
   IAccount,
@@ -42,7 +42,7 @@ import { cn } from '@/lib/cn'
 
 import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
 
-const iconOptions = Object.keys(AccountIcons) as AccountIconName[]
+const iconOptions = Object.keys(accountIcons) as AccountIconName[]
 
 interface Props {
   mode?: 'create' | 'edit'
@@ -50,9 +50,9 @@ interface Props {
   trigger?: ReactNode
 }
 
-const FIELD_CLASSES =
+const fieldClasses =
   '!h-14 w-full text-xl px-6 rounded-xl bg-background border-2'
-const CONTAINER_CLASSES = 'w-full space-y-3'
+const containerClasses = 'w-full space-y-3'
 
 export function AccountModal({ mode = 'create', account, trigger }: Props) {
   const isEdit = mode === 'edit'
@@ -66,9 +66,9 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
     isDeleting
   } = useAccounts()
 
-  const [open, setOpen] = useState(false)
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
 
   // Delete account via mutation (toast handled by useAccounts hook)
   const handleDelete = async () => {
@@ -76,8 +76,8 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
 
     try {
       await deleteAccount(account.id)
-      setConfirmOpen(false)
-      setOpen(false)
+      setIsConfirmOpen(false)
+      setIsOpen(false)
     } catch {
       // toast handled by useAccounts hook
     }
@@ -101,7 +101,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
   })
 
   useEffect(() => {
-    if (open && isEdit && account) {
+    if (isOpen && isEdit && account) {
       reset({
         name: account.name,
         currentBalance: account.currentBalance,
@@ -111,7 +111,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
         icon: account.icon
       })
     }
-  }, [open, isEdit, account, reset])
+  }, [isOpen, isEdit, account, reset])
 
   const onSubmit = async (data: ICreateAccount) => {
     try {
@@ -121,7 +121,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
         await createAccount(data)
       }
 
-      setOpen(false)
+      setIsOpen(false)
       reset()
     } catch {
       // toast handled by useAccounts hook
@@ -131,15 +131,15 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
   // Guard close with unsaved-changes confirmation
   const attemptClose = () => {
     if (isDirty) {
-      setCloseConfirmOpen(true)
+      setIsCloseConfirmOpen(true)
       return
     }
-    setOpen(false)
+    setIsOpen(false)
   }
 
   const confirmClose = () => {
-    setCloseConfirmOpen(false)
-    setOpen(false)
+    setIsCloseConfirmOpen(false)
+    setIsOpen(false)
   }
 
   const selectedIcon = watch('icon')
@@ -147,13 +147,13 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
 
   return (
     <Dialog
-      open={open}
+      open={isOpen}
       onOpenChange={(newOpen) => {
         if (!newOpen) {
           attemptClose()
           return
         }
-        setOpen(true)
+        setIsOpen(true)
       }}
     >
       <DialogTrigger asChild>
@@ -183,10 +183,10 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                 )
               }
               isDeleteLoading={isDeleting}
-              showDelete={isEdit && !!account}
+              isDeleteVisible={isEdit && !!account}
               title={isEdit ? 'Редактирование счёта' : 'Создание нового счёта'}
               onClose={attemptClose}
-              onDelete={() => setConfirmOpen(true)}
+              onDelete={() => setIsConfirmOpen(true)}
             />
           </DialogHeader>
 
@@ -197,10 +197,10 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
             {/* Name + balance row */}
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-4">
-                <div className={CONTAINER_CLASSES}>
+                <div className={containerClasses}>
                   <Label className="text-lg font-medium ml-1">Название</Label>
                   <Input
-                    className={cn(FIELD_CLASSES)}
+                    className={cn(fieldClasses)}
                     placeholder="Зарплатная карта"
                     {...register('name', { required: 'Обязательное поле' })}
                   />
@@ -217,7 +217,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                 <NumericFormat
                   allowNegative={false}
                   className={cn(
-                    FIELD_CLASSES,
+                    fieldClasses,
                     'text-2xl font-bold border-2 focus-visible:ring-offset-0',
                     errors.currentBalance && 'border-destructive'
                   )}
@@ -246,7 +246,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
 
             {/* Category / Type / Currency selects */}
             <div className="grid gap-8 md:grid-cols-3">
-              <div className={CONTAINER_CLASSES}>
+              <div className={containerClasses}>
                 <Select
                   value={watch('categoryId')?.toString()}
                   onValueChange={v =>
@@ -255,7 +255,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                 >
                   <SelectTrigger
                     className={cn(
-                      FIELD_CLASSES,
+                      fieldClasses,
                       'flex items-center justify-between cursor-pointer',
                       errors.categoryId && 'border-destructive'
                     )}
@@ -268,7 +268,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className={CONTAINER_CLASSES}>
+              <div className={containerClasses}>
                 <Select
                   value={watch('typeId')?.toString()}
                   onValueChange={v =>
@@ -277,7 +277,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                 >
                   <SelectTrigger
                     className={cn(
-                      FIELD_CLASSES,
+                      fieldClasses,
                       'flex items-center justify-between cursor-pointer',
                       errors.typeId && 'border-destructive'
                     )}
@@ -293,7 +293,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className={CONTAINER_CLASSES}>
+              <div className={containerClasses}>
                 <Select
                   disabled={isEdit}
                   value={watch('currencyCode')}
@@ -303,7 +303,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                 >
                   <SelectTrigger
                     className={cn(
-                      FIELD_CLASSES,
+                      fieldClasses,
                       'flex items-center justify-between cursor-pointer',
                       errors.currencyCode && 'border-destructive'
                     )}
@@ -321,7 +321,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
             <ScrollArea className="h-64 rounded-xl border bg-background/50">
               <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-4 p-4">
                 {iconOptions.map(icon => {
-                  const Icon = AccountIcons[icon]
+                  const Icon = accountIcons[icon]
                   const active = selectedIcon === icon
 
                   return (
@@ -361,7 +361,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                 size="lg"
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
+                onClick={() => setIsOpen(false)}
               >
                 Отмена
               </AccentButton>
@@ -377,22 +377,22 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                   Это действие нельзя отменить.
                 </>
               }
-              loading={isDeleting}
-              open={confirmOpen}
+              isLoading={isDeleting}
+              isOpen={isConfirmOpen}
               title="Удалить счёт?"
               onConfirm={handleDelete}
-              onOpenChange={setConfirmOpen}
+              onOpenChange={setIsConfirmOpen}
             />
 
             <ConfirmAlert
               cancelText="Остаться"
               confirmText="Закрыть"
               description="У вас есть несохранённые изменения. Вы уверены, что хотите закрыть?"
-              destructive={false}
-              open={closeConfirmOpen}
+              isDestructive={false}
+              isOpen={isCloseConfirmOpen}
               title="Несохранённые изменения"
               onConfirm={confirmClose}
-              onOpenChange={setCloseConfirmOpen}
+              onOpenChange={setIsCloseConfirmOpen}
             />
           </form>
         </GlassCard>

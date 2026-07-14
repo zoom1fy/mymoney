@@ -44,7 +44,7 @@ export enum AccountCategoryEnum {
   SAVINGS = 2
 }
 
-export const AccountCategoryNameMap: Record<AccountCategoryEnum, string> = {
+export const accountCategoryNameMap: Record<AccountCategoryEnum, string> = {
   [AccountCategoryEnum.ACCOUNTS]: 'Счет',
   [AccountCategoryEnum.SAVINGS]: 'Сберегательный'
 }
@@ -58,7 +58,7 @@ export enum AccountTypeEnum {
 }
 
 // Icon lookup for the account picker UI — name → Lucide component
-export const AccountIcons: Record<string, LucideIcon> = {
+export const accountIcons: Record<string, LucideIcon> = {
   BanknoteArrowDown,
   BanknoteArrowUp,
   Receipt,
@@ -89,7 +89,7 @@ export const AccountIcons: Record<string, LucideIcon> = {
   BadgeRussianRuble
 }
 
-export type AccountIconName = keyof typeof AccountIcons
+export type AccountIconName = keyof typeof accountIcons
 
 // Payload sent to POST /api/accounts
 export interface ICreateAccount {

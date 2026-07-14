@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const [chartRange, setChartRange] = useState(getCurrentMonthRange())
   const [modalRange, setModalRange] = useState(getCurrentMonthRange())
 
-  const [showTxList, setShowTxList] = useState(false)
+  const [isTransactionListOpen, setIsTransactionListOpen] = useState(false)
 
   const { data: chartTransactions = [], isLoading: chartLoading } =
     useTransactionsForPeriod(chartRange.from, chartRange.to)
@@ -40,16 +40,16 @@ export default function DashboardPage() {
     isLoading: catLoading
   } = useCategories(isExpense)
 
-  const loading = chartLoading || catLoading
+  const isLoading = chartLoading || catLoading
   const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
 
   // Header fires 'open-transactions' to open the transaction list from anywhere
   useEffect(() => {
-    const openTx = () => setShowTxList(true)
-    window.addEventListener('open-transactions', openTx)
+    const handleOpenTx = () => setIsTransactionListOpen(true)
+    window.addEventListener('open-transactions', handleOpenTx)
 
     return () => {
-      window.removeEventListener('open-transactions', openTx)
+      window.removeEventListener('open-transactions', handleOpenTx)
     }
   }, [])
 
@@ -59,7 +59,7 @@ export default function DashboardPage() {
   )
   const { donutData, total } = useMemo(() => {
     const data = buildDonutData(chartTransactions, type, allCategories)
-    const sum = data.reduce((s, i) => s + i.value, 0)
+    const sum = data.reduce((sum, item) => sum + item.value, 0)
     return { donutData: data, total: sum }
   }, [chartTransactions, type, allCategories])
 
@@ -70,7 +70,7 @@ export default function DashboardPage() {
           <TransactionsDonutChart
             donutData={donutData}
             isExpense={isExpense}
-            loading={loading}
+            isLoading={isLoading}
             range={chartRange}
             total={total}
             onRangeChange={setChartRange}
@@ -82,7 +82,7 @@ export default function DashboardPage() {
             categories={categories}
             donutData={donutData}
             isExpense={isExpense}
-            loading={loading}
+            isLoading={isLoading}
             onExpenseChange={setIsExpense}
           />
         </div>
@@ -90,10 +90,10 @@ export default function DashboardPage() {
 
       <TransactionsListModal
         categories={categories}
-        open={showTxList}
+        isOpen={isTransactionListOpen}
         range={modalRange}
         transactions={modalTransactions}
-        onClose={() => setShowTxList(false)}
+        onClose={() => setIsTransactionListOpen(false)}
         onRangeChange={setModalRange}
       />
 

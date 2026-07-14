@@ -16,7 +16,7 @@ interface Props {
   onExpenseChange: (value: boolean) => void
   donutData?: DonutItem[]
   categories: ICategory[]
-  loading?: boolean
+  isLoading?: boolean
 }
 
 export function CategoriesPanel({
@@ -24,9 +24,9 @@ export function CategoriesPanel({
   onExpenseChange,
   donutData,
   categories,
-  loading
+  isLoading
 }: Props) {
-  const [editMode, setEditMode] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
 
   return (
     <div className="w-full">
@@ -41,17 +41,17 @@ export function CategoriesPanel({
           {/* Archive / edit mode buttons */}
           <ArchiveModal isExpense={isExpense} />
           <EditModeButton
-            active={editMode}
-            onToggle={() => setEditMode(v => !v)}
+            isActive={isEditMode}
+            onToggle={() => setIsEditMode(current => !current)}
           />
         </div>
 
         <CategoryGrid
           categories={categories}
           donutData={donutData}
-          editMode={editMode}
+          isEditMode={isEditMode}
           isExpense={isExpense}
-          loading={loading}
+          isLoading={isLoading}
         />
       </div>
     </div>

@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/shadui/button'
 // Renders a placeholder until the client hydrates to avoid theme flash
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => setIsMounted(true), [])
 
-  if (!mounted) {
+  if (!isMounted) {
     return (
       <Button
         disabled

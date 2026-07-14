@@ -5,8 +5,8 @@ import { ru } from 'date-fns/locale'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowDown, ArrowRight, HelpCircle } from 'lucide-react'
 
-import { AccountIcons, IAccount } from '@/types/account.type'
-import { CategoryIcons, ICategory } from '@/types/category.type'
+import { accountIcons, IAccount } from '@/types/account.type'
+import { categoryIcons, ICategory } from '@/types/category.type'
 import { ITransaction, TransactionType } from '@/types/transaction.type'
 
 import { cn } from '@/lib/cn'
@@ -32,11 +32,11 @@ export function TransactionPreview({
   isEditMode = false
 }: TransactionPreviewProps) {
   const AccountIcon = selectedAccount?.icon
-    ? AccountIcons[selectedAccount.icon] || HelpCircle
+    ? accountIcons[selectedAccount.icon] || HelpCircle
     : HelpCircle
 
   const CategoryIcon = category?.icon
-    ? CategoryIcons[category.icon] || HelpCircle
+    ? categoryIcons[category.icon] || HelpCircle
     : HelpCircle
 
   const finalAmount = Number(amount) || 0

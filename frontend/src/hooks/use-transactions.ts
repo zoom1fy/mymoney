@@ -118,10 +118,10 @@ export function useTransactions() {
         queryClient.setQueryData(['accounts'], context.previousAccounts)
       }
 
-      const err = error as { response?: { data?: { message?: string } } }
+      const apiError = error as { response?: { data?: { message?: string } } }
       let errorMessage = 'Ошибка при создании транзакции'
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message
+      if (apiError.response?.data?.message) {
+        errorMessage = apiError.response.data.message
       } else if (error.message) {
         errorMessage = error.message
       }
@@ -196,8 +196,8 @@ export function useTransactions() {
     },
 
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      toast.error(err.response?.data?.message || 'Ошибка обновления')
+      const apiError = error as { response?: { data?: { message?: string } } }
+      toast.error(apiError.response?.data?.message || 'Ошибка обновления')
     }
   })
 
@@ -221,8 +221,8 @@ export function useTransactions() {
     },
 
     onError: (error: Error) => {
-      const err = error as { response?: { data?: { message?: string } } }
-      toast.error(err.response?.data?.message || 'Ошибка удаления')
+      const apiError = error as { response?: { data?: { message?: string } } }
+      toast.error(apiError.response?.data?.message || 'Ошибка удаления')
     }
   })
 

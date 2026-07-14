@@ -1,5 +1,5 @@
 // Class pattern reuses the /me prefix so all dashboard routes stay under the same base
-class DASHBOARD {
+class Dashboard {
   private root = '/me'
 
   HOME = this.root
@@ -7,4 +7,4 @@ class DASHBOARD {
   AUTH = '/auth'
 }
 
-export const DASHBOARD_PAGES = new DASHBOARD()
+export const dashboardPages = new Dashboard()

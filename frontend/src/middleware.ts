@@ -1,4 +1,4 @@
-import { DASHBOARD_PAGES } from '@/config/pages-url.config'
+import { dashboardPages } from '@/config/pages-url.config'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { EnumTokens } from './services/auth-token.service'
@@ -14,11 +14,11 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = url.includes('/auth')
 
   if (isAuthPage && isAuthenticated) {
-    return NextResponse.redirect(new URL(DASHBOARD_PAGES.HOME, request.url))
+    return NextResponse.redirect(new URL(dashboardPages.HOME, request.url))
   }
 
   if (!isAuthPage && !isAuthenticated) {
-    return NextResponse.redirect(new URL(DASHBOARD_PAGES.AUTH, request.url))
+    return NextResponse.redirect(new URL(dashboardPages.AUTH, request.url))
   }
 
   return NextResponse.next()

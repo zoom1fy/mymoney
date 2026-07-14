@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn'
 
 interface Props {
   isExpense: boolean
-  onChange: (v: boolean) => void
+  onChange: (value: boolean) => void
 }
 
 export function CategoryToggle({ isExpense, onChange }: Props) {

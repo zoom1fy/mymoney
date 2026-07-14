@@ -15,9 +15,9 @@ import { ICategory } from '@/types/category.type'
 
 interface TransactionFiltersProps {
   filterType: 'all' | 'income' | 'expense'
-  setFilterType: (v: 'all' | 'income' | 'expense') => void
+  setFilterType: (value: 'all' | 'income' | 'expense') => void
   filterCategory: number | 'all'
-  setFilterCategory: (v: number | 'all') => void
+  setFilterCategory: (value: number | 'all') => void
   dateRange: { from: Date; to: Date }
   setDateRange: (range: { from: Date; to: Date }) => void
   categories: ICategory[]
@@ -62,8 +62,8 @@ export function TransactionFilters({
           </label>
           <Select
             value={filterCategory.toString()}
-            onValueChange={v =>
-              setFilterCategory(v === 'all' ? 'all' : Number(v))
+            onValueChange={value =>
+              setFilterCategory(value === 'all' ? 'all' : Number(value))
             }
           >
             <SelectTrigger className="bg-background w-full">

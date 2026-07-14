@@ -21,14 +21,14 @@ interface Props {
   onChange: (range: { from: Date; to: Date }) => void
 }
 
-const PRESETS = [
+const presets = [
   { label: 'День', key: 'day', shift: 'day' },
   { label: 'Неделя', key: 'week', shift: 'week' },
   { label: 'Месяц', key: 'month', shift: 'month' },
   { label: 'Год', key: 'year', shift: 'year' }
 ] as const
 
-type PresetKey = (typeof PRESETS)[number]['key']
+type PresetKey = (typeof presets)[number]['key']
 
 function getPresetFromRange(from: Dayjs, to: Dayjs): PresetKey | null {
   if (from.isSame(from.startOf('day')) && to.isSame(from.endOf('day')))
@@ -106,7 +106,7 @@ export function DateRangePicker({ value, onChange }: Props) {
         {/* Presets */}
         <div className="grid grid-cols-4 gap-2 w-full sm:w-auto">
           {' '}
-          {PRESETS.map(p => {
+          {presets.map(p => {
             const isActive = currentPreset === p.key
 
             return (

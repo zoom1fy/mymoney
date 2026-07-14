@@ -13,17 +13,17 @@ import { CategoryModal } from './category-modal'
 interface Props {
   categories: ICategory[]
   isExpense: boolean
-  editMode: boolean
+  isEditMode: boolean
   donutData?: { id: number; value: number; color?: string }[]
-  loading?: boolean
+  isLoading?: boolean
 }
 
 export function CategoryGrid({
   categories,
   isExpense,
-  editMode,
+  isEditMode,
   donutData,
-  loading
+  isLoading
 }: Props) {
   const filteredCategories = categories.filter(c => c.isExpense === isExpense)
   const rootCategories = filteredCategories.filter(c => !c.parentId)
@@ -42,7 +42,7 @@ export function CategoryGrid({
     <>
       <div className="h-[560px] overflow-y-auto pr-2 pt-1">
         <div className="grid grid-cols-3 gap-6">
-          {loading
+          {isLoading
             ? // Loading state: show skeleton placeholders
               Array.from({ length: skeletonCount }).map((_, index) => (
                 <CategoryItemSkeleton key={`skeleton-${index}`} />
@@ -58,12 +58,12 @@ export function CategoryGrid({
                   <CategoryItem
                     amount={info.amount}
                     color={info.color}
-                    editMode={editMode}
+                    isEditMode={isEditMode}
                     icon={cat.icon}
                     key={cat.id}
                     name={cat.name}
                     onClick={() => {
-                      if (editMode) {
+                      if (isEditMode) {
                         setEditCategory(cat)
                       } else {
                         setTransactionCategory(cat)
@@ -74,7 +74,7 @@ export function CategoryGrid({
               })}
 
           {/* Add button shown only after data has loaded */}
-          {!loading && (
+          {!isLoading && (
             <CategoryModal
               isExpense={isExpense}
               trigger={
@@ -106,7 +106,7 @@ export function CategoryGrid({
           category={transactionCategory}
           isExpense={isExpense}
           mode="create"
-          open={!!transactionCategory}
+          isOpen={!!transactionCategory}
           onOpenChange={open => {
             if (!open) setTransactionCategory(null)
           }}

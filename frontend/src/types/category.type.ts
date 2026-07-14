@@ -89,7 +89,7 @@ export interface ICategory extends ICreateCategory, IBase {
 export type IUpdateCategory = Partial<ICreateCategory>
 
 // Icon lookup for the category picker UI — name → Lucide component
-export const CategoryIcons: Record<string, LucideIcon> = {
+export const categoryIcons: Record<string, LucideIcon> = {
   ShoppingCart,
   Utensils,
   Car,
@@ -157,4 +157,4 @@ export const CategoryIcons: Record<string, LucideIcon> = {
   Laptop
 }
 
-export type CategoryIconName = keyof typeof CategoryIcons
+export type CategoryIconName = keyof typeof categoryIcons

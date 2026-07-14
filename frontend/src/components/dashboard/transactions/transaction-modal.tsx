@@ -64,15 +64,15 @@ interface Props {
   category: ICategory
   isExpense: boolean
   trigger?: ReactNode
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
+  isOpen?: boolean
+  onOpenChange?: (isOpen: boolean) => void
 }
 
-const FIELD_CLASSES =
+const fieldClasses =
   '!h-14 w-full text-xl px-6 rounded-xl bg-background border-2'
-const FIELD_CLASSES_DISABLED =
+const fieldClassesDisabled =
   '!h-14 w-full text-xl px-6 rounded-xl bg-muted border-2 opacity-70 cursor-not-allowed'
-const CONTAINER_CLASSES = 'w-full space-y-3'
+const containerClasses = 'w-full space-y-3'
 
 function normalizeDate(date: Date) {
   const d = new Date(date)
@@ -87,7 +87,7 @@ export function TransactionModal({
   category,
   isExpense,
   trigger,
-  open,
+  isOpen,
   onOpenChange
 }: Props) {
   const isEdit = mode === 'edit'
@@ -101,8 +101,8 @@ export function TransactionModal({
     isDeleting
   } = useTransactions()
 
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
 
   const transactionType = isExpense
     ? TransactionType.EXPENSE
@@ -197,20 +197,20 @@ export function TransactionModal({
     if (!transaction) return
 
     await deleteTransaction(transaction.id)
-    setConfirmOpen(false)
+    setIsConfirmOpen(false)
     onOpenChange?.(false)
   }
 
   const attemptClose = () => {
     if (isDirty) {
-      setCloseConfirmOpen(true)
+      setIsCloseConfirmOpen(true)
       return
     }
     onOpenChange?.(false)
   }
 
   const confirmClose = () => {
-    setCloseConfirmOpen(false)
+    setIsCloseConfirmOpen(false)
     onOpenChange?.(false)
   }
 
@@ -218,7 +218,7 @@ export function TransactionModal({
 
   return (
     <Dialog
-      open={open}
+      open={isOpen}
       onOpenChange={(newOpen) => {
         if (!newOpen) {
           attemptClose()
@@ -237,14 +237,14 @@ export function TransactionModal({
             <ModalHeader
               icon={<Wallet className="size-6 text-white" />}
               isDeleteLoading={isDeleting}
-              showDelete={isEdit}
+              isDeleteVisible={isEdit}
               title={
                 isEdit
                   ? `Редактировать ${isExpense ? 'расход' : 'доход'}`
                   : `Новый ${isExpense ? 'расход' : 'доход'}`
               }
               onClose={attemptClose}
-              onDelete={() => setConfirmOpen(true)}
+              onDelete={() => setIsConfirmOpen(true)}
             />
           </DialogHeader>
 
@@ -274,7 +274,7 @@ export function TransactionModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
               {/* Left column: amount + account */}
               <div className="space-y-8">
-                <div className={CONTAINER_CLASSES}>
+                <div className={containerClasses}>
                   <Label className="text-lg font-medium ml-1">Сумма</Label>
                   <Controller
                     control={control}
@@ -284,8 +284,8 @@ export function TransactionModal({
                         allowNegative={false}
                         className={cn(
                           isFormDisabled
-                            ? FIELD_CLASSES_DISABLED
-                            : FIELD_CLASSES,
+                            ? fieldClassesDisabled
+                            : fieldClasses,
                           'text-2xl font-bold border-2 focus-visible:ring-offset-0',
                           errors.amount &&
                             !isFormDisabled &&
@@ -312,7 +312,7 @@ export function TransactionModal({
                   />
                 </div>
 
-                <div className={CONTAINER_CLASSES}>
+                <div className={containerClasses}>
                   <Label className="text-lg font-medium ml-1 flex items-center gap-2">
                     <Wallet className="size-5 opacity-70" /> Счёт
                   </Label>
@@ -323,18 +323,18 @@ export function TransactionModal({
                       <Select
                         disabled={isFormDisabled}
                         value={field.value}
-                        onValueChange={val => {
+                        onValueChange={value => {
                           if (isFormDisabled) return
-                          const acc = accounts.find(a => a.id === Number(val))
+                          const acc = accounts.find(a => a.id === Number(value))
                           if (acc?.isDeleted) return
-                          field.onChange(val)
+                          field.onChange(value)
                         }}
                       >
                         <SelectTrigger
                           className={cn(
                             isFormDisabled
-                              ? FIELD_CLASSES_DISABLED
-                              : FIELD_CLASSES,
+                              ? fieldClassesDisabled
+                              : fieldClasses,
                             'cursor-pointer'
                           )}
                         >
@@ -378,7 +378,7 @@ export function TransactionModal({
 
               {/* Right column: date + description */}
               <div className="space-y-8">
-                <div className={CONTAINER_CLASSES}>
+                <div className={containerClasses}>
                   <Label className="text-lg font-medium ml-1 flex items-center gap-2">
                     <CalendarIcon className="size-5 opacity-70" /> Дата
                   </Label>
@@ -390,8 +390,8 @@ export function TransactionModal({
                       <Button
                         className={cn(
                           isFormDisabled
-                            ? FIELD_CLASSES_DISABLED
-                            : FIELD_CLASSES,
+                            ? fieldClassesDisabled
+                            : fieldClasses,
                           'justify-start font-normal text-left cursor-pointer'
                         )}
                         disabled={isFormDisabled}
@@ -424,13 +424,13 @@ export function TransactionModal({
                   </Popover>
                 </div>
 
-                <div className={CONTAINER_CLASSES}>
+                <div className={containerClasses}>
                   <Label className="text-lg font-medium ml-1 flex items-center gap-2">
                     <FileText className="size-5 opacity-70" /> Заметка
                   </Label>
                   <Input
                     className={cn(
-                      isFormDisabled ? FIELD_CLASSES_DISABLED : FIELD_CLASSES
+                      isFormDisabled ? fieldClassesDisabled : fieldClasses
                     )}
                     disabled={isFormDisabled}
                     placeholder="На что потратили?"
@@ -470,22 +470,22 @@ export function TransactionModal({
               cancelText="Отмена"
               confirmText="Удалить"
               description="Это действие нельзя отменить."
-              loading={isDeleting}
-              open={confirmOpen}
+              isLoading={isDeleting}
+              isOpen={isConfirmOpen}
               title="Удалить транзакцию?"
               onConfirm={handleDelete}
-              onOpenChange={setConfirmOpen}
+              onOpenChange={setIsConfirmOpen}
             />
 
             <ConfirmAlert
               cancelText="Остаться"
               confirmText="Закрыть"
               description="У вас есть несохранённые изменения. Вы уверены, что хотите закрыть?"
-              destructive={false}
-              open={closeConfirmOpen}
+              isDestructive={false}
+              isOpen={isCloseConfirmOpen}
               title="Несохранённые изменения"
               onConfirm={confirmClose}
-              onOpenChange={setCloseConfirmOpen}
+              onOpenChange={setIsCloseConfirmOpen}
             />
           </form>
         </GlassCard>

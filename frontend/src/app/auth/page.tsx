@@ -1,14 +1,14 @@
 // app/auth/page.tsx
 import { Metadata } from 'next'
 
-import { NO_INDEX_PAGE } from '@/constants/seo.constants'
+import { noIndexPage } from '@/constants/seo.constants'
 
 import { Auth } from './auth-form'
 
 export const metadata: Metadata = {
   title: 'Вход / Регистрация',
   description: 'Войдите или создайте аккаунт в MyMoney',
-  ...NO_INDEX_PAGE
+  ...noIndexPage
 }
 
 export default function AuthPage() {

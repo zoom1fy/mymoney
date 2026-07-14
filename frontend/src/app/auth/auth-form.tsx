@@ -1,6 +1,6 @@
 'use client'
 
-import { DASHBOARD_PAGES } from '@/config/pages-url.config'
+import { dashboardPages } from '@/config/pages-url.config'
 import { authService } from '@/services/auth.service'
 import { useMutation } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -157,18 +157,18 @@ function VerifyScreen({
   resendMutation: { isPending: boolean; mutate: (email: string) => void }
   cooldown: number
   verifyMutation: { isPending: boolean; isError: boolean }
-  setCooldown: (n: number) => void
+  setCooldown: (seconds: number) => void
 }) {
   const [code, setCode] = useState('')
-  const [shake, setShake] = useState(false)
+  const [isShaking, setIsShaking] = useState(false)
 
-  const triggerShake = () => {
-    setShake(true)
-    setTimeout(() => setShake(false), 500)
+  const triggerIsShaking = () => {
+    setIsShaking(true)
+    setTimeout(() => setIsShaking(false), 500)
   }
 
   useEffect(() => {
-    if (verifyMutation.isError) triggerShake()
+    if (verifyMutation.isError) triggerIsShaking()
   }, [verifyMutation.isError])
 
   return (
@@ -191,19 +191,19 @@ function VerifyScreen({
       </p>
       <p className="mt-2 text-lg font-semibold text-foreground">{email}</p>
 
-      <form className="mt-8 space-y-8" onSubmit={onVerify}>
+              <form className="mt-8 space-y-8" onSubmit={onVerify}>
         <div>
           <Label className="text-lg font-medium" htmlFor="code">
             Введите код из письма
           </Label>
           <motion.div
-            animate={shake ? { x: [-8, 8, -6, 6, -3, 3, 0] } : {}}
+            animate={isShaking ? { x: [-8, 8, -6, 6, -3, 3, 0] } : {}}
             transition={{ duration: 0.4 }}
           >
             <Input
               autoComplete="one-time-code"
               className={`mt-3 h-14 text-2xl text-center tracking-[0.5em] px-5 transition-all duration-300 ${
-                shake
+                isShaking
                   ? 'border-destructive shadow-[0_0_0_3px_hsl(var(--destructive)/0.3)]'
                   : 'focus-visible:shadow-[0_0_0_3px_hsl(var(--ring)/0.3)]'
               }`}
@@ -300,12 +300,12 @@ export function Auth() {
     mutationFn: (data: IAuthForm) => authService.login(data),
     onSuccess() {
       toast.success('Добро пожаловать!')
-      router.push(DASHBOARD_PAGES.HOME)
+      router.push(dashboardPages.HOME)
       router.refresh()
     },
     onError(error: Error) {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Неверный email или пароль'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Неверный email или пароль'
       toast.error(message)
     }
   })
@@ -319,8 +319,8 @@ export function Auth() {
       setCooldown(60)
     },
     onError(error: Error) {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Ошибка при регистрации'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Ошибка при регистрации'
       toast.error(message)
     }
   })
@@ -332,12 +332,12 @@ export function Auth() {
     onSuccess() {
       toast.success('Аккаунт подтверждён!')
       setPendingEmail(null)
-      router.push(DASHBOARD_PAGES.HOME)
+      router.push(dashboardPages.HOME)
       router.refresh()
     },
     onError(error: Error) {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Неверный код'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Неверный код'
       toast.error(message)
     }
   })
@@ -349,8 +349,8 @@ export function Auth() {
       toast.success('Новый код отправлен на почту')
     },
     onError(error: Error) {
-      const err = error as { response?: { data?: { message?: string } } }
-      const message = err.response?.data?.message || 'Ошибка при отправке кода'
+      const apiError = error as { response?: { data?: { message?: string } } }
+      const message = apiError.response?.data?.message || 'Ошибка при отправке кода'
       toast.error(message)
     }
   })
@@ -367,7 +367,7 @@ export function Auth() {
     registerMutation.mutate({ email: data.email, password: data.password })
   }
 
-  const onVerify = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleVerify = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const code = formData.get('code') as string
@@ -411,7 +411,7 @@ export function Auth() {
                   setCooldown={setCooldown}
                   verifyMutation={verifyMutation}
                   onBack={() => setPendingEmail(null)}
-                  onVerify={onVerify}
+                  onVerify={handleVerify}
                 />
               </motion.div>
             ) : (

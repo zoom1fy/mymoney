@@ -21,14 +21,14 @@ import { useProfile } from '@/hooks/use-profile'
 
 export function DashboardHeader() {
   const { profile, logout, isLoggingOut } = useProfile()
-  const [profileOpen, setProfileOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   // Generate avatar fallback from name or first two email chars
   const getInitials = () => {
     if (profile?.name) {
       return profile.name
         .split(' ')
-        .map(n => n[0])
+        .map(name => name[0])
         .join('')
         .toUpperCase()
         .slice(0, 2)
@@ -90,7 +90,7 @@ export function DashboardHeader() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => setProfileOpen(true)}
+              onClick={() => setIsProfileOpen(true)}
             >
               <User className="mr-2 h-4 w-4" />
               Профиль
@@ -108,8 +108,8 @@ export function DashboardHeader() {
         </DropdownMenu>
 
         <ProfileModal
-          open={profileOpen}
-          onOpenChange={setProfileOpen}
+          isOpen={isProfileOpen}
+          onOpenChange={setIsProfileOpen}
         />
       </div>
     </header>
