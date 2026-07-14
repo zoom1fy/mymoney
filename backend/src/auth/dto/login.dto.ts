@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MinLength, MaxLength, Matches } from 'class-validator';
 
-export class AuthDto {
+export class LoginDto {
   @IsEmail({}, { message: 'Некорректный формат email' })
   @MaxLength(254, {
     message: 'Email не должен превышать 254 символа',

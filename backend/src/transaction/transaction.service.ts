@@ -277,8 +277,8 @@ export class TransactionService {
         select: { id: true, isDeleted: true },
       });
 
-      const deleted = accounts.find((acc) => acc.isDeleted);
-      if (deleted) {
+      const hasDeleted = accounts.find((acc) => acc.isDeleted);
+      if (hasDeleted) {
         throw new BadRequestException('Нельзя обновить транзакцию: счёт удалён');
       }
     }

@@ -1,6 +1,6 @@
 import { Controller, Get, Body, Patch, Delete, ValidationPipe, UsePipes } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UpdateProfileDto } from './dto/user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 import { User } from '@prisma/client';
 import { Auth } from '../auth/decorators/auth.decorator';

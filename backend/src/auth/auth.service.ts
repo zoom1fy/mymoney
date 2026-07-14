@@ -7,7 +7,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthDto } from './dto/auth.dto';
+import { LoginDto } from './dto/login.dto';
 import { UserService } from '../user/user.service';
 import { SeedService } from '../seed/seed.service';
 import { MailService } from '../mail/mail.service';
@@ -20,7 +20,7 @@ import { randomInt } from 'crypto';
 
 @Injectable()
 export class AuthService {
-  EXPIRE_DAY_REFRESH_TOKEN = 1;
+  static readonly EXPIRE_DAY_REFRESH = 1;
 
   constructor(
     private jwt: JwtService,
@@ -31,7 +31,7 @@ export class AuthService {
     @Inject(TOKEN_CONFIG) public readonly tokenConfig: TokenConfig
   ) {}
 
-  async login(dto: AuthDto) {
+  async login(dto: LoginDto) {
     const user = await this.validateUser(dto);
 
     const tokens = this.issueToken(user.id);
@@ -48,7 +48,7 @@ export class AuthService {
   // 1. User submits email+password → verification code sent
   // 2. User submits the code → account created (verifyEmail)
   // This prevents account creation with unverified emails.
-  async register(dto: AuthDto) {
+  async register(dto: LoginDto) {
     const existingUser = await this.userService.getByEmail(dto.email);
     if (existingUser) throw new ConflictException('Пользователь с таким email уже существует');
 
@@ -202,7 +202,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async validateUser(dto: AuthDto) {
+  private async validateUser(dto: LoginDto) {
     const user = await this.userService.getByEmail(dto.email);
     if (!user) throw new NotFoundException('Пользователь не найден');
 
@@ -218,7 +218,7 @@ export class AuthService {
   // Sets the refresh token as an httpOnly cookie so the client cannot access it via JS
   addRefreshTokenToResponse(res: Response, refreshToken: string) {
     const expiresIn = new Date();
-    expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
+    expiresIn.setDate(expiresIn.getDate() + AuthService.EXPIRE_DAY_REFRESH);
 
     res.cookie(this.tokenConfig.refreshTokenName, refreshToken, {
       ...this.tokenConfig.refreshTokenCookieOptions,

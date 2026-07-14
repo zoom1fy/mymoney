@@ -7,7 +7,7 @@ import { UserService } from '../user/user.service';
 import { SeedService } from '../seed/seed.service';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto } from './dto/auth.dto';
+import { LoginDto } from './dto/login.dto';
 import { TOKEN_CONFIG, TokenConfig } from '../config/token.config';
 
 jest.mock('argon2', () => ({
@@ -43,7 +43,7 @@ describe('AuthService', () => {
   let prismaService: any;
   let tokenConfig: TokenConfig;
 
-  const dto: AuthDto = { email: TEST_EMAIL, password: TEST_PASSWORD };
+  const dto: LoginDto = { email: TEST_EMAIL, password: TEST_PASSWORD };
 
   const mockUser = {
     id: TEST_USER_ID,

@@ -9,7 +9,7 @@ export class AccountService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateAccountDto) {
-    const exists = await this.prisma.account.findFirst({
+    const hasExisting = await this.prisma.account.findFirst({
       where: {
         userId,
         name: dto.name,
@@ -17,7 +17,7 @@ export class AccountService {
       },
     });
 
-    if (exists) {
+    if (hasExisting) {
       throw new BadRequestException('Счёт с таким именем уже существует');
     }
 
@@ -69,7 +69,7 @@ export class AccountService {
     const account = await this.findOne(userId, id); // access check
 
     if (dto.name && dto.name !== account.name) {
-      const conflict = await this.prisma.account.findFirst({
+      const hasConflict = await this.prisma.account.findFirst({
         where: {
           userId,
           name: dto.name,
@@ -78,7 +78,7 @@ export class AccountService {
         },
       });
 
-      if (conflict) {
+      if (hasConflict) {
         throw new BadRequestException('Другой счёт с таким именем уже существует');
       }
     }

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
-import { AuthDto } from './dto/auth.dto';
+import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -25,7 +25,7 @@ export class AuthController {
   @UsePipes(new ValidationPipe())
   @HttpCode(200)
   @Post('login')
-  async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const { refreshToken, ...response } = await this.authService.login(dto);
     this.authService.addRefreshTokenToResponse(res, refreshToken);
 
@@ -35,7 +35,7 @@ export class AuthController {
   @UsePipes(new ValidationPipe())
   @HttpCode(201)
   @Post('register')
-  async register(@Body() dto: AuthDto) {
+  async register(@Body() dto: LoginDto) {
     return this.authService.register(dto);
   }
 

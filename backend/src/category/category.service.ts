@@ -8,7 +8,7 @@ export class CategoryService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateCategoryDto) {
-    const existing = await this.prisma.category.findFirst({
+    const hasExisting = await this.prisma.category.findFirst({
       where: {
         userId,
         name: dto.name,
@@ -16,7 +16,7 @@ export class CategoryService {
       },
     });
 
-    if (existing) {
+    if (hasExisting) {
       throw new BadRequestException('Категория с таким именем уже существует');
     }
 
@@ -76,7 +76,7 @@ export class CategoryService {
     }
 
     if (dto.name && dto.name !== category.name) {
-      const exists = await this.prisma.category.findFirst({
+      const hasExisting = await this.prisma.category.findFirst({
         where: {
           userId,
           name: dto.name,
@@ -85,7 +85,7 @@ export class CategoryService {
         },
       });
 
-      if (exists) {
+      if (hasExisting) {
         throw new BadRequestException('Другая активная категория с таким именем уже существует');
       }
     }

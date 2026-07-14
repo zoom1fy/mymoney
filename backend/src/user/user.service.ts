@@ -5,8 +5,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto } from '../auth/dto/auth.dto';
-import { UpdateProfileDto } from './dto/user.dto';
+import { LoginDto } from '../auth/dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { hash, verify } from 'argon2';
 
 @Injectable()
@@ -36,7 +36,7 @@ export class UserService {
     });
   }
 
-  async create(dto: AuthDto) {
+  async create(dto: LoginDto) {
     const user = {
       email: dto.email,
       passwordHash: await hash(dto.password),
@@ -53,7 +53,7 @@ export class UserService {
     });
   }
 
-  async update(id: string, dto: Partial<AuthDto>) {
+  async update(id: string, dto: Partial<LoginDto>) {
     const updateData: { passwordHash?: string; email?: string } = {};
 
     if (dto.password) {
