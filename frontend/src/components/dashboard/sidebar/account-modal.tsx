@@ -34,11 +34,11 @@ import {
   CurrencyCode,
   IAccount,
   ICreateAccount
-} from '@/types/account.types'
+} from '@/types/account.type'
 
-import { useAccounts } from '@/hooks/useAccounts'
+import { useAccounts } from '@/hooks/use-accounts'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
 import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
 

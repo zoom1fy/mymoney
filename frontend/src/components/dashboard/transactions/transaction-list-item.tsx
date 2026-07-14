@@ -1,8 +1,8 @@
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 
-import { ICategory } from '@/types/category.types'
-import { ITransaction, TransactionType } from '@/types/transaction.types'
+import { ICategory } from '@/types/category.type'
+import { ITransaction, TransactionType } from '@/types/transaction.type'
 
 type Props = {
   transaction: ITransaction

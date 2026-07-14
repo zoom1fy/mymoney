@@ -3,7 +3,7 @@ import {
   IAccount,
   ICreateAccount,
   IUpdateAccount
-} from '../types/account.types'
+} from '../types/account.type'
 
 export const accountService = {
   async create(data: ICreateAccount) {

@@ -17,13 +17,13 @@ import {
   AccountCategoryEnum,
   AccountCategoryNameMap,
   IAccount
-} from '@/types/account.types'
+} from '@/types/account.type'
 
-import { useAccounts } from '@/hooks/useAccounts'
+import { useAccounts } from '@/hooks/use-accounts'
 
 import { ScrollArea } from '../../ui/shadui/scroll-area'
-import { AccountCard } from './AccountCard'
-import { AccountModal } from './AccountModal'
+import { AccountCard } from './account-card'
+import { AccountModal } from './account-modal'
 
 export function DashboardSidebar() {
   const { accounts, isLoading } = useAccounts()

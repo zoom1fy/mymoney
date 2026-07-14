@@ -16,7 +16,7 @@ import { GlassCard } from '@/components/ui/cards/glass-card'
 import { Input } from '@/components/ui/shadui/input'
 import { Label } from '@/components/ui/shadui/label'
 
-import { IAuthForm } from '@/types/auth.types'
+import { IAuthForm } from '@/types/auth.type'
 
 type AuthType = 'login' | 'register'
 

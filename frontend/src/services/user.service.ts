@@ -1,5 +1,5 @@
 import { axiosWithAuth } from '../api/interceptor'
-import { IUser } from '../types/auth.types'
+import { IUser } from '../types/auth.type'
 
 export const userService = {
   async getProfile() {

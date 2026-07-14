@@ -16,11 +16,11 @@ import {
   TabsTrigger
 } from '@/components/ui/shadui/tabs'
 
-import { CategoryIcons, ICategory } from '@/types/category.types'
+import { CategoryIcons, ICategory } from '@/types/category.type'
 
-import { useCategories } from '@/hooks/useCategories'
+import { useCategories } from '@/hooks/use-categories'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
 interface ArchiveModalProps {
   isExpense: boolean

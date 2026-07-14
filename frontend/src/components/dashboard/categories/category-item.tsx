@@ -3,9 +3,9 @@
 import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 
-import { CategoryIconName, CategoryIcons } from '@/types/category.types'
+import { CategoryIconName, CategoryIcons } from '@/types/category.type'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 import { hexWithAlpha } from '@/lib/color-utils'
 
 

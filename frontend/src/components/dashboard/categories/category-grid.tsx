@@ -3,12 +3,12 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
-import { ICategory } from '@/types/category.types'
+import { ICategory } from '@/types/category.type'
 
-import { TransactionModal } from '../transactions/TransactionModal'
-import { CategoryItem } from './CategoryItem'
-import { CategoryItemSkeleton } from './CategoryItemSkeleton'
-import { CategoryModal } from './CategoryModal'
+import { TransactionModal } from '../transactions/transaction-modal'
+import { CategoryItem } from './category-item'
+import { CategoryItemSkeleton } from './category-item-skeleton'
+import { CategoryModal } from './category-modal'
 
 interface Props {
   categories: ICategory[]

@@ -1,6 +1,6 @@
 'use client'
 
-import { transactionService } from '@/services/transaction.services'
+import { transactionService } from '@/services/transaction.service'
 import {
   InfiniteData,
   useInfiniteQuery,
@@ -10,13 +10,13 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import { IAccount } from '@/types/account.types'
+import { IAccount } from '@/types/account.type'
 import {
   ICreateTransaction,
   ITransaction,
   ITransactionResponse,
   TransactionType
-} from '@/types/transaction.types'
+} from '@/types/transaction.type'
 
 // Non-infinite query for bounded period (donut chart, transaction list modal)
 export function useTransactionsForPeriod(from: Date, to: Date) {

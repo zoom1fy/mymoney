@@ -3,7 +3,7 @@ import {
   ICategory,
   ICreateCategory,
   IUpdateCategory
-} from '../types/category.types'
+} from '../types/category.type'
 
 // Archived categories are hidden by default; unarchive to re-activate
 export const categoryService = {

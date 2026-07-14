@@ -13,7 +13,7 @@ import {
   AlertDialogTitle
 } from '@/components/ui/shadui/alert-dialog'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
 interface ConfirmAlertProps {
   open: boolean

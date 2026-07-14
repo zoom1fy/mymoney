@@ -67,8 +67,8 @@ import {
   Zap
 } from 'lucide-react'
 
-import { CurrencyCode } from './account.types'
-import { IBase } from './root.types'
+import { CurrencyCode } from './account.type'
+import { IBase } from './root.type'
 
 // Payload sent to POST /api/category
 export interface ICreateCategory {

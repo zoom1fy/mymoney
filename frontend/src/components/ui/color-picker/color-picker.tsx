@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/shadui/popover'
 
 import { getRandomColor, isValidHex, throttle } from '@/lib/color-utils'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
 interface Props {
   value: string

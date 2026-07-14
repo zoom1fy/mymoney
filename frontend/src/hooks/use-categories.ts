@@ -4,7 +4,7 @@ import { categoryService } from '@/services/category.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import { ICategory, ICreateCategory } from '@/types/category.types'
+import { ICategory, ICreateCategory } from '@/types/category.type'
 
 // Active + archived are fetched separately so the UI can show/hide archived categories
 export function useCategories(isExpense: boolean) {

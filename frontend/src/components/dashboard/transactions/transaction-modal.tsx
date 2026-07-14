@@ -39,17 +39,17 @@ import {
   SelectValue
 } from '@/components/ui/shadui/select'
 
-import { CurrencyCode, IAccount } from '@/types/account.types'
-import { ICategory } from '@/types/category.types'
-import { ITransaction, TransactionType } from '@/types/transaction.types'
+import { CurrencyCode, IAccount } from '@/types/account.type'
+import { ICategory } from '@/types/category.type'
+import { ITransaction, TransactionType } from '@/types/transaction.type'
 
-import { useAccounts } from '@/hooks/useAccounts'
-import { useTransactions } from '@/hooks/useTransactions'
+import { useAccounts } from '@/hooks/use-accounts'
+import { useTransactions } from '@/hooks/use-transactions'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
 import { ConfirmAlert } from '../../ui/dialogs/confirm-alert'
-import { TransactionPreview } from './TransactionPreview'
+import { TransactionPreview } from './transaction-preview'
 
 interface ITransactionForm {
   amount: number | ''

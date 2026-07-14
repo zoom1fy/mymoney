@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 
-import { ICategory } from '@/types/category.types'
+import { ICategory } from '@/types/category.type'
 
 import { DonutItem } from '@/lib/transactions-donut'
 
-import { ArchiveModal } from './ArchiveModal'
-import { CategoryGrid } from './CategoryGrid'
-import { CategoryToggle } from './CategoryToggle'
-import { EditModeButton } from './EditModeButton'
+import { ArchiveModal } from './archive-modal'
+import { CategoryGrid } from './category-grid'
+import { CategoryToggle } from './category-toggle'
+import { EditModeButton } from './edit-mode-button'
 
 interface Props {
   isExpense: boolean

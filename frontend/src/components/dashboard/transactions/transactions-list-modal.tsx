@@ -16,12 +16,12 @@ import {
 import { Input } from '@/components/ui/shadui/input'
 
 
-import { ICategory } from '@/types/category.types'
-import { ITransaction, TransactionType } from '@/types/transaction.types'
+import { ICategory } from '@/types/category.type'
+import { ITransaction, TransactionType } from '@/types/transaction.type'
 
-import { TransactionFilters } from './TransactionFilters'
-import { TransactionItem } from './TransactionListItem'
-import { TransactionModal } from './TransactionModal'
+import { TransactionFilters } from './transaction-filters'
+import { TransactionItem } from './transaction-list-item'
+import { TransactionModal } from './transaction-modal'
 
 const getCurrentMonthRange = () => {
   const now = new Date()

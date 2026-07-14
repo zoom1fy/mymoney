@@ -1,6 +1,6 @@
 import { axiosClassic } from '@/api/interceptor'
 
-import { IAuthForm, IAuthResponse } from '@/types/auth.types'
+import { IAuthForm, IAuthResponse } from '@/types/auth.type'
 
 import { removeTokenStorage, saveTokenStorage } from './auth-token.service'
 

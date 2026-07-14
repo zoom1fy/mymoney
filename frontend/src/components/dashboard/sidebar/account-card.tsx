@@ -3,13 +3,13 @@
 import { Wallet } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
-import { AccountIcons } from '@/types/account.types'
-import type { IAccount } from '@/types/account.types'
+import { AccountIcons } from '@/types/account.type'
+import type { IAccount } from '@/types/account.type'
 
 import { formatCurrency } from '@/lib/format'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
-import { AccountModal } from './AccountModal'
+import { AccountModal } from './account-modal'
 
 interface Props {
   account: IAccount
@@ -38,6 +38,7 @@ export function AccountCard({ account }: Props) {
           )}
         >
           {/* Hover gradient overlay */}
+          <div
             className={cn(
               'absolute inset-0 opacity-0 transition-opacity duration-700',
               'bg-gradient-to-br from-accent/5 via-transparent to-transparent',
@@ -47,6 +48,7 @@ export function AccountCard({ account }: Props) {
           />
 
           {/* Light sweep animation on hover */}
+          <div
             className="pointer-events-none absolute inset-0 opacity-0 hover:opacity-100 transition duration-700"
             style={{
               background:

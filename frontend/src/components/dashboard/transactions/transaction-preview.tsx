@@ -5,11 +5,11 @@ import { ru } from 'date-fns/locale'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowDown, ArrowRight, HelpCircle } from 'lucide-react'
 
-import { AccountIcons, IAccount } from '@/types/account.types'
-import { CategoryIcons, ICategory } from '@/types/category.types'
-import { ITransaction, TransactionType } from '@/types/transaction.types'
+import { AccountIcons, IAccount } from '@/types/account.type'
+import { CategoryIcons, ICategory } from '@/types/category.type'
+import { ITransaction, TransactionType } from '@/types/transaction.type'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
 interface TransactionPreviewProps {
   amount: number | ''

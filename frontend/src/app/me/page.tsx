@@ -3,15 +3,15 @@
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { useEffect, useMemo, useState } from 'react'
 
-import { CategoriesPanel } from '@/components/dashboard/categories/CategoriesPanel'
+import { CategoriesPanel } from '@/components/dashboard/categories/categories-panel'
 
-import { TransactionsDonutChart } from '@/components/dashboard/transactions/TransactionsDonutChart'
-import { TransactionsListModal } from '@/components/dashboard/transactions/TransactionsListModal'
+import { TransactionsDonutChart } from '@/components/dashboard/transactions/transactions-donut-chart'
+import { TransactionsListModal } from '@/components/dashboard/transactions/transactions-list-modal'
 
-import { TransactionType } from '@/types/transaction.types'
+import { TransactionType } from '@/types/transaction.type'
 
-import { useCategories } from '@/hooks/useCategories'
-import { useTransactionsForPeriod } from '@/hooks/useTransactions'
+import { useCategories } from '@/hooks/use-categories'
+import { useTransactionsForPeriod } from '@/hooks/use-transactions'
 
 import { buildDonutData } from '@/lib/transactions-donut'
 

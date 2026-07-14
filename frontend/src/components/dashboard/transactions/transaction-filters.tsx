@@ -2,7 +2,7 @@
 
 import { CalendarDays } from 'lucide-react'
 
-import { DateRangePicker } from '@/components/dashboard/transactions/DateRangePicker'
+import { DateRangePicker } from '@/components/dashboard/transactions/date-range-picker'
 import {
   Select,
   SelectContent,
@@ -11,7 +11,7 @@ import {
   SelectValue
 } from '@/components/ui/shadui/select'
 
-import { ICategory } from '@/types/category.types'
+import { ICategory } from '@/types/category.type'
 
 interface TransactionFiltersProps {
   filterType: 'all' | 'income' | 'expense'

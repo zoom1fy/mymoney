@@ -1,5 +1,5 @@
-import { CurrencyCode } from './account.types'
-import { IBase } from './root.types'
+import { CurrencyCode } from './account.type'
+import { IBase } from './root.type'
 
 // Transaction type discriminator — controls balance increment/decrement and transfer logic
 export enum TransactionType {

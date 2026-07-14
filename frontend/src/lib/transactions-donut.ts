@@ -1,5 +1,5 @@
-import { ICategory } from '@/types/category.types'
-import { ITransaction, TransactionType } from '@/types/transaction.types'
+import { ICategory } from '@/types/category.type'
+import { ITransaction, TransactionType } from '@/types/transaction.type'
 
 export interface DonutItem {
   id: number

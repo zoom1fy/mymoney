@@ -19,19 +19,19 @@ import { Input } from '@/components/ui/shadui/input'
 import { Label } from '@/components/ui/shadui/label'
 import { ScrollArea } from '@/components/ui/shadui/scroll-area'
 
-import { CurrencyCode } from '@/types/account.types'
+import { CurrencyCode } from '@/types/account.type'
 import {
   CategoryIconName,
   CategoryIcons,
   ICategory,
   ICreateCategory
-} from '@/types/category.types'
+} from '@/types/category.type'
 
-import { useCategories } from '@/hooks/useCategories'
+import { useCategories } from '@/hooks/use-categories'
 
 import { getRandomColor } from '@/lib/color-utils'
-import { cn } from '@/lib/utils'
-import { ColorPicker } from '@/components/ui/color-picker/ColorPicker'
+import { cn } from '@/lib/cn'
+import { ColorPicker } from '@/components/ui/color-picker/color-picker'
 
 const iconOptions = Object.keys(CategoryIcons) as CategoryIconName[]
 

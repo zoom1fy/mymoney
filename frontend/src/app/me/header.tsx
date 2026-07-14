@@ -3,8 +3,8 @@
 import { LogOut, User } from 'lucide-react'
 import { useState } from 'react'
 
-import { ProfileModal } from '@/components/dashboard/profile/ProfileModal'
-import { ThemeToggle } from '@/components/ui/buttons/ThemeToggle'
+import { ProfileModal } from '@/components/dashboard/profile/profile-modal'
+import { ThemeToggle } from '@/components/ui/buttons/theme-toggle'
 import { Avatar, AvatarFallback } from '@/components/ui/shadui/avatar'
 import { Button } from '@/components/ui/shadui/button'
 import {
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/shadui/dropdown-menu'
 import { SidebarTrigger } from '@/components/ui/shadui/sidebar'
 
-import { useProfile } from '@/hooks/useProfile'
+import { useProfile } from '@/hooks/use-profile'
 
 export function DashboardHeader() {
   const { profile, logout, isLoggingOut } = useProfile()

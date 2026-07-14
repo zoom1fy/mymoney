@@ -14,7 +14,7 @@ import {
 
 import { Button, buttonVariants } from '@/components/ui/shadui/button'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
 function Calendar({
   className,

@@ -30,7 +30,7 @@ import {
   WalletMinimal
 } from 'lucide-react'
 
-import { IBase } from './root.types'
+import { IBase } from './root.type'
 
 export enum CurrencyCode {
   RUB = 'RUB',

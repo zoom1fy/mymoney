@@ -4,9 +4,9 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import { DonutItem } from '@/lib/transactions-donut'
 
-import { DateRangePicker } from './DateRangePicker'
-import { DateRangePickerSkeleton } from './skeletons/DateRangePickerSkeleton'
-import { TransactionsDonutChartSkeleton } from './skeletons/TransactionsDonutChartSkeleton'
+import { DateRangePicker } from './date-range-picker'
+import { DateRangePickerSkeleton } from './skeletons/date-range-picker-skeleton'
+import { TransactionsDonutChartSkeleton } from './skeletons/transactions-donut-chart-skeleton'
 
 interface Props {
   donutData: DonutItem[]

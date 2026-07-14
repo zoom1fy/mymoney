@@ -4,7 +4,7 @@ import { accountService } from '@/services/account.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import { IAccount, ICreateAccount, IUpdateAccount } from '@/types/account.types'
+import { IAccount, ICreateAccount, IUpdateAccount } from '@/types/account.type'
 
 // API sends currentBalance as string; normalise to number on read + optimistic updates kept in sync
 export function useAccounts() {

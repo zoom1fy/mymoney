@@ -5,7 +5,7 @@ import {
   ITransactionResponse,
   IUpdateTransaction,
   TransactionType
-} from '../types/transaction.types'
+} from '../types/transaction.type'
 
 // API sends amount as string and type as string; normalise to number/enum on every read
 export const transactionService = {

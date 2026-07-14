@@ -16,9 +16,9 @@ import {
 import { Input } from '@/components/ui/shadui/input'
 import { Label } from '@/components/ui/shadui/label'
 
-import { useProfile } from '@/hooks/useProfile'
+import { useProfile } from '@/hooks/use-profile'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/cn'
 
 interface IProfileForm {
   email: string
