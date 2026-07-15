@@ -17,6 +17,7 @@ import { MailModule } from './mail/mail.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['../.env', '.env.local'],
     }),
     ThrottlerModule.forRoot([{ ttl: 10000, limit: 30 }]), // 30 requests per 10s globally; overridden per-route in auth
     AuthModule,
