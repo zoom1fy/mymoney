@@ -12,6 +12,7 @@ import { CurrencyModule } from './currency/currency.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { SeedModule } from './seed/seed.module';
 import { MailModule } from './mail/mail.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { MailModule } from './mail/mail.module';
     CategoryModule,
     CurrencyModule,
     TransactionModule,
+    DashboardModule,
     SeedModule,
     MailModule,
   ],

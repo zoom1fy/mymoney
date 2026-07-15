@@ -9,5 +9,6 @@ import { CurrencyModule } from '../currency/currency.module';
   imports: [HttpModule, CurrencyModule],
   controllers: [TransactionController],
   providers: [TransactionService, PrismaService],
+  exports: [TransactionService],
 })
 export class TransactionModule {}

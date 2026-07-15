@@ -1,44 +1,33 @@
 'use client'
 
-import { endOfMonth, startOfMonth } from 'date-fns'
 import { useEffect, useMemo, useState } from 'react'
 
+import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import { CategoriesPanel } from '@/components/dashboard/categories/categories-panel'
 
 import { TransactionsDonutChart } from '@/components/dashboard/transactions/transactions-donut-chart'
 import { TransactionsListModal } from '@/components/dashboard/transactions/transactions-list-modal'
-
-import { TransactionType } from '@/types/transaction.type'
-
-import { useCategories } from '@/hooks/use-categories'
-import { useTransactionSummary, useTransactionsForPeriod } from '@/hooks/use-transactions'
-
-const getCurrentMonthRange = () => ({
-  from: startOfMonth(new Date()),
-  to: endOfMonth(new Date())
-})
+import { useTransactionsForPeriod } from '@/hooks/use-transactions'
 
 export default function DashboardPage() {
-  const [isExpense, setIsExpense] = useState(true)
-
-  const [chartRange, setChartRange] = useState(getCurrentMonthRange())
-  const [modalRange, setModalRange] = useState(getCurrentMonthRange())
-  const [isTransactionListOpen, setIsTransactionListOpen] = useState(false)
-
-  const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
-
-  const { data: chartData, isLoading: chartLoading } =
-    useTransactionSummary(chartRange.from, chartRange.to, type)
-
-  const { data: modalTransactions = [], isLoading: _modalLoading } =
-    useTransactionsForPeriod(modalRange.from, modalRange.to)
-
   const {
-    categories, isLoading: catLoading
-  } = useCategories(isExpense)
+    donutData,
+    total,
+    isExpense,
+    setIsExpense,
+    from,
+    to,
+    setRange,
+    categories: allCategories,
+    isLoading
+  } = useDashboard()
 
-  const isLoading = chartLoading || catLoading
-  // Header fires 'open-transactions' to open the transaction list from anywhere
+  const [isTransactionListOpen, setIsTransactionListOpen] = useState(false)
+  const [modalRange, setModalRange] = useState({
+    from: new Date(from),
+    to: new Date(to)
+  })
+
   useEffect(() => {
     const handleOpenTx = () => setIsTransactionListOpen(true)
     window.addEventListener('open-transactions', handleOpenTx)
@@ -48,11 +37,13 @@ export default function DashboardPage() {
     }
   }, [])
 
-  const donutData = chartData ?? []
-  const total = useMemo(
-    () => donutData.reduce((sum, item) => sum + item.value, 0),
-    [donutData]
+  const categories = useMemo(
+    () => allCategories.filter(c => c.isExpense === isExpense),
+    [allCategories, isExpense]
   )
+
+  const { data: modalTransactions = [] } =
+    useTransactionsForPeriod(modalRange.from, modalRange.to, isTransactionListOpen)
 
   return (
     <div className="space-y-8">
@@ -62,9 +53,9 @@ export default function DashboardPage() {
             donutData={donutData}
             isExpense={isExpense}
             isLoading={isLoading}
-            range={chartRange}
+            range={{ from: new Date(from), to: new Date(to) }}
             total={total}
-            onRangeChange={setChartRange}
+            onRangeChange={(range) => setRange(range.from, range.to)}
           />
         </div>
 

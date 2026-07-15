@@ -1,3 +1,5 @@
+import { DashboardProvider } from '@/components/dashboard/dashboard-provider'
+
 import { DashboardSidebar } from '@/components/dashboard/sidebar/dashboard-sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/shadui/sidebar'
 
@@ -13,12 +15,14 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <SidebarProvider>
-      <DashboardSidebar />
-      <SidebarInset>
-        <DashboardHeader />
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+    <DashboardProvider>
+      <SidebarProvider>
+        <DashboardSidebar />
+        <SidebarInset>
+          <DashboardHeader />
+          <main className="flex-1 overflow-y-auto p-6 lg:p-10">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    </DashboardProvider>
   )
 }

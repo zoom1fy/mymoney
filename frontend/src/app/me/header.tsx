@@ -17,13 +17,14 @@ import {
 } from '@/components/ui/shadui/dropdown-menu'
 import { SidebarTrigger } from '@/components/ui/shadui/sidebar'
 
+import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import { useProfile } from '@/hooks/use-profile'
 
 export function DashboardHeader() {
-  const { profile, logout, isLoggingOut } = useProfile()
+  const { profile } = useDashboard()
+  const { logout, isLoggingOut } = useProfile()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
 
-  // Generate avatar fallback from name or first two email chars
   const getInitials = () => {
     if (profile?.name) {
       return profile.name

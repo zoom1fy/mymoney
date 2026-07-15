@@ -19,14 +19,14 @@ import {
   IAccount
 } from '@/types/account.type'
 
-import { useAccounts } from '@/hooks/use-accounts'
+import { useDashboard } from '@/components/dashboard/dashboard-provider'
 
 import { ScrollArea } from '../../ui/shadui/scroll-area'
 import { AccountCard } from './account-card'
 import { AccountModal } from './account-modal'
 
 export function DashboardSidebar() {
-  const { accounts, isLoading } = useAccounts()
+  const { accounts, isLoading } = useDashboard()
 
   const accountCategories: AccountCategoryEnum[] = [
     AccountCategoryEnum.ACCOUNTS,

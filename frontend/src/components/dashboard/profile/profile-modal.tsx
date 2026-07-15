@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/shadui/input'
 import { Label } from '@/components/ui/shadui/label'
 
+import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import { useProfile } from '@/hooks/use-profile'
 
 import { cn } from '@/lib/cn'
@@ -37,7 +38,8 @@ interface Props {
 
 // Only sends fields that actually changed (email, password) + always sends currentPassword
 export function ProfileModal({ isOpen, onOpenChange }: Props) {
-  const { profile, updateProfile, isUpdatingProfile } = useProfile()
+  const { profile } = useDashboard()
+  const { updateProfile, isUpdatingProfile } = useProfile()
 
   const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
 

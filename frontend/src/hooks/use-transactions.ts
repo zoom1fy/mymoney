@@ -19,11 +19,12 @@ import {
   TransactionType
 } from '@/types/transaction.type'
 
-export function useTransactionsForPeriod(from: Date, to: Date) {
+export function useTransactionsForPeriod(from: Date, to: Date, enabled = true) {
   return useQuery<ITransaction[]>({
     queryKey: ['transactions-period', from.toISOString(), to.toISOString()],
     queryFn: () => transactionService.getForPeriod(from, to),
-    staleTime: 1000 * 60
+    staleTime: 1000 * 60,
+    enabled
   })
 }
 
