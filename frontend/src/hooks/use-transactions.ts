@@ -18,7 +18,6 @@ import {
   TransactionType
 } from '@/types/transaction.type'
 
-// Non-infinite query for bounded period (donut chart, transaction list modal)
 export function useTransactionsForPeriod(from: Date, to: Date) {
   return useQuery<ITransaction[]>({
     queryKey: ['transactions-period', from.toISOString(), to.toISOString()],
@@ -27,7 +26,6 @@ export function useTransactionsForPeriod(from: Date, to: Date) {
   })
 }
 
-// Infinite-scroll transaction list with optimistic create (updates both tx list + account balance)
 export function useTransactions() {
   const queryClient = useQueryClient()
 
@@ -55,7 +53,6 @@ export function useTransactions() {
       const previousTransactions = queryClient.getQueryData(['transactions'])
       const previousAccounts = queryClient.getQueryData(['accounts'])
 
-      // Prepend optimistic transaction to the first (most recent) page
       const tempId = Date.now()
       const optimisticTransaction: ITransaction = {
         ...newTransactionData,
@@ -86,7 +83,6 @@ export function useTransactions() {
         }
       )
 
-      // Optimistically adjust the affected account's balance
       queryClient.setQueryData(['accounts'], (old: IAccount[] = []) =>
         old.map(acc => {
           if (acc.id === newTransactionData.accountId) {
@@ -148,30 +144,13 @@ export function useTransactions() {
 
       queryClient.invalidateQueries({
         predicate: query => {
-          const queryKey = query.queryKey[0]
-          return (
-            queryKey === 'transactions' ||
-            queryKey === 'transactions-period' ||
-            queryKey === 'accounts' ||
-            queryKey === 'categories'
-          )
+          const key = query.queryKey[0]
+          return key === 'accounts' || key === 'transactions-period'
         },
         refetchType: 'active'
       })
 
       toast.success('Транзакция успешно добавлена')
-    },
-    onSettled: () => {
-      // Also refresh stale period queries in the background after any transaction mutation
-      queryClient.invalidateQueries({
-        predicate: query => {
-          const queryKey = query.queryKey[0]
-          return (
-            queryKey === 'transactions' || queryKey === 'transactions-period'
-          )
-        },
-        refetchType: 'inactive'
-      })
     }
   })
 
@@ -179,50 +158,137 @@ export function useTransactions() {
     mutationFn: ({ id, data }: { id: number; data: ICreateTransaction }) =>
       transactionService.update(id, data),
 
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] })
+      await queryClient.cancelQueries({ queryKey: ['accounts'] })
+
+      const previousTransactions = queryClient.getQueryData(['transactions'])
+      const previousAccounts = queryClient.getQueryData(['accounts'])
+
+      queryClient.setQueryData<InfiniteData<ITransactionResponse>>(
+        ['transactions'],
+        old => {
+          if (!old) return old
+
+          return {
+            ...old,
+            pages: old.pages.map(page => ({
+              ...page,
+              data: page.data.map(item =>
+                item.id === id ? { ...item, ...data, id: item.id } : item
+              )
+            }))
+          }
+        }
+      )
+
+      return { previousTransactions, previousAccounts }
+    },
+
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(['transactions'], context.previousTransactions)
+      }
+      if (context?.previousAccounts) {
+        queryClient.setQueryData(['accounts'], context.previousAccounts)
+      }
+
+      const apiError = error as { response?: { data?: { message?: string } } }
+      toast.error(apiError.response?.data?.message || 'Ошибка обновления')
+    },
+
     onSuccess: () => {
       queryClient.invalidateQueries({
         predicate: query => {
-          const queryKey = query.queryKey[0]
-          return (
-            queryKey === 'transactions' ||
-            queryKey === 'transactions-period' ||
-            queryKey === 'accounts' ||
-            queryKey === 'categories'
-          )
+          const key = query.queryKey[0]
+          return key === 'accounts' || key === 'transactions-period'
         },
         refetchType: 'active'
       })
-      toast.success('Транзакция обновлена')
-    },
 
-    onError: (error: Error) => {
-      const apiError = error as { response?: { data?: { message?: string } } }
-      toast.error(apiError.response?.data?.message || 'Ошибка обновления')
+      toast.success('Транзакция обновлена')
     }
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => transactionService.delete(id),
 
+    onMutate: async id => {
+      await queryClient.cancelQueries({ queryKey: ['transactions'] })
+      await queryClient.cancelQueries({ queryKey: ['accounts'] })
+
+      const previousTransactions = queryClient.getQueryData(['transactions'])
+      const previousAccounts = queryClient.getQueryData(['accounts'])
+
+      let deletedTransaction: ITransaction | undefined
+
+      queryClient.setQueryData<InfiniteData<ITransactionResponse>>(
+        ['transactions'],
+        old => {
+          if (!old) return old
+
+          let found: ITransaction | undefined
+          const newPages = old.pages.map(page => ({
+            ...page,
+            data: page.data.filter(item => {
+              if (item.id === id) {
+                found = item
+                return false
+              }
+              return true
+            })
+          }))
+
+          deletedTransaction = found
+
+          return { ...old, pages: newPages }
+        }
+      )
+
+      if (deletedTransaction) {
+        queryClient.setQueryData(['accounts'], (old: IAccount[] = []) =>
+          old.map(acc => {
+            if (acc.id === deletedTransaction!.accountId) {
+              const revertAmount =
+                deletedTransaction!.type === TransactionType.EXPENSE
+                  ? deletedTransaction!.amount
+                  : -deletedTransaction!.amount
+
+              return {
+                ...acc,
+                currentBalance: acc.currentBalance + revertAmount
+              }
+            }
+            return acc
+          })
+        )
+      }
+
+      return { previousTransactions, previousAccounts }
+    },
+
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(['transactions'], context.previousTransactions)
+      }
+      if (context?.previousAccounts) {
+        queryClient.setQueryData(['accounts'], context.previousAccounts)
+      }
+
+      const apiError = error as { response?: { data?: { message?: string } } }
+      toast.error(apiError.response?.data?.message || 'Ошибка удаления')
+    },
+
     onSuccess: () => {
       queryClient.invalidateQueries({
         predicate: query => {
-          const queryKey = query.queryKey[0]
-          return (
-            queryKey === 'transactions' ||
-            queryKey === 'transactions-period' ||
-            queryKey === 'accounts' ||
-            queryKey === 'categories'
-          )
+          const key = query.queryKey[0]
+          return key === 'accounts' || key === 'transactions-period'
         },
         refetchType: 'active'
       })
-      toast.success('Транзакция удалена')
-    },
 
-    onError: (error: Error) => {
-      const apiError = error as { response?: { data?: { message?: string } } }
-      toast.error(apiError.response?.data?.message || 'Ошибка удаления')
+      toast.success('Транзакция удалена')
     }
   })
 
