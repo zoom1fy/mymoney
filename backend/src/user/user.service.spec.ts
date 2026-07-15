@@ -54,15 +54,12 @@ describe('UserService', () => {
   });
 
   describe('findById()', () => {
-    it('should return user with accounts, categories, and transactions included', async () => {
+    it('should return user without included relations', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
         lastLogin: now,
-        accounts: [{ id: 'acc-1' }],
-        categories: [{ id: 'cat-1' }],
-        transactions: [{ id: 'txn-1' }],
       } as any);
 
       const result = await service.findById(userId);
@@ -70,13 +67,9 @@ describe('UserService', () => {
       expect(result).toBeTruthy();
       expect(result.id).toBe(userId);
       expect(result.email).toBe(email);
-      expect(result.accounts).toBeDefined();
-      expect(result.categories).toBeDefined();
-      expect(result.transactions).toBeDefined();
 
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: userId },
-        include: { accounts: true, categories: true, transactions: true },
       });
     });
 
