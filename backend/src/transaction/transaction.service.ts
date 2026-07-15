@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { CurrencyService } from '../currency/currency.service';
 import { TransactionType } from '../transaction/enums/transaction-type.enum';
 import { GetTransactionsDto } from './dto/get-transactions.dto';
+import { GetTransactionSummaryDto } from './dto/get-transaction-summary.dto';
 
 @Injectable()
 export class TransactionService {
@@ -183,6 +185,43 @@ export class TransactionService {
     });
 
     return this.applyPagination(transactionsQuery, take, cursor);
+  }
+
+  async getSummary(userId: string, query: GetTransactionSummaryDto) {
+    const { type, from, to } = query;
+
+    const conditions = [Prisma.sql`t.user_id = ${userId}`, Prisma.sql`t.type = ${type}`];
+    if (from) conditions.push(Prisma.sql`t.transaction_date >= ${new Date(from)}`);
+    if (to) conditions.push(Prisma.sql`t.transaction_date <= ${new Date(to)}`);
+
+    const whereClause = Prisma.join(conditions, ' AND ');
+
+    type RawRow = {
+      categoryId: number | null;
+      categoryName: string | null;
+      categoryColor: string | null;
+      totalAmount: string;
+    };
+
+    const rows = await this.prisma.$queryRaw<RawRow[]>(Prisma.sql`
+      SELECT
+        t.category_id AS categoryId,
+        c.name AS categoryName,
+        c.color AS categoryColor,
+        CAST(SUM(t.amount) AS DECIMAL(15,2)) AS totalAmount
+      FROM transactions t
+      LEFT JOIN categories c ON c.id = t.category_id
+      WHERE ${whereClause}
+      GROUP BY t.category_id, c.name, c.color
+      ORDER BY totalAmount DESC
+    `);
+
+    return rows.map(r => ({
+      categoryId: r.categoryId,
+      categoryName: r.categoryName,
+      categoryColor: r.categoryColor,
+      totalAmount: Number(r.totalAmount),
+    }));
   }
 
   async findOne(userId: string, id: number) {

@@ -6,6 +6,7 @@ import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { GetTransactionsDto } from './dto/get-transactions.dto';
+import { GetTransactionSummaryDto } from './dto/get-transaction-summary.dto';
 
 @Auth()
 @Controller('transactions')
@@ -20,6 +21,14 @@ export class TransactionController {
   @Get()
   async findAll(@CurrentUser() user: User, @Query() query: GetTransactionsDto) {
     return this.transactionService.findAll(user.id, query);
+  }
+
+  @Get('summary')
+  async getSummary(
+    @CurrentUser() user: User,
+    @Query() query: GetTransactionSummaryDto
+  ) {
+    return this.transactionService.getSummary(user.id, query);
   }
 
   @Get(':id')

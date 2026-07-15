@@ -6,6 +6,7 @@ import {
   IUpdateTransaction,
   TransactionType
 } from '../types/transaction.type'
+import { DonutItem } from '@/lib/transactions-donut'
 
 // API sends amount as string and type as string; normalise to number/enum on every read
 export const transactionService = {
@@ -56,6 +57,25 @@ export const transactionService = {
       amount: Number(tx.amount),
       type: mapTransactionType(tx.type)
     }))
+  },
+
+  async getSummary(from: Date, to: Date, type: TransactionType) {
+    const response = await axiosWithAuth.get<
+      { categoryId: number | null; categoryName: string | null; categoryColor: string | null; totalAmount: number }[]
+    >('/transactions/summary', {
+      params: {
+        from: from.toISOString(),
+        to: to.toISOString(),
+        type
+      }
+    })
+
+    return response.data.map(item => ({
+      id: item.categoryId ?? 0,
+      name: item.categoryName ?? 'Без категории',
+      value: item.totalAmount,
+      color: item.categoryColor && item.categoryColor.startsWith('#') ? item.categoryColor : '#cccccc'
+    })) as DonutItem[]
   },
 
   async getById(id: number) {

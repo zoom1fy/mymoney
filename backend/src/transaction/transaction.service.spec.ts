@@ -31,6 +31,7 @@ const mockPrisma = {
     update: jest.fn(),
     delete: jest.fn(),
   },
+  $queryRaw: jest.fn(),
   $transaction: jest.fn(),
 };
 
@@ -328,6 +329,37 @@ describe('TransactionService', () => {
       const result: any = await service.findAll(userId, {});
       expect(mockPrisma.transaction.findMany.mock.calls.length).toBeGreaterThan(0);
       expect(result.data.length).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('getSummary()', () => {
+    it('should return aggregated sums grouped by category', async () => {
+      mockPrisma.$queryRaw.mockResolvedValueOnce([
+        { categoryId: 1, categoryName: 'Food', categoryColor: '#ff0000', totalAmount: '500' },
+        { categoryId: 2, categoryName: 'Transport', categoryColor: '#00ff00', totalAmount: '300' },
+        { categoryId: null, categoryName: null, categoryColor: null, totalAmount: '100' },
+      ]);
+
+      const result = await service.getSummary(userId, {
+        type: TransactionType.EXPENSE,
+        from: '2024-01-01',
+        to: '2024-01-31',
+      });
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({ categoryId: 1, categoryName: 'Food', categoryColor: '#ff0000', totalAmount: 500 });
+      expect(result[1]).toEqual({ categoryId: 2, categoryName: 'Transport', categoryColor: '#00ff00', totalAmount: 300 });
+      expect(result[2]).toEqual({ categoryId: null, categoryName: null, categoryColor: null, totalAmount: 100 });
+    });
+
+    it('should filter by date range', async () => {
+      mockPrisma.$queryRaw.mockResolvedValueOnce([]);
+      await service.getSummary(userId, {
+        type: TransactionType.INCOME,
+        from: '2024-06-01',
+        to: '2024-06-30',
+      });
+      expect(mockPrisma.$queryRaw).toHaveBeenCalled();
     });
   });
 

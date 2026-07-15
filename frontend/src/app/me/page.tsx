@@ -11,9 +11,7 @@ import { TransactionsListModal } from '@/components/dashboard/transactions/trans
 import { TransactionType } from '@/types/transaction.type'
 
 import { useCategories } from '@/hooks/use-categories'
-import { useTransactionsForPeriod } from '@/hooks/use-transactions'
-
-import { buildDonutData } from '@/lib/transactions-donut'
+import { useTransactionSummary, useTransactionsForPeriod } from '@/hooks/use-transactions'
 
 const getCurrentMonthRange = () => ({
   from: startOfMonth(new Date()),
@@ -25,24 +23,21 @@ export default function DashboardPage() {
 
   const [chartRange, setChartRange] = useState(getCurrentMonthRange())
   const [modalRange, setModalRange] = useState(getCurrentMonthRange())
-
   const [isTransactionListOpen, setIsTransactionListOpen] = useState(false)
 
-  const { data: chartTransactions = [], isLoading: chartLoading } =
-    useTransactionsForPeriod(chartRange.from, chartRange.to)
+  const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
+
+  const { data: chartData, isLoading: chartLoading } =
+    useTransactionSummary(chartRange.from, chartRange.to, type)
 
   const { data: modalTransactions = [], isLoading: _modalLoading } =
     useTransactionsForPeriod(modalRange.from, modalRange.to)
 
   const {
-    categories,
-    archived,
-    isLoading: catLoading
+    categories, isLoading: catLoading
   } = useCategories(isExpense)
 
   const isLoading = chartLoading || catLoading
-  const type = isExpense ? TransactionType.EXPENSE : TransactionType.INCOME
-
   // Header fires 'open-transactions' to open the transaction list from anywhere
   useEffect(() => {
     const handleOpenTx = () => setIsTransactionListOpen(true)
@@ -53,15 +48,11 @@ export default function DashboardPage() {
     }
   }, [])
 
-  const allCategories = useMemo(
-    () => [...categories, ...archived],
-    [categories, archived]
+  const donutData = chartData ?? []
+  const total = useMemo(
+    () => donutData.reduce((sum, item) => sum + item.value, 0),
+    [donutData]
   )
-  const { donutData, total } = useMemo(() => {
-    const data = buildDonutData(chartTransactions, type, allCategories)
-    const sum = data.reduce((sum, item) => sum + item.value, 0)
-    return { donutData: data, total: sum }
-  }, [chartTransactions, type, allCategories])
 
   return (
     <div className="space-y-8">

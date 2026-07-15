@@ -10,6 +10,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+import { DonutItem } from '@/lib/transactions-donut'
 import { IAccount } from '@/types/account.type'
 import {
   ICreateTransaction,
@@ -22,6 +23,14 @@ export function useTransactionsForPeriod(from: Date, to: Date) {
   return useQuery<ITransaction[]>({
     queryKey: ['transactions-period', from.toISOString(), to.toISOString()],
     queryFn: () => transactionService.getForPeriod(from, to),
+    staleTime: 1000 * 60
+  })
+}
+
+export function useTransactionSummary(from: Date, to: Date, type: TransactionType) {
+  return useQuery<DonutItem[]>({
+    queryKey: ['transactions-summary', from.toISOString(), to.toISOString(), type],
+    queryFn: () => transactionService.getSummary(from, to, type),
     staleTime: 1000 * 60
   })
 }
