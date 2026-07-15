@@ -2,6 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 
+// Prisma v6 raw queries return BigInt for UnsignedInt columns; JSON.stringify can't handle BigInt
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, no-extend-native
+(BigInt.prototype as any).toJSON = function () {
+  return Number(this);
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

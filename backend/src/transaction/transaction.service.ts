@@ -197,7 +197,7 @@ export class TransactionService {
     const whereClause = Prisma.join(conditions, ' AND ');
 
     type RawRow = {
-      categoryId: number | null;
+      categoryId: bigint | null;
       categoryName: string | null;
       categoryColor: string | null;
       totalAmount: string;
@@ -217,7 +217,7 @@ export class TransactionService {
     `);
 
     return rows.map(r => ({
-      categoryId: r.categoryId,
+      categoryId: r.categoryId === null ? null : Number(r.categoryId),
       categoryName: r.categoryName,
       categoryColor: r.categoryColor,
       totalAmount: Number(r.totalAmount),
