@@ -347,9 +347,24 @@ describe('TransactionService', () => {
       });
 
       expect(result).toHaveLength(3);
-      expect(result[0]).toEqual({ categoryId: 1, categoryName: 'Food', categoryColor: '#ff0000', totalAmount: 500 });
-      expect(result[1]).toEqual({ categoryId: 2, categoryName: 'Transport', categoryColor: '#00ff00', totalAmount: 300 });
-      expect(result[2]).toEqual({ categoryId: null, categoryName: null, categoryColor: null, totalAmount: 100 });
+      expect(result[0]).toEqual({
+        categoryId: 1,
+        categoryName: 'Food',
+        categoryColor: '#ff0000',
+        totalAmount: 500,
+      });
+      expect(result[1]).toEqual({
+        categoryId: 2,
+        categoryName: 'Transport',
+        categoryColor: '#00ff00',
+        totalAmount: 300,
+      });
+      expect(result[2]).toEqual({
+        categoryId: null,
+        categoryName: null,
+        categoryColor: null,
+        totalAmount: 100,
+      });
     });
 
     it('should filter by date range', async () => {

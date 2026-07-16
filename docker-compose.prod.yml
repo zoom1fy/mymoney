@@ -2,6 +2,8 @@ services:
   backend:
     build:
       dockerfile: Dockerfile.prod
+    depends_on:
+      - redis
     environment:
       NODE_ENV: production
     ports: []

@@ -20,12 +20,22 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
   backend:
     build:
       context: ./backend
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - app-network
     environment:
@@ -40,6 +50,8 @@ services:
       SMTP_PASS: ${SMTP_PASS}
       SMTP_FROM: ${SMTP_FROM}
       SMTP_TLS: ${SMTP_TLS}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
 
   frontend:
     build:

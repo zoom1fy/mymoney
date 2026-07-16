@@ -4,8 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
-import { SeedService } from '../seed/seed.service';
-import { MailService } from '../mail/mail.service';
+import { TasksService } from '../queue/tasks.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { TOKEN_CONFIG, TokenConfig } from '../config/token.config';
@@ -67,13 +66,10 @@ describe('AuthService', () => {
       findById: jest.fn(),
     };
 
-    const mockSeedService = {
+    const mockTasksService = {
+      sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+      sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
       seedNewUser: jest.fn().mockResolvedValue(undefined),
-    };
-
-    const mockMailService = {
-      sendVerificationCode: jest.fn().mockResolvedValue(undefined),
-      sendPasswordResetCode: jest.fn().mockResolvedValue(undefined),
     };
 
     prismaService = {
@@ -99,8 +95,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: JwtService, useValue: mockJwtService },
         { provide: UserService, useValue: mockUserService },
-        { provide: SeedService, useValue: mockSeedService },
-        { provide: MailService, useValue: mockMailService },
+        { provide: TasksService, useValue: mockTasksService },
         { provide: PrismaService, useValue: prismaService },
         { provide: TOKEN_CONFIG, useValue: mockTokenConfig },
       ],

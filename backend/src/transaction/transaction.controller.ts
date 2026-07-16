@@ -24,10 +24,7 @@ export class TransactionController {
   }
 
   @Get('summary')
-  async getSummary(
-    @CurrentUser() user: User,
-    @Query() query: GetTransactionSummaryDto
-  ) {
+  async getSummary(@CurrentUser() user: User, @Query() query: GetTransactionSummaryDto) {
     return this.transactionService.getSummary(user.id, query);
   }
 

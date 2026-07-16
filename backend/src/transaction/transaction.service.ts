@@ -216,7 +216,7 @@ export class TransactionService {
       ORDER BY totalAmount DESC
     `);
 
-    return rows.map(r => ({
+    return rows.map((r) => ({
       categoryId: r.categoryId === null ? null : Number(r.categoryId),
       categoryName: r.categoryName,
       categoryColor: r.categoryColor,

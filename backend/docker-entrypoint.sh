@@ -1,6 +1,14 @@
 #!/bin/sh
 set -e
 
+echo "Waiting for Redis..."
+REDIS_HOST=${REDIS_HOST:-localhost}
+REDIS_PORT=${REDIS_PORT:-6379}
+while ! nc -z "$REDIS_HOST" "$REDIS_PORT" 2>/dev/null; do
+  sleep 1
+done
+echo "Redis is ready"
+
 echo "Running Prisma generate..."
 npx prisma generate
 

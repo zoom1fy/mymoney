@@ -3,11 +3,15 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
+    depends_on:
+      - redis
     volumes:
       - ./backend:/app
       - /app/node_modules
     environment:
       NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
 
   frontend:
     build:

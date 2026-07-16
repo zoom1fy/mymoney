@@ -9,8 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import { UserService } from '../user/user.service';
-import { SeedService } from '../seed/seed.service';
-import { MailService } from '../mail/mail.service';
+import { TasksService } from '../queue/tasks.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { verify, hash } from 'argon2';
 import { Response } from 'express';
@@ -25,8 +24,7 @@ export class AuthService {
   constructor(
     private jwt: JwtService,
     private userService: UserService,
-    private seedService: SeedService,
-    private mailService: MailService,
+    private tasksService: TasksService,
     private prisma: PrismaService,
     @Inject(TOKEN_CONFIG) public readonly tokenConfig: TokenConfig
   ) {}
@@ -63,7 +61,7 @@ export class AuthService {
         where: { id: pendingUser.id },
         data: { code, sentAt: new Date() },
       });
-      await this.mailService.sendVerificationCode(dto.email, code);
+      await this.tasksService.sendVerificationEmail(dto.email, code);
       return { email: dto.email };
     }
 
@@ -74,7 +72,7 @@ export class AuthService {
       data: { email: dto.email, passwordHash, code, sentAt: new Date() },
     });
 
-    await this.mailService.sendVerificationCode(dto.email, code);
+    await this.tasksService.sendVerificationEmail(dto.email, code);
 
     return { email: dto.email };
   }
@@ -93,10 +91,7 @@ export class AuthService {
 
     const user = await this.userService.createFromHash(email, pending.passwordHash);
 
-    // Seed default categories, accounts, and sample transactions for the new user
-    await this.seedService.seedNewUser(user.id).catch((err) => {
-      console.error('Failed to seed data for new user:', err);
-    });
+    await this.tasksService.seedNewUser(user.id);
 
     await this.prisma.pendingUser.delete({ where: { id: pending.id } });
 
@@ -120,7 +115,7 @@ export class AuthService {
       data: { code, sentAt: new Date() },
     });
 
-    await this.mailService.sendVerificationCode(email, code);
+    await this.tasksService.sendVerificationEmail(email, code);
 
     return { message: 'Новый код отправлен на почту' };
   }
@@ -141,7 +136,7 @@ export class AuthService {
       data: { userId: user.id, code, expiresAt },
     });
 
-    await this.mailService.sendPasswordResetCode(user.email, code);
+    await this.tasksService.sendPasswordResetEmail(user.email, code);
 
     return { message: 'Код для восстановления пароля отправлен на почту' };
   }

@@ -10,8 +10,7 @@ import { AccountModule } from './account/account.module';
 import { CategoryModule } from './category/category.module';
 import { CurrencyModule } from './currency/currency.module';
 import { TransactionModule } from './transaction/transaction.module';
-import { SeedModule } from './seed/seed.module';
-import { MailModule } from './mail/mail.module';
+
 import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
@@ -28,8 +27,6 @@ import { DashboardModule } from './dashboard/dashboard.module';
     CurrencyModule,
     TransactionModule,
     DashboardModule,
-    SeedModule,
-    MailModule,
   ],
   providers: [PrismaService, { provide: APP_GUARD, useClass: ThrottlerBehindProxyGuard }],
 })
