@@ -21,7 +21,7 @@ case "$mode" in
     echo "=========================================="
     echo "  Starting DEV environment"
     echo "=========================================="
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
     ;;
   2)
     echo
