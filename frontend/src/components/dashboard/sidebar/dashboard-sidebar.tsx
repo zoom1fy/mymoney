@@ -23,6 +23,7 @@ import { useDashboard } from '@/components/dashboard/dashboard-provider'
 
 import { ScrollArea } from '../../ui/shadui/scroll-area'
 import { AccountCard } from './account-card'
+import { AccountCardSkeleton } from './account-card-skeleton'
 import { AccountModal } from './account-modal'
 
 export function DashboardSidebar() {
@@ -70,46 +71,55 @@ export function DashboardSidebar() {
 
       <SidebarContent>
         <ScrollArea className="flex-1 px-3 py-2">
-          {accountCategories.map(category => {
-            const accountsInCategory = groupedAccounts[category]
-
-            if (!accountsInCategory || accountsInCategory.length === 0)
-              return null
-
-            const categoryName = accountCategoryNameMap[category]
-
-            return (
-              <SidebarGroup
-                className="py-2"
-                key={category}
-              >
+          {isLoading &&
+            accountCategories.map(category => (
+              <SidebarGroup className="py-2" key={`skeleton-${category}`}>
                 <SidebarGroupLabel className="px-3 text-base font-semibold text-foreground/80">
-                  {categoryName}
+                  <div className="h-4 w-20 bg-muted/40 rounded-full animate-pulse" />
                 </SidebarGroupLabel>
-
                 <SidebarGroupContent className="grid gap-3 mt-2">
-                  {accountsInCategory.map(account => (
-                    <AccountCard
-                      account={account}
-                      key={account.id}
-                    />
-                  ))}
+                  <AccountCardSkeleton />
+                  <AccountCardSkeleton />
                 </SidebarGroupContent>
               </SidebarGroup>
-            )
-          })}
-        </ScrollArea>
-        {isLoading && (
-          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-            Загрузка счетов...
-          </div>
-        )}
+            ))}
 
-        {accounts.length === 0 && !isLoading && (
-          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-            Пока нет счетов
-          </div>
-        )}
+          {!isLoading &&
+            accountCategories.map(category => {
+              const accountsInCategory = groupedAccounts[category]
+
+              if (!accountsInCategory || accountsInCategory.length === 0)
+                return null
+
+              const categoryName = accountCategoryNameMap[category]
+
+              return (
+                <SidebarGroup
+                  className="py-2"
+                  key={category}
+                >
+                  <SidebarGroupLabel className="px-3 text-base font-semibold text-foreground/80">
+                    {categoryName}
+                  </SidebarGroupLabel>
+
+                  <SidebarGroupContent className="grid gap-3 mt-2">
+                    {accountsInCategory.map(account => (
+                      <AccountCard
+                        account={account}
+                        key={account.id}
+                      />
+                    ))}
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              )
+            })}
+
+          {!isLoading && accounts.length === 0 && (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              Пока нет счетов
+            </div>
+          )}
+        </ScrollArea>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border/50 bg-background/70 backdrop-blur-sm">

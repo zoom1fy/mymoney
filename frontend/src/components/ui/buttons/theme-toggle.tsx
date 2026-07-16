@@ -15,14 +15,7 @@ export function ThemeToggle() {
 
   if (!isMounted) {
     return (
-      <Button
-        disabled
-        className="size-8 cursor-pointer"
-        size="sm"
-        variant="ghost"
-      >
-        <span className="size-4" />
-      </Button>
+      <div className="inline-flex items-center justify-center size-8 h-8 rounded-md bg-muted/40 animate-pulse" />
     )
   }
 
