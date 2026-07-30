@@ -7,5 +7,5 @@ export const catchError = (error: unknown): string => {
     ? typeof message === 'object'
       ? message[0]
       : message
-    : apiError.message ?? ''
+    : apiError?.message ?? ''
 }
