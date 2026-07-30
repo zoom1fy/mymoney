@@ -1,6 +1,7 @@
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 
+import { useCurrencies } from '@/hooks/use-currencies'
 import { ICategory } from '@/types/category.type'
 import { ITransaction, TransactionType } from '@/types/transaction.type'
 
@@ -11,7 +12,9 @@ type Props = {
 }
 
 export function TransactionItem({ transaction: tx, category, onEdit }: Props) {
+  const { currencySymbolMap } = useCurrencies()
   const isExpense = tx.type === TransactionType.EXPENSE
+  const symbol = currencySymbolMap[tx.currencyCode] || '₽'
 
   return (
     <div
@@ -36,7 +39,7 @@ export function TransactionItem({ transaction: tx, category, onEdit }: Props) {
               }`}
             >
               {isExpense ? '−' : '+'}
-              {tx.amount.toLocaleString('ru-RU')} ₽
+              {tx.amount.toLocaleString('ru-RU')} {symbol}
             </p>
           </div>
 
@@ -69,7 +72,7 @@ export function TransactionItem({ transaction: tx, category, onEdit }: Props) {
             <p
               className={`font-semibold ${isExpense ? 'text-destructive' : 'text-success'}`}
             >
-              {isExpense ? '−' : '+'} {tx.amount.toLocaleString('ru-RU')} ₽
+              {isExpense ? '−' : '+'} {tx.amount.toLocaleString('ru-RU')} {symbol}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {isExpense ? 'Расход' : 'Доход'}

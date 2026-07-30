@@ -1,9 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { CurrencyService } from '../currency/currency.service';
+import { ExchangeRateService } from '../currency/exchange-rate.service';
 import { TransactionType } from '../transaction/enums/transaction-type.enum';
 import { GetTransactionsDto } from './dto/get-transactions.dto';
 import { GetTransactionSummaryDto } from './dto/get-transaction-summary.dto';
@@ -12,7 +11,7 @@ import { GetTransactionSummaryDto } from './dto/get-transaction-summary.dto';
 export class TransactionService {
   constructor(
     private prisma: PrismaService,
-    private currencyService: CurrencyService
+    private exchangeRateService: ExchangeRateService,
   ) {}
 
   // Runs balance updates + transaction creation inside a single Prisma transaction
@@ -190,38 +189,59 @@ export class TransactionService {
   async getSummary(userId: string, query: GetTransactionSummaryDto) {
     const { type, from, to } = query;
 
-    const conditions = [Prisma.sql`t.user_id = ${userId}`, Prisma.sql`t.type = ${type}`];
-    if (from) conditions.push(Prisma.sql`t.transaction_date >= ${new Date(from)}`);
-    if (to) conditions.push(Prisma.sql`t.transaction_date <= ${new Date(to)}`);
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        userId,
+        type,
+        ...(from || to
+          ? {
+              transactionDate: {
+                ...(from ? { gte: new Date(from) } : {}),
+                ...(to ? { lte: new Date(to) } : {}),
+              },
+            }
+          : {}),
+      },
+      include: {
+        category: {
+          select: { id: true, name: true, color: true },
+        },
+      },
+    });
 
-    const whereClause = Prisma.join(conditions, ' AND ');
+    if (transactions.length === 0) return [];
 
-    type RawRow = {
-      categoryId: bigint | null;
-      categoryName: string | null;
-      categoryColor: string | null;
-      totalAmount: string;
-    };
+    const currencies = [...new Set(transactions.map((t) => t.currencyCode))];
+    const rateMap = await this.exchangeRateService.getRatesToRub(currencies);
 
-    const rows = await this.prisma.$queryRaw<RawRow[]>(Prisma.sql`
-      SELECT
-        t.category_id AS categoryId,
-        c.name AS categoryName,
-        c.color AS categoryColor,
-        CAST(SUM(t.amount) AS DECIMAL(15,2)) AS totalAmount
-      FROM transactions t
-      LEFT JOIN categories c ON c.id = t.category_id
-      WHERE ${whereClause}
-      GROUP BY t.category_id, c.name, c.color
-      ORDER BY totalAmount DESC
-    `);
+    const rubTotals = new Map<number, { name: string; color: string | null; total: number }>();
 
-    return rows.map((r) => ({
-      categoryId: r.categoryId === null ? null : Number(r.categoryId),
-      categoryName: r.categoryName,
-      categoryColor: r.categoryColor,
-      totalAmount: Number(r.totalAmount),
-    }));
+    for (const transaction of transactions) {
+      const amount = Number(transaction.amount);
+      const rate = rateMap.get(transaction.currencyCode) ?? 1;
+      const rubAmount = amount * rate;
+
+      const categoryId = transaction.categoryId ?? 0;
+      const existing = rubTotals.get(categoryId);
+      if (existing) {
+        existing.total += rubAmount;
+      } else {
+        rubTotals.set(categoryId, {
+          name: transaction.category?.name ?? 'Без категории',
+          color: transaction.category?.color ?? null,
+          total: rubAmount,
+        });
+      }
+    }
+
+    return Array.from(rubTotals.entries())
+      .map(([categoryId, { name, color, total }]) => ({
+        categoryId: categoryId === 0 ? null : categoryId,
+        categoryName: name,
+        categoryColor: color,
+        totalAmount: Math.round(total * 100) / 100,
+      }))
+      .sort((a, b) => b.totalAmount - a.totalAmount);
   }
 
   async findOne(userId: string, id: number) {
@@ -316,8 +336,8 @@ export class TransactionService {
         select: { id: true, isDeleted: true },
       });
 
-      const hasDeleted = accounts.find((acc) => acc.isDeleted);
-      if (hasDeleted) {
+      const deletedAccount = accounts.find((acc) => acc.isDeleted);
+      if (deletedAccount) {
         throw new BadRequestException('Нельзя обновить транзакцию: счёт удалён');
       }
     }
@@ -395,7 +415,6 @@ export class TransactionService {
       }
     }
 
-    // Persist the modified transaction record.
     updates.push(
       this.prisma.transaction.update({
         where: { id },

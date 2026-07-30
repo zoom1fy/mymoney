@@ -32,11 +32,9 @@ import {
 
 import { IBase } from './root.type'
 
-export enum CurrencyCode {
-  RUB = 'RUB',
-  USD = 'USD',
-  EUR = 'EUR',
-  BTC = 'BTC'
+export enum CurrencyType {
+  FIAT = 'FIAT',
+  CRYPTO = 'CRYPTO',
 }
 
 export enum AccountCategoryEnum {
@@ -96,7 +94,7 @@ export interface ICreateAccount {
   name: string
   categoryId: AccountCategoryEnum
   typeId: AccountTypeEnum
-  currencyCode: CurrencyCode
+  currencyCode: string
   icon?: AccountIconName
   currentBalance: number
 }
@@ -104,6 +102,7 @@ export interface ICreateAccount {
 // Full account returned from the API
 export interface IAccount extends IBase, ICreateAccount {
   isDeleted: boolean
+  currencySymbol: string
 }
 
 // Partial update — only changed fields are sent to PATCH /api/accounts/:id

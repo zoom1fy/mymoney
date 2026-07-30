@@ -1,4 +1,3 @@
-import { CurrencyCode } from './account.type'
 import { IBase } from './root.type'
 
 // Transaction type discriminator — controls balance increment/decrement and transfer logic
@@ -16,7 +15,7 @@ export interface ICreateTransaction {
   amount: number
   description?: string
   type: TransactionType
-  currencyCode: CurrencyCode
+  currencyCode: string
   transactionDate?: string // Defaults to now on the server when omitted
 }
 

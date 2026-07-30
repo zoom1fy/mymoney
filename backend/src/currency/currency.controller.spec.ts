@@ -4,9 +4,13 @@ import { CurrencyService } from './currency.service';
 
 describe('CurrencyController', () => {
   let controller: CurrencyController;
+  let mockCurrencyService: any;
 
   beforeEach(async () => {
-    const mockCurrencyService = {};
+    mockCurrencyService = {
+      findAll: jest.fn(),
+      getExchangeRate: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CurrencyController],
@@ -18,5 +22,20 @@ describe('CurrencyController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('findAll()', () => {
+    it('should return all currencies from service', async () => {
+      const expected = [
+        { code: 'RUB', name: 'Российский рубль', symbol: '₽', type: 'FIAT' },
+        { code: 'USD', name: 'Доллар США', symbol: '$', type: 'FIAT' },
+      ];
+      mockCurrencyService.findAll.mockResolvedValue(expected);
+
+      const result = await controller.findAll();
+
+      expect(mockCurrencyService.findAll).toHaveBeenCalled();
+      expect(result).toEqual(expected);
+    });
   });
 });

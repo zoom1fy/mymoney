@@ -20,8 +20,7 @@ export function AccountCard({ account }: Props) {
   const isActive = pathname === `/dashboard/accounts/${account.id}`
 
   const Icon = accountIcons[account.icon || 'Wallet'] || Wallet
-  const symbol =
-    { RUB: '₽', USD: '$', EUR: '€', BTC: '₿' }[account.currencyCode] || '₽'
+  const symbol = account.currencySymbol || '₽'
 
   return (
     <AccountModal

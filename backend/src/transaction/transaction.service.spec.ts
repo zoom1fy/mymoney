@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { CurrencyService } from '../currency/currency.service';
+import { ExchangeRateService } from '../currency/exchange-rate.service';
 import { TransactionType } from './enums/transaction-type.enum';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -38,8 +38,9 @@ const mockPrisma = {
 // Make $transaction return the provided operations array (atomic block simulation)
 mockPrisma.$transaction.mockImplementation((updates: any[]) => Promise.resolve(updates));
 
-const mockCurrencyService = {
-  getExchangeRate: jest.fn(),
+const mockExchangeRateService = {
+  getRatesToRub: jest.fn(),
+  convertToRub: jest.fn(),
 };
 
 describe('TransactionService', () => {
@@ -51,7 +52,7 @@ describe('TransactionService', () => {
       providers: [
         TransactionService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: CurrencyService, useValue: mockCurrencyService },
+        { provide: ExchangeRateService, useValue: mockExchangeRateService },
       ],
     }).compile();
 
@@ -62,8 +63,10 @@ describe('TransactionService', () => {
     Object.values(mockPrisma.transaction).forEach((m) => m.mockReset());
     mockPrisma.$transaction.mockReset();
     mockPrisma.$transaction.mockImplementation((updates: any[]) => Promise.resolve(updates));
-    mockCurrencyService.getExchangeRate.mockReset();
-    mockCurrencyService.getExchangeRate.mockResolvedValue(1);
+    mockExchangeRateService.getRatesToRub.mockReset();
+    mockExchangeRateService.getRatesToRub.mockResolvedValue(new Map([['RUB', 1]]));
+    mockExchangeRateService.convertToRub.mockReset();
+    mockExchangeRateService.convertToRub.mockResolvedValue(100);
     mockPrisma.account.findFirst.mockResolvedValue({
       id: accountId,
       currentBalance: new Decimal(1000),
@@ -333,12 +336,13 @@ describe('TransactionService', () => {
   });
 
   describe('getSummary()', () => {
-    it('should return aggregated sums grouped by category', async () => {
-      mockPrisma.$queryRaw.mockResolvedValueOnce([
-        { categoryId: 1, categoryName: 'Food', categoryColor: '#ff0000', totalAmount: '500' },
-        { categoryId: 2, categoryName: 'Transport', categoryColor: '#00ff00', totalAmount: '300' },
-        { categoryId: null, categoryName: null, categoryColor: null, totalAmount: '100' },
+    it('should return aggregated sums grouped by category in RUB', async () => {
+      mockPrisma.transaction.findMany.mockResolvedValueOnce([
+        { id: 1, amount: new Decimal('500'), currencyCode: 'USD', categoryId: 1, category: { id: 1, name: 'Food', color: '#ff0000' }, userId, type: TransactionType.EXPENSE, transactionDate: new Date('2024-01-15') },
+        { id: 2, amount: new Decimal('300'), currencyCode: 'USD', categoryId: 2, category: { id: 2, name: 'Transport', color: '#00ff00' }, userId, type: TransactionType.EXPENSE, transactionDate: new Date('2024-01-20') },
+        { id: 3, amount: new Decimal('100'), currencyCode: 'RUB', categoryId: null, category: null, userId, type: TransactionType.EXPENSE, transactionDate: new Date('2024-01-25') },
       ]);
+      mockExchangeRateService.getRatesToRub.mockResolvedValueOnce(new Map([['USD', 90], ['RUB', 1]]));
 
       const result = await service.getSummary(userId, {
         type: TransactionType.EXPENSE,
@@ -351,39 +355,40 @@ describe('TransactionService', () => {
         categoryId: 1,
         categoryName: 'Food',
         categoryColor: '#ff0000',
-        totalAmount: 500,
+        totalAmount: 45000,
       });
       expect(result[1]).toEqual({
         categoryId: 2,
         categoryName: 'Transport',
         categoryColor: '#00ff00',
-        totalAmount: 300,
+        totalAmount: 27000,
       });
       expect(result[2]).toEqual({
         categoryId: null,
-        categoryName: null,
+        categoryName: 'Без категории',
         categoryColor: null,
         totalAmount: 100,
       });
     });
 
     it('should filter by date range', async () => {
-      mockPrisma.$queryRaw.mockResolvedValueOnce([]);
-      await service.getSummary(userId, {
+      mockPrisma.transaction.findMany.mockResolvedValueOnce([]);
+      const result = await service.getSummary(userId, {
         type: TransactionType.INCOME,
         from: '2024-06-01',
         to: '2024-06-30',
       });
-      expect(mockPrisma.$queryRaw).toHaveBeenCalled();
+      expect(mockPrisma.transaction.findMany).toHaveBeenCalled();
+      expect(result).toEqual([]);
     });
   });
 
   describe('findOne()', () => {
     it('should return transaction by id', async () => {
-      const tx = { id: 5, type: TransactionType.INCOME, account: { userId } };
-      mockPrisma.transaction.findFirst.mockResolvedValueOnce(tx);
+      const transaction = { id: 5, type: TransactionType.INCOME, account: { userId } };
+      mockPrisma.transaction.findFirst.mockResolvedValueOnce(transaction);
       const result = await service.findOne(userId, 5);
-      expect(result).toEqual(tx);
+      expect(result).toEqual(transaction);
     });
 
     it('should throw NotFoundException if not found', async () => {

@@ -19,7 +19,6 @@ import { Input } from '@/components/ui/shadui/input'
 import { Label } from '@/components/ui/shadui/label'
 import { ScrollArea } from '@/components/ui/shadui/scroll-area'
 
-import { CurrencyCode } from '@/types/account.type'
 import {
   CategoryIconName,
   categoryIcons,
@@ -134,7 +133,7 @@ export function CategoryModal({
       if (isEdit && category) {
         await updateCategory({ id: category.id, data })
       } else {
-        await createCategory({ ...data, currencyCode: CurrencyCode.RUB })
+        await createCategory({ ...data, currencyCode: 'RUB' })
       }
     handleClose()
   } catch {}

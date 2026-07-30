@@ -3,10 +3,12 @@ import { HttpService } from '@nestjs/axios';
 import { of } from 'rxjs';
 import { BadRequestException } from '@nestjs/common';
 import { CurrencyService } from './currency.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('CurrencyService', () => {
   let service: CurrencyService;
   let mockHttpService: Partial<HttpService>;
+  let mockPrisma: any;
 
   const mockApiResponse = {
     Valute: {
@@ -20,8 +22,18 @@ describe('CurrencyService', () => {
       get: jest.fn(),
     };
 
+    mockPrisma = {
+      currency: {
+        findMany: jest.fn(),
+      },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CurrencyService, { provide: HttpService, useValue: mockHttpService }],
+      providers: [
+        CurrencyService,
+        { provide: HttpService, useValue: mockHttpService },
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
     }).compile();
 
     service = module.get<CurrencyService>(CurrencyService);
@@ -48,41 +60,42 @@ describe('CurrencyService', () => {
       expect(rate).toBe(1);
     });
 
-    it('should fetch RUB -> USD from CBR API and return Value / Nominal', async () => {
+    it('should fetch RUB -> USD from CBR API and return Nominal / Value', async () => {
       (mockHttpService.get as jest.Mock).mockReturnValue(of({ data: mockApiResponse }));
       const rate = await service.getExchangeRate('RUB', 'USD');
-      expect(rate).toBe(90.5);
+      // 1 RUB = Nominal/Value USD = 1/90.5
+      expect(rate).toBeCloseTo(1 / 90.5, 6);
       expect(mockHttpService.get).toHaveBeenCalledTimes(1);
       expect(mockHttpService.get).toHaveBeenCalledWith(
         'https://www.cbr-xml-daily.ru/daily_json.js'
       );
     });
 
-    it('should fetch RUB -> EUR and return Value / Nominal', async () => {
+    it('should fetch RUB -> EUR and return Nominal / Value', async () => {
       (mockHttpService.get as jest.Mock).mockReturnValue(of({ data: mockApiResponse }));
       const rate = await service.getExchangeRate('RUB', 'EUR');
-      expect(rate).toBe(98.2);
+      expect(rate).toBeCloseTo(1 / 98.2, 6);
     });
 
-    it('should calculate inverse rate: USD -> RUB', async () => {
+    it('should calculate direct rate: USD -> RUB', async () => {
       (mockHttpService.get as jest.Mock).mockReturnValue(of({ data: mockApiResponse }));
       const rate = await service.getExchangeRate('USD', 'RUB');
-      // 1 / (Value / Nominal) = 1 / 90.5
-      expect(rate).toBeCloseTo(1 / 90.5, 6);
+      // 1 USD = Value/Nominal RUB = 90.5
+      expect(rate).toBe(90.5);
     });
 
-    it('should calculate inverse rate: EUR -> RUB', async () => {
+    it('should calculate direct rate: EUR -> RUB', async () => {
       (mockHttpService.get as jest.Mock).mockReturnValue(of({ data: mockApiResponse }));
       const rate = await service.getExchangeRate('EUR', 'RUB');
-      expect(rate).toBeCloseTo(1 / 98.2, 6);
+      expect(rate).toBe(98.2);
     });
 
     it('should calculate cross-rate USD -> EUR via RUB using three API calls', async () => {
       jest.clearAllMocks();
       (mockHttpService.get as jest.Mock).mockReturnValue(of({ data: mockApiResponse }));
       const rate = await service.getExchangeRate('USD', 'EUR');
-      // Top-level call fetches rates, then recursive calls: USD->RUB (fetches), RUB->EUR (fetches)
-      expect(rate).toBeCloseTo(98.2 / 90.5, 6);
+      // USD->RUB = 90.5, RUB->EUR = 1/98.2 => cross = 90.5/98.2
+      expect(rate).toBeCloseTo(90.5 / 98.2, 6);
       expect(mockHttpService.get).toHaveBeenCalledTimes(3);
     });
 
@@ -118,7 +131,62 @@ describe('CurrencyService', () => {
       };
       (mockHttpService.get as jest.Mock).mockReturnValue(of({ data: responseWithNominal }));
       const rate = await service.getExchangeRate('RUB', 'JPY');
-      expect(rate).toBe(0.6 / 10);
+      expect(rate).toBe(10 / 0.6);
+    });
+
+    it('should fallback to CoinGecko for BTC -> USD when CBR has no crypto', async () => {
+      (mockHttpService.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('coingecko')) {
+          return of({ data: { bitcoin: { usd: 67000 } } });
+        }
+        return of({ data: mockApiResponse });
+      });
+
+      const rate = await service.getExchangeRate('BTC', 'USD');
+      expect(rate).toBe(67000);
+    });
+
+    it('should invert CoinGecko rate for USD -> BTC', async () => {
+      (mockHttpService.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('coingecko')) {
+          return of({ data: { bitcoin: { usd: 50000 } } });
+        }
+        return of({ data: mockApiResponse });
+      });
+
+      const rate = await service.getExchangeRate('USD', 'BTC');
+      expect(rate).toBeCloseTo(1 / 50000, 10);
+    });
+
+    it('should fallback to Binance for BTC -> EUR when CoinGecko also fails', async () => {
+      (mockHttpService.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('binance')) {
+          return of({ data: { symbol: 'BTCEUR', price: '85000.50' } });
+        }
+        // Fail CoinGecko by returning unexpected format
+        if (url.includes('coingecko')) {
+          return of({ data: {} });
+        }
+        return of({ data: mockApiResponse });
+      });
+
+      const rate = await service.getExchangeRate('BTC', 'EUR');
+      expect(rate).toBe(85000.5);
+    });
+
+    it('should invert Binance rate for EUR -> BTC', async () => {
+      (mockHttpService.get as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('binance')) {
+          return of({ data: { symbol: 'BTCEUR', price: '90000' } });
+        }
+        if (url.includes('coingecko')) {
+          return of({ data: {} });
+        }
+        return of({ data: mockApiResponse });
+      });
+
+      const rate = await service.getExchangeRate('EUR', 'BTC');
+      expect(rate).toBeCloseTo(1 / 90000, 10);
     });
   });
 });

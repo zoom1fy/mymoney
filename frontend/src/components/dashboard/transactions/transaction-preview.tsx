@@ -39,6 +39,8 @@ export function TransactionPreview({
     ? categoryIcons[category.icon] || HelpCircle
     : HelpCircle
 
+  const symbol = selectedAccount?.currencySymbol || '₽'
+
   const finalAmount = Number(amount) || 0
   const isShowForecast = finalAmount > 0 && selectedAccount
 
@@ -88,7 +90,7 @@ export function TransactionPreview({
             initial={{ scale: 0.9, opacity: 0 }}
           >
             <span className="text-xl font-bold text-primary tracking-tight">
-              {finalAmount ? `${finalAmount.toLocaleString('ru-RU')} ₽` : '0 ₽'}
+              {finalAmount ? `${finalAmount.toLocaleString('ru-RU')} ${symbol}` : `0 ${symbol}`}
             </span>
           </motion.div>
           <p className="text-xs text-muted-foreground mt-2 font-medium">
@@ -175,7 +177,7 @@ export function TransactionPreview({
                       {isEditMode ? 'Было до правок' : 'Было'}
                     </p>
                     <p className="text-base font-bold opacity-80">
-                      {originalBalance.toLocaleString('ru-RU')} ₽
+                      {originalBalance.toLocaleString('ru-RU')} {symbol}
                     </p>
                     {isEditMode && originalTransaction && (
                       <p className="text-[10px] text-muted-foreground mt-1">
@@ -204,7 +206,7 @@ export function TransactionPreview({
                       initial={{ scale: 1.1 }}
                       key={newBalance}
                     >
-                      {newBalance.toLocaleString('ru-RU')} ₽
+                      {newBalance.toLocaleString('ru-RU')} {symbol}
                     </motion.p>
                     {isEditMode &&
                       finalAmount !== originalTransaction?.amount && (
@@ -213,8 +215,7 @@ export function TransactionPreview({
                           {newBalance - originalBalance > 0 ? '+' : ''}
                           {(newBalance - originalBalance).toLocaleString(
                             'ru-RU'
-                          )}{' '}
-                          ₽
+                          )} {symbol}
                         </p>
                       )}
                   </div>

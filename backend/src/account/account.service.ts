@@ -26,7 +26,7 @@ export class AccountService {
         ? new Decimal(dto.currentBalance)
         : new Decimal(0);
 
-    return this.prisma.account.create({
+    const account = await this.prisma.account.create({
       data: {
         userId,
         name: dto.name,
@@ -37,17 +37,27 @@ export class AccountService {
         currentBalance: balance,
         isDeleted: false,
       },
+      include: { currency: true },
     });
+
+    const { currency, ...rest } = account;
+    return {
+      ...rest,
+      currencySymbol: currency.symbol,
+      currentBalance: Number(rest.currentBalance),
+    };
   }
 
   async findAll(userId: string) {
     const accounts = await this.prisma.account.findMany({
       where: { userId, isDeleted: false },
+      include: { currency: true },
       orderBy: { createdAt: 'asc' },
     });
 
-    return accounts.map((account) => ({
+    return accounts.map(({ currency, ...account }) => ({
       ...account,
+      currencySymbol: currency.symbol,
       currentBalance: Number(account.currentBalance),
     }));
   }
@@ -55,18 +65,22 @@ export class AccountService {
   async findOne(userId: string, id: number) {
     const account = await this.prisma.account.findFirst({
       where: { id, userId },
+      include: { currency: true },
     });
 
     if (!account) throw new NotFoundException('Счёт не найден');
 
+    const { currency, ...rest } = account;
     return {
-      ...account,
-      currentBalance: Number(account.currentBalance),
+      ...rest,
+      currencySymbol: currency.symbol,
+      currentBalance: Number(rest.currentBalance),
     };
   }
 
   async update(userId: string, id: number, dto: UpdateAccountDto) {
-    const account = await this.findOne(userId, id); // access check
+    // Verify the account exists before allowing any update.
+    const account = await this.findOne(userId, id);
 
     if (dto.name && dto.name !== account.name) {
       const hasConflict = await this.prisma.account.findFirst({
@@ -83,18 +97,27 @@ export class AccountService {
       }
     }
 
-    return this.prisma.account.update({
+    const updated = await this.prisma.account.update({
       where: { id },
       data: {
         ...dto,
         currentBalance:
           dto.currentBalance !== undefined ? new Decimal(dto.currentBalance) : undefined,
       },
+      include: { currency: true },
     });
+
+    const { currency, ...rest } = updated;
+    return {
+      ...rest,
+      currencySymbol: currency.symbol,
+      currentBalance: Number(rest.currentBalance),
+    };
   }
 
   async remove(userId: string, id: number) {
-    await this.findOne(userId, id); // access check
+    // Confirm the account exists before soft-deleting it.
+    await this.findOne(userId, id);
 
     return this.prisma.account.update({
       where: { id },

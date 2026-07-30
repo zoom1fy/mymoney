@@ -39,7 +39,7 @@ import {
   SelectValue
 } from '@/components/ui/shadui/select'
 
-import { CurrencyCode, IAccount } from '@/types/account.type'
+import { IAccount } from '@/types/account.type'
 import { ICategory } from '@/types/category.type'
 import { ITransaction, TransactionType } from '@/types/transaction.type'
 
@@ -168,7 +168,7 @@ export function TransactionModal({
       amount: Number(data.amount),
       description: data.description.trim() || undefined,
       type: transactionType,
-      currencyCode: CurrencyCode.RUB,
+      currencyCode: selectedAccount?.currencyCode || 'RUB',
       transactionDate: new Date(
         Date.UTC(
           data.date.getFullYear(),

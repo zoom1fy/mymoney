@@ -9,15 +9,16 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(uuid()) @map("id") @db.Char(36)
-  email        String        @unique @db.VarChar(255)
-  passwordHash String        @map("password_hash") @db.Char(255)
-  createdAt    DateTime      @default(now()) @map("created_at")
-  lastLogin    DateTime?     @map("last_login")
-  accounts     Account[]     @relation("UserAccounts")
-  categories   Category[]    @relation("UserCategories")
-  transactions Transaction[] @relation("UserTransactions")
+  id                  String               @id @default(uuid()) @map("id") @db.Char(36)
+  email               String               @unique @db.VarChar(255)
+  passwordHash        String               @map("password_hash") @db.Char(255)
+  createdAt           DateTime             @default(now()) @map("created_at")
+  lastLogin           DateTime?            @map("last_login")
+  accounts            Account[]            @relation("UserAccounts")
+  categories          Category[]           @relation("UserCategories")
+  transactions        Transaction[]        @relation("UserTransactions")
   passwordResetTokens PasswordResetToken[] @relation("UserPasswordResetTokens")
+
   @@index([email])
   @@map("users")
 }
@@ -49,15 +50,31 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+enum CurrencyType {
+  FIAT
+  CRYPTO
+}
+
 model Currency {
-  code         String        @id @db.Char(3)
+  code         String        @id @db.VarChar(10)
   name         String        @db.VarChar(50)
-  symbol       String        @db.VarChar(5)
+  symbol       String        @db.VarChar(10)
+  type         CurrencyType
   accounts     Account[]     @relation("AccountCurrency")
   categories   Category[]    @relation("CategoryCurrency")
   transactions Transaction[] @relation("TransactionCurrency")
 
   @@map("currencies")
+}
+
+model ExchangeRate {
+  from      String   @db.VarChar(10)
+  to        String   @db.VarChar(10)
+  rate      Decimal  @db.Decimal(20, 10)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([from, to])
+  @@map("exchange_rates")
 }
 
 model AccountCategory {
@@ -81,7 +98,7 @@ model Account {
   userId         String   @map("user_id") @db.Char(36)
   categoryId     Int      @map("category_id") @db.UnsignedTinyInt
   typeId         Int      @map("type_id") @db.UnsignedTinyInt
-  currencyCode   String   @map("currency_code") @db.Char(3)
+  currencyCode   String   @map("currency_code") @db.VarChar(10)
   name           String   @db.VarChar(100)
   icon           String   @default("default") @db.VarChar(50)
   currentBalance Decimal  @default(0.00) @db.Decimal(15, 2)
@@ -104,7 +121,7 @@ model Category {
   userId       String   @map("user_id") @db.Char(36)
   name         String   @db.VarChar(100)
   icon         String   @default("default") @db.VarChar(50)
-  currencyCode String   @map("currency_code") @db.Char(3)
+  currencyCode String   @map("currency_code") @db.VarChar(10)
   color        String?  @default("") @db.VarChar(7)
   isExpense    Boolean  @map("is_expense")
   parentId     Int?     @map("parent_id") @db.UnsignedInt
@@ -135,7 +152,7 @@ model Transaction {
   targetAccountId Int?            @map("target_account_id") @db.UnsignedInt
   categoryId      Int?            @map("category_id") @db.UnsignedInt
   amount          Decimal         @db.Decimal(15, 2)
-  currencyCode    String          @map("currency_code") @db.Char(3)
+  currencyCode    String          @map("currency_code") @db.VarChar(10)
   transactionDate DateTime        @map("transaction_date") @db.DateTime
   description     String?         @db.Text
   type            TransactionType
@@ -151,4 +168,3 @@ model Transaction {
   @@index([categoryId])
   @@map("transactions")
 }
-

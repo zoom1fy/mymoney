@@ -29,14 +29,15 @@ import {
 import {
   AccountCategoryEnum,
   AccountIconName,
-  accountIcons,
   AccountTypeEnum,
-  CurrencyCode,
+  CurrencyType,
   IAccount,
-  ICreateAccount
+  ICreateAccount,
+  accountIcons
 } from '@/types/account.type'
 
 import { useAccounts } from '@/hooks/use-accounts'
+import { useCurrencies } from '@/hooks/use-currencies'
 
 import { cn } from '@/lib/cn'
 
@@ -66,11 +67,12 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
     isDeleting
   } = useAccounts()
 
+  const { currencies, currencyLabelMap, currencyTypeMap } = useCurrencies()
+
   const [isOpen, setIsOpen] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
 
-  // Delete account via mutation (toast handled by useAccounts hook)
   const handleDelete = async () => {
     if (!account) return
 
@@ -79,7 +81,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
       setIsConfirmOpen(false)
       setIsOpen(false)
     } catch {
-      // toast handled by useAccounts hook
+      // Toast shown by useAccounts hook.
     }
   }
 
@@ -96,7 +98,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
       currentBalance: 0,
       categoryId: AccountCategoryEnum.ACCOUNTS,
       typeId: AccountTypeEnum.CARD,
-      currencyCode: CurrencyCode.RUB
+      currencyCode: 'RUB'
     }
   })
 
@@ -124,7 +126,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
       setIsOpen(false)
       reset()
     } catch {
-      // toast handled by useAccounts hook
+      // Toast shown by useAccounts hook.
     }
   }
 
@@ -148,7 +150,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(newOpen) => {
+      onOpenChange={newOpen => {
         if (!newOpen) {
           attemptClose()
           return
@@ -194,7 +196,6 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
             className="space-y-6"
             onSubmit={handleSubmit(onSubmit)}
           >
-            {/* Name + balance row */}
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-4">
                 <div className={containerClasses}>
@@ -244,7 +245,6 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               </div>
             </div>
 
-            {/* Category / Type / Currency selects */}
             <div className="grid gap-8 md:grid-cols-3">
               <div className={containerClasses}>
                 <Select
@@ -297,9 +297,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                 <Select
                   disabled={isEdit}
                   value={watch('currencyCode')}
-                  onValueChange={v =>
-                    setValue('currencyCode', v as CurrencyCode)
-                  }
+                  onValueChange={v => setValue('currencyCode', v)}
                 >
                   <SelectTrigger
                     className={cn(
@@ -310,14 +308,38 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                   >
                     <SelectValue placeholder="Валюта" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl bg-background">
-                    <SelectItem value={CurrencyCode.RUB}>₽ Рубль</SelectItem>
+                  <SelectContent className="rounded-xl bg-background max-h-60">
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-1 pt-2">
+                      Фиат
+                    </div>
+                    {currencies
+                      .filter(c => c.type === 'FIAT')
+                      .map(c => (
+                        <SelectItem
+                          key={c.code}
+                          value={c.code}
+                        >
+                          {c.symbol} {c.name}
+                        </SelectItem>
+                      ))}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t border-border mt-1 pt-2">
+                      Криптовалюты
+                    </div>
+                    {currencies
+                      .filter(c => c.type === 'CRYPTO')
+                      .map(c => (
+                        <SelectItem
+                          key={c.code}
+                          value={c.code}
+                        >
+                          {c.symbol} {c.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* Icon selector grid */}
             <ScrollArea className="h-64 rounded-xl border bg-background/50">
               <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-4 p-4">
                 {iconOptions.map(icon => {
@@ -343,7 +365,6 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
               </div>
             </ScrollArea>
 
-            {/* Submit / Cancel buttons */}
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
               <AccentButton
                 className="h-14 sm:flex-1"

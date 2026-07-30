@@ -47,6 +47,7 @@ describe('AccountService', () => {
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        currency: { symbol: '₽' },
       });
 
       const dto = {
@@ -102,6 +103,7 @@ describe('AccountService', () => {
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        currency: { symbol: '₽' },
       });
 
       await service.create(userId, {
@@ -125,6 +127,7 @@ describe('AccountService', () => {
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        currency: { symbol: '₽' },
       });
 
       await service.create(userId, {
@@ -149,6 +152,7 @@ describe('AccountService', () => {
         isDeleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        currency: { symbol: '₽' },
       });
 
       await service.create(userId, {
@@ -166,7 +170,7 @@ describe('AccountService', () => {
 
   describe('findAll()', () => {
     it('should return non-deleted accounts and convert balance to Number, ordered asc by createdAt', async () => {
-      const a1 = {
+      const firstAccount = {
         id: 1,
         userId,
         name: 'A',
@@ -175,16 +179,15 @@ describe('AccountService', () => {
         icon: 'default',
         createdAt: new Date('2020-01-01'),
         updatedAt: new Date(),
+        currency: { symbol: '₽' },
       };
-      // a2 simulates a deleted account not returned by Prisma's isDeleted:false filter
-      // Prisma filters isDeleted: false server-side, so mock returns only active accounts
-      mockPrisma.account.findMany.mockResolvedValue([a1]);
+      mockPrisma.account.findMany.mockResolvedValue([firstAccount]);
 
-      const res = await service.findAll(userId);
-      expect(res.length).toBe(1);
-      expect(res[0].isDeleted).toBeFalsy();
-      expect(typeof res[0].currentBalance).toBe('number');
-      expect(res[0].currentBalance).toBe(10);
+      const result = await service.findAll(userId);
+      expect(result.length).toBe(1);
+      expect(result[0].isDeleted).toBeFalsy();
+      expect(typeof result[0].currentBalance).toBe('number');
+      expect(result[0].currentBalance).toBe(10);
       expect(mockPrisma.account.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { userId, isDeleted: false },
@@ -196,7 +199,7 @@ describe('AccountService', () => {
 
   describe('findOne()', () => {
     it('should return account with Number balance', async () => {
-      const acct = {
+      const account = {
         id: 1,
         userId,
         name: 'A',
@@ -205,10 +208,12 @@ describe('AccountService', () => {
         icon: 'default',
         createdAt: new Date(),
         updatedAt: new Date(),
+        currency: { symbol: '₽' },
       };
-      mockPrisma.account.findFirst.mockResolvedValue(acct);
-      const res = await service.findOne(userId, 1);
-      expect(res.currentBalance).toBe(25);
+      mockPrisma.account.findFirst.mockResolvedValue(account);
+      const result = await service.findOne(userId, 1);
+      expect(result.currentBalance).toBe(25);
+      expect(result.currencySymbol).toBe('₽');
     });
 
     it('should throw NotFoundException if account not found', async () => {
@@ -227,6 +232,7 @@ describe('AccountService', () => {
         currentBalance: new Decimal(50),
         createdAt: new Date(),
         updatedAt: new Date(),
+        currency: { symbol: '₽' },
       };
       mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
       mockPrisma.account.findFirst.mockResolvedValueOnce(null);
@@ -236,8 +242,8 @@ describe('AccountService', () => {
         currentBalance: new Decimal(60),
       });
 
-      const res = await service.update(userId, 1, { name: 'A+', currentBalance: 60 });
-      expect(res.name).toBe('A+');
+      const result = await service.update(userId, 1, { name: 'A+', currentBalance: 60 });
+      expect(result.name).toBe('A+');
       expect(mockPrisma.account.update).toHaveBeenCalled();
     });
 
@@ -248,8 +254,8 @@ describe('AccountService', () => {
         name: 'A',
         isDeleted: false,
         currentBalance: new Decimal(50),
+        currency: { symbol: '₽' },
       };
-      // findOne runs findFirst first, then update checks name uniqueness with a second findFirst
       mockPrisma.account.findFirst.mockResolvedValueOnce(existing).mockResolvedValueOnce({
         id: 2,
         userId,
@@ -270,12 +276,13 @@ describe('AccountService', () => {
         name: 'A',
         isDeleted: false,
         currentBalance: new Decimal(50),
+        currency: { symbol: '₽' },
       };
       mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
       mockPrisma.account.update.mockResolvedValue({ ...existing });
 
-      const res = await service.update(userId, 1, { name: 'A' });
-      expect(res.name).toBe('A');
+      const result = await service.update(userId, 1, { name: 'A' });
+      expect(result.name).toBe('A');
     });
 
     it('should convert Decimal for currentBalance if provided', async () => {
@@ -285,13 +292,14 @@ describe('AccountService', () => {
         name: 'A',
         isDeleted: false,
         currentBalance: new Decimal(50),
+        currency: { symbol: '₽' },
       };
       mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
       mockPrisma.account.update.mockResolvedValue({ ...existing, currentBalance: new Decimal(75) });
 
-      const res = await service.update(userId, 1, { currentBalance: 75 });
+      const result = await service.update(userId, 1, { currentBalance: 75 });
       // update() returns raw Prisma result; Decimal is converted by client
-      expect(Number(res.currentBalance)).toBe(75);
+      expect(Number(result.currentBalance)).toBe(75);
     });
   });
 
@@ -303,15 +311,16 @@ describe('AccountService', () => {
         name: 'A',
         isDeleted: false,
         currentBalance: new Decimal(50),
+        currency: { symbol: '₽' },
       };
       mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
       mockPrisma.account.update.mockResolvedValue({ ...existing, isDeleted: true });
 
-      const res = await service.remove(userId, 1);
+      const result = await service.remove(userId, 1);
       expect(mockPrisma.account.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ isDeleted: true }) })
       );
-      expect(res).toBeDefined();
+      expect(result).toBeDefined();
     });
 
     it('should throw NotFoundException if account not found', async () => {

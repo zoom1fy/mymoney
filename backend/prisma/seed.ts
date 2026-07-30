@@ -27,10 +27,23 @@ async function main() {
 
   console.log('Inserting currencies...');
   await prisma.$executeRaw`
-    INSERT INTO currencies (code, name, symbol) VALUES
-    ('RUB', 'Российский рубль', '₽'),
-    ('USD', 'Доллар США', '$'),
-    ('EUR', 'Евро', '€');
+    INSERT INTO currencies (code, name, symbol, type) VALUES
+    ('RUB', 'Российский рубль', '₽', 'FIAT'),
+    ('USD', 'Доллар США', '$', 'FIAT'),
+    ('EUR', 'Евро', '€', 'FIAT'),
+    ('GBP', 'Фунт стерлингов', '£', 'FIAT'),
+    ('JPY', 'Японская иена', '¥', 'FIAT'),
+    ('CNY', 'Китайский юань', '¥', 'FIAT'),
+    ('BTC', 'Bitcoin', '₿', 'CRYPTO'),
+    ('ETH', 'Ethereum', 'Ξ', 'CRYPTO'),
+    ('USDT', 'Tether', '₮', 'CRYPTO'),
+    ('USDC', 'USD Coin', 'USDC', 'CRYPTO'),
+    ('BNB', 'BNB', 'BNB', 'CRYPTO'),
+    ('XRP', 'XRP', 'XRP', 'CRYPTO'),
+    ('SOL', 'Solana', 'SOL', 'CRYPTO'),
+    ('TRX', 'TRON', 'TRX', 'CRYPTO'),
+    ('DOGE', 'Dogecoin', 'Ð', 'CRYPTO'),
+    ('GRAM', 'Gram', 'GRAM', 'CRYPTO');
   `;
 
   console.log('Inserting account categories...');
