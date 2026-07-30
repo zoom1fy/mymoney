@@ -49,7 +49,8 @@ export function useAccounts() {
         ...newData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        isDeleted: false
+        isDeleted: false,
+        currencySymbol: ''
       }
 
       queryClient.setQueryData<IAccount[]>(['accounts'], old => [
@@ -87,6 +88,7 @@ export function useAccounts() {
             : acc
         )
       )
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Счёт создан!')
     }
   })
@@ -106,6 +108,7 @@ export function useAccounts() {
             : acc
         )
       )
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Счёт обновлён!')
     },
 
@@ -122,6 +125,7 @@ export function useAccounts() {
       queryClient.setQueryData<IAccount[]>(['accounts'], old =>
         old?.filter(acc => acc.id !== id)
       )
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Счёт удалён!')
     },
     onError: () => toast.error('Ошибка удаления')

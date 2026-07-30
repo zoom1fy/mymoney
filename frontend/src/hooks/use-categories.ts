@@ -32,6 +32,7 @@ export function useCategories(isExpense: boolean) {
         ...(old ?? []),
         newCategory
       ])
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Категория создана')
     },
     onError: (error: Error) => {
@@ -49,6 +50,7 @@ export function useCategories(isExpense: boolean) {
       queryClient.setQueryData<ICategory[]>(['categories', isExpense], old =>
         (old ?? []).map(c => (c.id === updated.id ? updated : c))
       )
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Категория обновлена')
     },
     onError: (error: Error) => {
@@ -66,6 +68,7 @@ export function useCategories(isExpense: boolean) {
         (old ?? []).filter(c => c.id !== id)
       )
       queryClient.invalidateQueries({ queryKey: ['categories_archived'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
 
       toast.success('Категория перемещена в архив')
     },
@@ -88,6 +91,7 @@ export function useCategories(isExpense: boolean) {
         ...(old ?? []),
         unarchived
       ])
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
 
       toast.success('Категория восстановлена')
     },

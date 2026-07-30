@@ -155,7 +155,7 @@ export function useTransactions() {
       queryClient.invalidateQueries({
         predicate: query => {
           const key = query.queryKey[0]
-          return key === 'accounts' || key === 'transactions-period'
+          return key === 'accounts' || key === 'dashboard' || key === 'transactions-period'
         },
         refetchType: 'active'
       })
@@ -211,7 +211,7 @@ export function useTransactions() {
       queryClient.invalidateQueries({
         predicate: query => {
           const key = query.queryKey[0]
-          return key === 'accounts' || key === 'transactions-period'
+          return key === 'accounts' || key === 'dashboard' || key === 'transactions-period'
         },
         refetchType: 'active'
       })
@@ -293,7 +293,7 @@ export function useTransactions() {
       queryClient.invalidateQueries({
         predicate: query => {
           const key = query.queryKey[0]
-          return key === 'accounts' || key === 'transactions-period'
+          return key === 'accounts' || key === 'dashboard' || key === 'transactions-period'
         },
         refetchType: 'active'
       })
