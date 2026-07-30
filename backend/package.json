@@ -23,8 +23,8 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio",
-    "docker:start": "/docker-entrypoint.sh npm run start:prod",
-    "docker:start:dev": "/docker-entrypoint.sh npm run start:dev"
+    "docker:start": "./docker-entrypoint.sh npm run start:prod",
+    "docker:start:dev": "./docker-entrypoint.sh npm run start:dev"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
