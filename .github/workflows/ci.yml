@@ -25,14 +25,14 @@ jobs:
           fi
           echo "✅ backend/package-lock.json is in sync"
 
-      - name: Check frontend package-lock.json
+      - name: Check frontend bun.lock
         run: |
           cd frontend
-          if ! npm ls --package-lock-only 2>/dev/null; then
-            echo "❌ frontend/package-lock.json is out of sync with package.json"
+          if [ ! -f bun.lock ]; then
+            echo "❌ frontend/bun.lock not found — run 'bun install'"
             exit 1
           fi
-          echo "✅ frontend/package-lock.json is in sync"
+          echo "✅ frontend/bun.lock exists"
 
   backend-lint:
     name: Backend Lint
@@ -130,17 +130,13 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+      - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
       - name: Run lint
-        run: npm run lint # Реальная проверка без || echo
+        run: bun run lint # Реальная проверка без || echo
       - name: TypeScript check
-        run: npx tsc --noEmit # Реальная проверка без || echo
+        run: bunx tsc --noEmit # Реальная проверка без || echo
 
   frontend-build:
     name: Frontend Build
@@ -151,19 +147,15 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+      - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
       - name: Create env file
         run: |
           echo "NEXT_PUBLIC_API_URL=http://localhost:3001/api" >> .env
           echo "NEXT_PUBLIC_COOKIE_DOMAIN=localhost" >> .env
           echo "NODE_ENV=development" >> .env
-      - run: npm run build
+      - run: bun run build
 
   docker-build:
     name: Docker Build Test
