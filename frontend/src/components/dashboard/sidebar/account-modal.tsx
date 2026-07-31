@@ -30,7 +30,6 @@ import {
   AccountCategoryEnum,
   AccountIconName,
   AccountTypeEnum,
-  CurrencyType,
   IAccount,
   ICreateAccount,
   accountIcons
@@ -67,7 +66,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
     isDeleting
   } = useAccounts()
 
-  const { currencies, currencyLabelMap, currencyTypeMap } = useCurrencies()
+  const { currencies } = useCurrencies()
 
   const [isOpen, setIsOpen] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)

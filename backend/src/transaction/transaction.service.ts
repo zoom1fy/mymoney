@@ -11,7 +11,7 @@ import { GetTransactionSummaryDto } from './dto/get-transaction-summary.dto';
 export class TransactionService {
   constructor(
     private prisma: PrismaService,
-    private exchangeRateService: ExchangeRateService,
+    private exchangeRateService: ExchangeRateService
   ) {}
 
   // Runs balance updates + transaction creation inside a single Prisma transaction

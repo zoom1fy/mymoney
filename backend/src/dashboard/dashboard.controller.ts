@@ -15,14 +15,14 @@ export class DashboardController {
     private readonly userService: UserService,
     private readonly accountService: AccountService,
     private readonly categoryService: CategoryService,
-    private readonly transactionService: TransactionService,
+    private readonly transactionService: TransactionService
   ) {}
 
   @Get()
   async getDashboard(
     @CurrentUser() user: User,
     @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('to') to?: string
   ) {
     const [profile, accounts, categories, archivedCategories, expenseSummary, incomeSummary] =
       await Promise.all([

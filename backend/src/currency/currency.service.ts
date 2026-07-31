@@ -50,8 +50,10 @@ export class CurrencyService {
   private readonly sources: { name: string; fetch: RateFetcher }[];
 
   private isCrypto(from: string, to: string): boolean {
-    return currencyTypeMap[from as CurrencyCode] === CurrencyType.CRYPTO
-        || currencyTypeMap[to as CurrencyCode] === CurrencyType.CRYPTO;
+    return (
+      currencyTypeMap[from as CurrencyCode] === CurrencyType.CRYPTO ||
+      currencyTypeMap[to as CurrencyCode] === CurrencyType.CRYPTO
+    );
   }
 
   private readonly coinGeckoIds: Record<string, string> = {
@@ -80,7 +82,7 @@ export class CurrencyService {
 
   constructor(
     private httpService: HttpService,
-    private prisma: PrismaService,
+    private prisma: PrismaService
   ) {
     this.sources = [
       { name: 'cbr', fetch: (from, to) => this.fetchFromCbr(from, to) },

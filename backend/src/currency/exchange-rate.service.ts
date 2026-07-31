@@ -9,16 +9,16 @@ export class ExchangeRateService implements OnApplicationBootstrap {
 
   constructor(
     private prisma: PrismaService,
-    private currencyService: CurrencyService,
+    private currencyService: CurrencyService
   ) {}
 
   async onApplicationBootstrap() {
     await this.syncRates();
-    setInterval(() => this.syncRates(), this.syncIntervalMs);
+    setInterval(() => void this.syncRates(), this.syncIntervalMs);
   }
 
   async syncRates() {
-    const currencies = Object.values(CurrencyCode).filter((c) => c !== 'RUB');
+    const currencies = Object.values(CurrencyCode).filter((c) => !c.includes('RUB'));
     for (const from of currencies) {
       try {
         const rate = await this.currencyService.getExchangeRate(from, 'RUB');

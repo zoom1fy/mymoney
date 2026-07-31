@@ -51,7 +51,11 @@ describe('ExchangeRateService', () => {
     });
 
     it('should multiply amount by stored rate', async () => {
-      mockPrisma.exchangeRate.findUnique.mockResolvedValueOnce({ from: 'USD', to: 'RUB', rate: 90.5 });
+      mockPrisma.exchangeRate.findUnique.mockResolvedValueOnce({
+        from: 'USD',
+        to: 'RUB',
+        rate: 90.5,
+      });
       const result = await service.convertToRub(100, 'USD');
       expect(result).toBe(9050);
     });

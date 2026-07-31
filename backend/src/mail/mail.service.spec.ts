@@ -112,9 +112,7 @@ describe('MailService', () => {
       service = await createService({});
       const logSpy = jest.spyOn(service['logger'], 'log');
       await service.sendVerificationCode('test@test.com', '123456');
-      expect(logSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[DEV] Email to test@test.com')
-      );
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[DEV] Email to test@test.com'));
     });
 
     it('falls back to console log when sendMail fails', async () => {
@@ -128,12 +126,8 @@ describe('MailService', () => {
       const warnSpy = jest.spyOn(service['logger'], 'warn');
       const logSpy = jest.spyOn(service['logger'], 'log');
       await service.sendVerificationCode('test@test.com', '123456');
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to send email')
-      );
-      expect(logSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[FALLBACK]')
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to send email'));
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[FALLBACK]'));
     });
   });
 

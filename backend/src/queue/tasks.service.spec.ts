@@ -10,10 +10,7 @@ describe('TasksService', () => {
     mockQueue = { add: jest.fn().mockResolvedValue(undefined) };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TasksService,
-        { provide: getQueueToken('tasks'), useValue: mockQueue },
-      ],
+      providers: [TasksService, { provide: getQueueToken('tasks'), useValue: mockQueue }],
     }).compile();
 
     service = module.get<TasksService>(TasksService);

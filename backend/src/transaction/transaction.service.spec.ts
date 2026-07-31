@@ -338,11 +338,43 @@ describe('TransactionService', () => {
   describe('getSummary()', () => {
     it('should return aggregated sums grouped by category in RUB', async () => {
       mockPrisma.transaction.findMany.mockResolvedValueOnce([
-        { id: 1, amount: new Decimal('500'), currencyCode: 'USD', categoryId: 1, category: { id: 1, name: 'Food', color: '#ff0000' }, userId, type: TransactionType.EXPENSE, transactionDate: new Date('2024-01-15') },
-        { id: 2, amount: new Decimal('300'), currencyCode: 'USD', categoryId: 2, category: { id: 2, name: 'Transport', color: '#00ff00' }, userId, type: TransactionType.EXPENSE, transactionDate: new Date('2024-01-20') },
-        { id: 3, amount: new Decimal('100'), currencyCode: 'RUB', categoryId: null, category: null, userId, type: TransactionType.EXPENSE, transactionDate: new Date('2024-01-25') },
+        {
+          id: 1,
+          amount: new Decimal('500'),
+          currencyCode: 'USD',
+          categoryId: 1,
+          category: { id: 1, name: 'Food', color: '#ff0000' },
+          userId,
+          type: TransactionType.EXPENSE,
+          transactionDate: new Date('2024-01-15'),
+        },
+        {
+          id: 2,
+          amount: new Decimal('300'),
+          currencyCode: 'USD',
+          categoryId: 2,
+          category: { id: 2, name: 'Transport', color: '#00ff00' },
+          userId,
+          type: TransactionType.EXPENSE,
+          transactionDate: new Date('2024-01-20'),
+        },
+        {
+          id: 3,
+          amount: new Decimal('100'),
+          currencyCode: 'RUB',
+          categoryId: null,
+          category: null,
+          userId,
+          type: TransactionType.EXPENSE,
+          transactionDate: new Date('2024-01-25'),
+        },
       ]);
-      mockExchangeRateService.getRatesToRub.mockResolvedValueOnce(new Map([['USD', 90], ['RUB', 1]]));
+      mockExchangeRateService.getRatesToRub.mockResolvedValueOnce(
+        new Map([
+          ['USD', 90],
+          ['RUB', 1],
+        ])
+      );
 
       const result = await service.getSummary(userId, {
         type: TransactionType.EXPENSE,

@@ -39,13 +39,19 @@ describe('TasksProcessor', () => {
 
   describe('process', () => {
     it('calls sendVerificationCode for send-verification-email job', async () => {
-      const job = { name: 'send-verification-email', data: { email: 'a@b.com', code: '123' } } as Job;
+      const job = {
+        name: 'send-verification-email',
+        data: { email: 'a@b.com', code: '123' },
+      } as Job;
       await processor.process(job);
       expect(mailService.sendVerificationCode).toHaveBeenCalledWith('a@b.com', '123');
     });
 
     it('calls sendPasswordResetCode for send-password-reset-email job', async () => {
-      const job = { name: 'send-password-reset-email', data: { email: 'a@b.com', code: '456' } } as Job;
+      const job = {
+        name: 'send-password-reset-email',
+        data: { email: 'a@b.com', code: '456' },
+      } as Job;
       await processor.process(job);
       expect(mailService.sendPasswordResetCode).toHaveBeenCalledWith('a@b.com', '456');
     });
