@@ -1,12 +1,14 @@
 'use client'
 
-import { Pencil, Plus } from 'lucide-react'
+import { Palette, Pencil, Plus, Tags } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
+import { ColorPicker } from '@/components/ui/color-picker/color-picker'
 import { ConfirmAlert } from '@/components/ui/dialogs/confirm-alert'
+import { IconPicker } from '@/components/ui/icon-picker/icon-picker'
 import { ModalHeader } from '@/components/ui/modal/modal-header'
 import { Button } from '@/components/ui/shadui/button'
 import {
@@ -17,10 +19,8 @@ import {
 } from '@/components/ui/shadui/dialog'
 import { Input } from '@/components/ui/shadui/input'
 import { Label } from '@/components/ui/shadui/label'
-import { ScrollArea } from '@/components/ui/shadui/scroll-area'
 
 import {
-  CategoryIconName,
   categoryIcons,
   ICategory,
   ICreateCategory
@@ -30,9 +30,6 @@ import { useCategories } from '@/hooks/use-categories'
 
 import { getRandomColor } from '@/lib/color-utils'
 import { cn } from '@/lib/cn'
-import { ColorPicker } from '@/components/ui/color-picker/color-picker'
-
-const iconOptions = Object.keys(categoryIcons) as CategoryIconName[]
 
 interface Props {
   isExpense: boolean
@@ -41,6 +38,10 @@ interface Props {
   trigger?: ReactNode
   onClose?: () => void
 }
+
+const fieldClasses =
+  '!h-14 w-full text-lg px-6 rounded-xl bg-background border-2'
+const containerClasses = 'w-full min-w-0 space-y-2'
 
 export function CategoryModal({
   isExpense,
@@ -167,8 +168,8 @@ export function CategoryModal({
         className="w-[95vw] max-w-3xl p-0 border-none bg-transparent"
         showCloseButton={false}
       >
-        <GlassCard className="rounded-3xl p-6 sm:p-10">
-          <DialogHeader className="mb-8">
+        <GlassCard className="rounded-2xl p-8 md:p-10 shadow-xl transition-all duration-700">
+          <DialogHeader className="mb-4">
             <ModalHeader
               actionType="archive"
               icon={
@@ -186,13 +187,15 @@ export function CategoryModal({
           </DialogHeader>
 
           <form
-            className="space-y-8"
+            className="space-y-4"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <div className="space-y-3">
-              <Label className="text-lg">Название</Label>
+            <div className={containerClasses}>
+              <Label className="text-base font-medium ml-1 flex items-center gap-2">
+                <Tags className="size-4 opacity-70" /> Название
+              </Label>
               <Input
-                className="h-14 text-lg px-6 bg-background"
+                className={cn(fieldClasses)}
                 placeholder="Продукты"
                 {...register('name', { required: 'Введите название' })}
               />
@@ -203,31 +206,19 @@ export function CategoryModal({
               )}
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-lg">Иконка</Label>
-              <ScrollArea className="h-64 rounded-xl border bg-background/50">
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-4 p-4">
-                  {iconOptions.map(icon => {
-                    const Icon = categoryIcons[icon]
-                    const active = selectedIcon === icon
-                    return (
-                      <button
-                        className={cn(
-                          'flex size-14 items-center justify-center rounded-xl border-2 transition-all',
-                          active
-                            ? 'border-accent bg-accent/20 scale-110'
-                            : 'border-transparent hover:bg-accent/10'
-                        )}
-                        key={icon}
-                        type="button"
-                        onClick={() => setValue('icon', icon)}
-                      >
-                        <Icon className="size-7" />
-                      </button>
-                    )
-                  })}
-                </div>
-              </ScrollArea>
+            <div className={containerClasses}>
+              <Label className="text-base font-medium ml-1 flex items-center gap-2">
+                <Palette className="size-4 opacity-70" /> Иконка
+              </Label>
+              <IconPicker
+                buttonClassName="size-14"
+                gridClassName="sm:grid-cols-6"
+                iconClassName="size-7"
+                icons={categoryIcons}
+                scrollAreaClassName="h-64"
+                value={selectedIcon}
+                onChange={icon => setValue('icon', icon)}
+              />
             </div>
 
             <Controller

@@ -1,6 +1,6 @@
 'use client'
 
-import { Shuffle } from 'lucide-react'
+import { Paintbrush, Shuffle } from 'lucide-react'
 import { useMemo, useEffect, useState } from 'react'
 import { HexColorPicker } from 'react-colorful'
 
@@ -61,8 +61,10 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
   const safeColor = isValidHex(localColor) ? localColor : '#6366F1'
 
   return (
-    <div className="space-y-3">
-      <Label className="text-lg">{label}</Label>
+    <div className="space-y-2">
+      <Label className="text-base font-medium ml-1 flex items-center gap-2">
+        <Paintbrush className="size-4 opacity-70" /> {label}
+      </Label>
 
       <Popover
         open={isOpen}

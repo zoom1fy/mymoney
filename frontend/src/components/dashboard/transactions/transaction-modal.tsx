@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import type { DayPickerLocale } from 'react-day-picker/locale'
 import {
+  Banknote,
   Calendar as CalendarIcon,
   FileText,
   Loader2,
@@ -69,10 +70,10 @@ interface Props {
 }
 
 const fieldClasses =
-  '!h-14 w-full text-xl px-6 rounded-xl bg-background border-2'
+  '!h-14 w-full text-lg px-6 rounded-xl bg-background border-2'
 const fieldClassesDisabled =
-  '!h-14 w-full text-xl px-6 rounded-xl bg-muted border-2 opacity-70 cursor-not-allowed'
-const containerClasses = 'w-full space-y-3'
+  '!h-14 w-full text-lg px-6 rounded-xl bg-muted border-2 opacity-70 cursor-not-allowed'
+const containerClasses = 'w-full min-w-0 space-y-2'
 
 function normalizeDate(date: Date) {
   const d = new Date(date)
@@ -126,7 +127,10 @@ export function TransactionModal({
     }
   })
 
+  // Reset form when dialog opens (edit → prefill, create → defaults)
   useEffect(() => {
+    if (!isOpen) return
+
     if (isEdit && transaction) {
       reset({
         amount: transaction.amount,
@@ -134,13 +138,19 @@ export function TransactionModal({
         accountId: String(transaction.accountId),
         date: normalizeDate(new Date(transaction.transactionDate))
       })
+    } else {
+      reset({
+        amount: '',
+        description: '',
+        accountId: '',
+        date: normalizeDate(new Date())
+      })
     }
-  }, [isEdit, transaction, reset])
+  }, [isOpen, isEdit, transaction, reset])
 
-  // Watch the selected account ID from form
   const accountId = watch('accountId')
 
-  // Fallback: fetch account individually if not in local list (e.g. deleted account in edit mode)
+  // Deleted accounts are absent from the list, so fetch the full record to keep the preview working
   const { data: remoteAccount } = useAccountById(
     accountId && !accounts.find(a => a.id === Number(accountId))
       ? Number(accountId)
@@ -155,11 +165,9 @@ export function TransactionModal({
     return local || remoteAccount || undefined
   }, [accounts, accountsLoading, accountId, remoteAccount])
 
-  // Block form editing when the account was deleted
   const isFormDisabled = isEdit && selectedAccount?.isDeleted === true
 
   const onSubmit = async (data: ITransactionForm) => {
-    // Prevent submit if account is deleted
     if (isFormDisabled) return
 
     const payload = {
@@ -169,6 +177,7 @@ export function TransactionModal({
       description: data.description.trim() || undefined,
       type: transactionType,
       currencyCode: selectedAccount?.currencyCode || 'RUB',
+      // Send the date as UTC midnight so the selected day survives timezone shifts
       transactionDate: new Date(
         Date.UTC(
           data.date.getFullYear(),
@@ -229,11 +238,11 @@ export function TransactionModal({
     >
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent
-        className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto"
+        className="w-[95vw] max-w-6xl sm:max-w-6xl p-0 max-h-[90vh] overflow-y-auto"
         showCloseButton={false}
       >
-        <GlassCard className="rounded-3xl p-10 md:p-14 shadow-2xl text-xl transition-all duration-700">
-          <DialogHeader className="mb-8">
+        <GlassCard className="rounded-2xl p-8 md:p-10 shadow-xl transition-all duration-700">
+          <DialogHeader className="mb-4">
             <ModalHeader
               icon={<Wallet className="size-6 text-white" />}
               isDeleteLoading={isDeleting}
@@ -248,202 +257,199 @@ export function TransactionModal({
             />
           </DialogHeader>
 
-          <TransactionPreview
-            amount={watch('amount')}
-            category={category}
-            date={watch('date')}
-            isEditMode={isEdit}
-            isExpense={isExpense}
-            originalTransaction={transaction}
-            selectedAccount={selectedAccount}
-          />
+          <div className="flex flex-col md:grid md:grid-cols-2 gap-8">
+            <div className="flex flex-col md:contents">
+              <form
+                className="space-y-4"
+                id="transaction-form"
+                onSubmit={handleSubmit(onSubmit)}
+              >
+              {isFormDisabled && (
+                <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                  <p className="text-center font-medium">
+                    ⚠️ Этот счёт был удалён. Редактирование недоступно.
+                  </p>
+                </div>
+              )}
+              <div className={containerClasses}>
+                <Label className="text-base font-medium ml-1 flex items-center gap-2">
+                  <Banknote className="size-4 opacity-70" /> Сумма
+                </Label>
+                <Controller
+                  control={control}
+                  name="amount"
+                  render={({ field }) => (
+                    <NumericFormat
+                      allowNegative={false}
+                      className={cn(
+                        isFormDisabled
+                          ? fieldClassesDisabled
+                          : fieldClasses,
+                        'text-xl font-bold border-2 focus-visible:ring-offset-0',
+                        errors.amount &&
+                          !isFormDisabled &&
+                          'border-destructive'
+                      )}
+                      customInput={Input}
+                      decimalScale={2}
+                      decimalSeparator=","
+                      disabled={isFormDisabled}
+                      isAllowed={values => {
+                        const digits = values.value.replace(/\D/g, '')
+                        return digits.length <= 10
+                      }}
+                      placeholder="0,00"
+                      thousandSeparator=" "
+                      value={field.value}
+                      onValueChange={values =>
+                        !isFormDisabled &&
+                        field.onChange(values.floatValue ?? '')
+                      }
+                    />
+                  )}
+                  rules={{ required: 'Введите сумму' }}
+                />
+              </div>
 
-          {/* Warning banner when editing a transaction on a deleted account */}
-          {isFormDisabled && (
-            <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
-              <p className="text-center font-medium">
-                ⚠️ Этот счёт был удалён. Редактирование недоступно.
-              </p>
-            </div>
-          )}
-
-          <form
-            className="space-y-6"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-              {/* Left column: amount + account */}
-              <div className="space-y-8">
-                <div className={containerClasses}>
-                  <Label className="text-lg font-medium ml-1">Сумма</Label>
-                  <Controller
-                    control={control}
-                    name="amount"
-                    render={({ field }) => (
-                      <NumericFormat
-                        allowNegative={false}
+              <div className={containerClasses}>
+                <Label className="text-base font-medium ml-1 flex items-center gap-2">
+                  <Wallet className="size-4 opacity-70" /> Счёт
+                </Label>
+                <Controller
+                  control={control}
+                  name="accountId"
+                  render={({ field }) => (
+                    <Select
+                      disabled={isFormDisabled}
+                      value={field.value}
+                      onValueChange={value => {
+                        if (isFormDisabled) return
+                        const acc = accounts.find(a => a.id === Number(value))
+                        if (acc?.isDeleted) return
+                        field.onChange(value)
+                      }}
+                    >
+                      <SelectTrigger
                         className={cn(
                           isFormDisabled
                             ? fieldClassesDisabled
                             : fieldClasses,
-                          'text-2xl font-bold border-2 focus-visible:ring-offset-0',
-                          errors.amount &&
-                            !isFormDisabled &&
-                            'border-destructive'
+                          'cursor-pointer'
                         )}
-                        customInput={Input}
-                        decimalScale={2}
-                        decimalSeparator=","
-                        disabled={isFormDisabled}
-                        isAllowed={values => {
-                          const digits = values.value.replace(/\D/g, '')
-                          return digits.length <= 10
-                        }}
-                        placeholder="0,00"
-                        thousandSeparator=" "
-                        value={field.value}
-                        onValueChange={values =>
-                          !isFormDisabled &&
-                          field.onChange(values.floatValue ?? '')
+                      >
+                        <SelectValue placeholder="Выберите счёт" />
+                      </SelectTrigger>
+
+                      <SelectContent className="rounded-xl bg-background">
+                        {accounts
+                          .filter(acc => !acc.isDeleted)
+                          .map(acc => (
+                            <SelectItem
+                              className="text-base py-2.5 cursor-pointer"
+                              key={acc.id}
+                              value={String(acc.id)}
+                            >
+                              <div className="flex items-center justify-between w-full gap-3">
+                                <span>{acc.name}</span>
+                                <span className="text-muted-foreground font-medium text-sm">
+                                  {acc.currentBalance.toLocaleString('ru-RU')}{' '}
+                                  {acc.currencyCode}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+
+                        {accounts.filter(acc => !acc.isDeleted).length ===
+                          0 && (
+                          <div className="text-center py-4 text-muted-foreground text-sm">
+                            Нет доступных счетов
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  rules={{ required: 'Выберите счёт' }}
+                />
+              </div>
+
+              <div className={containerClasses}>
+                <Label className="text-base font-medium ml-1 flex items-center gap-2">
+                  <CalendarIcon className="size-4 opacity-70" /> Дата
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild disabled={isFormDisabled}>
+                    <Button
+                      className={cn(
+                        isFormDisabled
+                          ? fieldClassesDisabled
+                          : fieldClasses,
+                        'justify-start font-normal text-left cursor-pointer'
+                      )}
+                      disabled={isFormDisabled}
+                      variant="outline"
+                    >
+                      <span className="truncate">
+                        {format(watch('date'), 'd MMMM yyyy', { locale: ru })}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  {!isFormDisabled && (
+                    <PopoverContent
+                      align="start"
+                      className="w-auto p-0 border border-border bg-card shadow-2xl rounded-2xl"
+                    >
+                      <Calendar
+                        className="p-3"
+                        locale={ru as unknown as DayPickerLocale}
+                        mode="single"
+                        selected={watch('date')}
+                        onSelect={d =>
+                          d &&
+                          setValue('date', normalizeDate(d), {
+                            shouldValidate: true
+                          })
                         }
                       />
-                    )}
-                    rules={{ required: 'Введите сумму' }}
-                  />
-                </div>
-
-                <div className={containerClasses}>
-                  <Label className="text-lg font-medium ml-1 flex items-center gap-2">
-                    <Wallet className="size-5 opacity-70" /> Счёт
-                  </Label>
-                  <Controller
-                    control={control}
-                    name="accountId"
-                    render={({ field }) => (
-                      <Select
-                        disabled={isFormDisabled}
-                        value={field.value}
-                        onValueChange={value => {
-                          if (isFormDisabled) return
-                          const acc = accounts.find(a => a.id === Number(value))
-                          if (acc?.isDeleted) return
-                          field.onChange(value)
-                        }}
-                      >
-                        <SelectTrigger
-                          className={cn(
-                            isFormDisabled
-                              ? fieldClassesDisabled
-                              : fieldClasses,
-                            'cursor-pointer'
-                          )}
-                        >
-                          <SelectValue placeholder="Выберите счёт" />
-                        </SelectTrigger>
-
-                        <SelectContent className="rounded-xl bg-background">
-                          {/* Показываем только активные счета */}
-                          {accounts
-                            .filter(acc => !acc.isDeleted)
-                            .map(acc => (
-                              <SelectItem
-                                className="text-lg py-3 cursor-pointer"
-                                key={acc.id}
-                                value={String(acc.id)}
-                              >
-                                <div className="flex items-center justify-between w-full gap-4">
-                                  <span>{acc.name}</span>
-                                  <span className="text-muted-foreground font-medium">
-                                    {acc.currentBalance.toLocaleString('ru-RU')}{' '}
-                                    {acc.currencyCode}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-
-                          {/* Если нет активных счетов */}
-                          {accounts.filter(acc => !acc.isDeleted).length ===
-                            0 && (
-                            <div className="text-center py-6 text-muted-foreground">
-                              Нет доступных счетов
-                            </div>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    rules={{ required: 'Выберите счёт' }}
-                  />
-                </div>
+                    </PopoverContent>
+                  )}
+                </Popover>
               </div>
 
-              {/* Right column: date + description */}
-              <div className="space-y-8">
-                <div className={containerClasses}>
-                  <Label className="text-lg font-medium ml-1 flex items-center gap-2">
-                    <CalendarIcon className="size-5 opacity-70" /> Дата
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger
-                      asChild
-                      disabled={isFormDisabled}
-                    >
-                      <Button
-                        className={cn(
-                          isFormDisabled
-                            ? fieldClassesDisabled
-                            : fieldClasses,
-                          'justify-start font-normal text-left cursor-pointer'
-                        )}
-                        disabled={isFormDisabled}
-                        variant="outline"
-                      >
-                        <span className="truncate">
-                          {format(watch('date'), 'd MMMM yyyy', { locale: ru })}
-                        </span>
-                      </Button>
-                    </PopoverTrigger>
-                    {!isFormDisabled && (
-                      <PopoverContent
-                        align="start"
-                        className="w-auto p-0 border border-border bg-card shadow-2xl rounded-2xl"
-                      >
-                        <Calendar
-                          className="p-3"
-                          locale={ru as unknown as DayPickerLocale}
-                          mode="single"
-                          selected={watch('date')}
-                          onSelect={d =>
-                            d &&
-                            setValue('date', normalizeDate(d), {
-                              shouldValidate: true
-                            })
-                          }
-                        />
-                      </PopoverContent>
-                    )}
-                  </Popover>
-                </div>
-
-                <div className={containerClasses}>
-                  <Label className="text-lg font-medium ml-1 flex items-center gap-2">
-                    <FileText className="size-5 opacity-70" /> Заметка
-                  </Label>
-                  <Input
-                    className={cn(
-                      isFormDisabled ? fieldClassesDisabled : fieldClasses
-                    )}
-                    disabled={isFormDisabled}
-                    placeholder="На что потратили?"
-                    {...register('description')}
-                  />
-                </div>
+              <div className={containerClasses}>
+                <Label className="text-base font-medium ml-1 flex items-center gap-2">
+                  <FileText className="size-4 opacity-70" /> Заметка
+                </Label>
+                <Input
+                  className={cn(
+                    isFormDisabled ? fieldClassesDisabled : fieldClasses
+                  )}
+                  disabled={isFormDisabled}
+                  placeholder="На что потратили?"
+                  {...register('description')}
+                />
               </div>
+
+            </form>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:gap-6 pt-4">
+            <div>
+              <TransactionPreview
+                isSidebar
+                amount={watch('amount')}
+                category={category}
+                date={watch('date')}
+                isEditMode={isEdit}
+                isExpense={isExpense}
+                originalTransaction={transaction}
+                selectedAccount={selectedAccount}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 pt-2 md:col-span-2">
               <AccentButton
                 className="h-14 sm:flex-1"
                 disabled={!isValid || isLoading || isFormDisabled}
+                form="transaction-form"
                 type="submit"
               >
                 {isLoading ? (
@@ -487,7 +493,7 @@ export function TransactionModal({
               onConfirm={confirmClose}
               onOpenChange={setIsCloseConfirmOpen}
             />
-          </form>
+        </div>
         </GlassCard>
       </DialogContent>
     </Dialog>

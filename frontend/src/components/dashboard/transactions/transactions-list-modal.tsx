@@ -133,7 +133,7 @@ export function TransactionsListModal({
       open={isOpen}
       onOpenChange={onClose}
     >
-      <DialogContent className="w-[95vw] max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto border-none bg-transparent shadow-none">
+      <DialogContent className="w-[95vw] max-w-5xl sm:max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto border-none bg-transparent shadow-none">
         <GlassCard className="rounded-3xl p-4 sm:p-6 md:p-10 lg:p-14 shadow-2xl transition-all duration-500">
           <DialogHeader className="mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -265,8 +265,8 @@ export function TransactionsListModal({
           <TransactionModal
             category={categoryForEditing}
             isExpense={editingTx!.type === TransactionType.EXPENSE}
-            mode="edit"
             isOpen={!!editingTx}
+            mode="edit"
             transaction={editingTx!}
             onOpenChange={isOpen => {
               if (!isOpen) setEditingTx(null)

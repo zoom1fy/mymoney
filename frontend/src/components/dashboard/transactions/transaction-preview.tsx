@@ -4,6 +4,9 @@ import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowDown, ArrowRight, HelpCircle } from 'lucide-react'
+import { useRef } from 'react'
+
+import { AnimatedConnection } from './animated-connection'
 
 import { accountIcons, IAccount } from '@/types/account.type'
 import { categoryIcons, ICategory } from '@/types/category.type'
@@ -19,9 +22,9 @@ interface TransactionPreviewProps {
   selectedAccount?: IAccount
   originalTransaction?: ITransaction
   isEditMode?: boolean
+  isSidebar?: boolean
 }
 
-// Live preview: shows amount, account → category flow, and balance forecast
 export function TransactionPreview({
   amount,
   date,
@@ -29,8 +32,12 @@ export function TransactionPreview({
   isExpense,
   selectedAccount,
   originalTransaction,
-  isEditMode = false
+  isEditMode = false,
+  isSidebar = false
 }: TransactionPreviewProps) {
+  const accountNodeRef = useRef<HTMLDivElement>(null)
+  const categoryNodeRef = useRef<HTMLDivElement>(null)
+
   const AccountIcon = selectedAccount?.icon
     ? accountIcons[selectedAccount.icon] || HelpCircle
     : HelpCircle
@@ -39,11 +46,12 @@ export function TransactionPreview({
     ? categoryIcons[category.icon] || HelpCircle
     : HelpCircle
 
-  const symbol = selectedAccount?.currencySymbol || '₽'
+  const currencySymbol = selectedAccount?.currencySymbol || '₽'
 
   const finalAmount = Number(amount) || 0
   const isShowForecast = finalAmount > 0 && selectedAccount
 
+  // The current balance already includes the edited transaction, so undo it first to show the pre-edit state
   const getOriginalBalance = () => {
     if (!selectedAccount) return 0
     if (isEditMode && originalTransaction) {
@@ -59,6 +67,7 @@ export function TransactionPreview({
 
   const originalBalance = getOriginalBalance()
 
+  // Roll the original transaction back, then apply the newly entered amount for the forecast
   const getNewBalance = () => {
     if (!selectedAccount) return 0
     if (isEditMode && originalTransaction) {
@@ -79,10 +88,115 @@ export function TransactionPreview({
 
   const newBalance = getNewBalance()
 
+  if (isSidebar) {
+    return (
+      <div className="h-full p-7 rounded-xl bg-card border flex flex-col items-center text-center gap-6">
+        <motion.p
+          animate={{ opacity: 1, y: 0 }}
+          className={cn(
+            'text-5xl font-black tracking-tight leading-none',
+            isExpense ? 'text-red-500' : 'text-emerald-500'
+          )}
+          initial={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.18 }}
+        >
+          {isExpense ? '−' : '+'}
+          {finalAmount.toLocaleString('ru-RU')} {currencySymbol}
+        </motion.p>
+
+        <p className="text-base text-muted-foreground">
+          {category.name} • {format(date, 'd MMMM yyyy', { locale: ru })}
+        </p>
+
+        <div className="w-full group px-6">
+          <div className="relative flex justify-between items-start">
+            <AnimatedConnection
+              className="absolute inset-0"
+              fromEdge={isExpense ? 'right' : 'left'}
+              fromRef={isExpense ? accountNodeRef : categoryNodeRef}
+              morphKey={category.id}
+              toEdge={isExpense ? 'left' : 'right'}
+              toRef={isExpense ? categoryNodeRef : accountNodeRef}
+            />
+            <div className="flex w-28 flex-col items-center gap-2.5">
+              <div
+                className="size-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)_/_0.12)]"
+                ref={accountNodeRef}
+              >
+                <AccountIcon className="size-8" />
+              </div>
+              <span className="w-full text-base font-semibold truncate">
+                {selectedAccount?.name || 'Счёт'}
+              </span>
+            </div>
+            <div className="flex w-28 flex-col items-center gap-2.5">
+              <div
+                className="size-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)_/_0.12)]"
+                ref={categoryNodeRef}
+              >
+                <CategoryIcon className="size-8" />
+              </div>
+              <span className="w-full text-base font-semibold truncate">
+                {category.name}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {isShowForecast && (
+            <motion.div
+              layout
+              animate={{ opacity: 1 }}
+              className="w-full space-y-3 border-t pt-4"
+              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+            >
+              <p className="text-lg font-semibold text-left">
+                {isEditMode ? 'Баланс до правок' : 'После операции'}
+              </p>
+              <div className="flex justify-between">
+                <div className="text-left">
+                  <p className="text-sm text-muted-foreground leading-none">
+                    Было
+                  </p>
+                  <p className="text-lg font-semibold mt-1.5">
+                    {originalBalance.toLocaleString('ru-RU')} {currencySymbol}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground leading-none">
+                    Станет
+                  </p>
+                  <p
+                    className={cn(
+                      'text-lg font-black mt-1.5',
+                      newBalance < originalBalance
+                        ? 'text-red-500'
+                        : 'text-emerald-500'
+                    )}
+                  >
+                    {newBalance.toLocaleString('ru-RU')} {currencySymbol}
+                  </p>
+                </div>
+              </div>
+              {isEditMode && finalAmount !== originalTransaction?.amount && (
+                <p className="text-xs text-muted-foreground text-left">
+                  Изменение: {newBalance - originalBalance > 0 ? '+' : ''}
+                  {(newBalance - originalBalance).toLocaleString('ru-RU')}{' '}
+                  {currencySymbol}
+                </p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    )
+  }
+
   return (
     <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-muted/30 to-muted/10 border border-border/50 shadow-inner">
-      <div className="flex flex-col items-center justify-center space-y-4">
-        {/* Amount badge + date */}
+      <div className="flex flex-col items-center justify-center gap-4">
         <div className="text-center">
           <motion.div
             animate={{ scale: 1, opacity: 1 }}
@@ -90,18 +204,16 @@ export function TransactionPreview({
             initial={{ scale: 0.9, opacity: 0 }}
           >
             <span className="text-xl font-bold text-primary tracking-tight">
-              {finalAmount ? `${finalAmount.toLocaleString('ru-RU')} ${symbol}` : `0 ${symbol}`}
+              {finalAmount ? `${finalAmount.toLocaleString('ru-RU')} ${currencySymbol}` : `0 ${currencySymbol}`}
             </span>
           </motion.div>
-          <p className="text-xs text-muted-foreground mt-2 font-medium">
+          <p className="text-xs text-muted-foreground mt-1.5 font-medium">
             {format(date, 'd MMMM yyyy', { locale: ru })}
           </p>
         </div>
 
-        {/* Visual flow: Account → (arrow) → Category */}
-        <div className="flex flex-col md:flex-row items-center justify-center space-y-3 md:space-y-0 md:space-x-6 w-full max-w-xl">
-          {/* Source account block */}
-          <div className="flex flex-col items-center space-y-2 flex-1">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 w-full max-w-xl">
+          <div className="flex flex-col items-center gap-1.5 flex-1">
             <motion.div
               className={cn(
                 'size-16 rounded-xl flex items-center justify-center border-2 transition-all shadow-sm',
@@ -112,10 +224,7 @@ export function TransactionPreview({
               whileHover={{ scale: 1.05 }}
             >
               <AccountIcon
-                className={cn(
-                  'size-8',
-                  selectedAccount ? 'text-primary' : 'text-muted-foreground'
-                )}
+                className={cn('size-8', selectedAccount ? 'text-primary' : 'text-muted-foreground')}
               />
             </motion.div>
             <p className="font-semibold text-sm whitespace-nowrap">
@@ -123,7 +232,6 @@ export function TransactionPreview({
             </p>
           </div>
 
-          {/* Direction arrow (expense ↓ / income ↑) */}
           <div className="flex flex-col items-center justify-center">
             <div className="p-2 rounded-full bg-background border border-border shadow-sm">
               <ArrowRight
@@ -140,8 +248,7 @@ export function TransactionPreview({
             </span>
           </div>
 
-          {/* Destination category block */}
-          <div className="flex flex-col items-center space-y-2 flex-1">
+          <div className="flex flex-col items-center gap-1.5 flex-1">
             <motion.div
               className="size-16 rounded-xl flex items-center justify-center border-2 bg-background border-accent/40 shadow-sm"
               whileHover={{ scale: 1.05 }}
@@ -154,7 +261,6 @@ export function TransactionPreview({
           </div>
         </div>
 
-        {/* Balance forecast: shows current vs projected balance */}
         <AnimatePresence mode="wait">
           {isShowForecast && (
             <motion.div
@@ -170,35 +276,35 @@ export function TransactionPreview({
                 mass: 0.8
               }}
             >
-              <div className="mt-2 p-4 rounded-xl bg-background/80 backdrop-blur-sm border border-border shadow-xl">
-                <div className="flex items-center justify-center space-x-4">
+                <div className="mt-1 p-4 rounded-xl bg-background/80 backdrop-blur-sm border border-border shadow-xl">
+                <div className="flex items-center justify-center gap-3">
                   <div className="text-center">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">
                       {isEditMode ? 'Было до правок' : 'Было'}
                     </p>
-                    <p className="text-base font-bold opacity-80">
-                      {originalBalance.toLocaleString('ru-RU')} {symbol}
+                    <p className="text-sm font-bold opacity-80">
+                      {originalBalance.toLocaleString('ru-RU')} {currencySymbol}
                     </p>
                     {isEditMode && originalTransaction && (
-                      <p className="text-[10px] text-muted-foreground mt-1">
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         (без учёта старой транзакции)
                       </p>
                     )}
                   </div>
 
                   <div className="flex items-center text-muted-foreground/50">
-                    <ArrowRight className="size-4 hidden md:block" />
-                    <ArrowDown className="size-4 md:hidden" />
+                    <ArrowRight className="size-3.5 hidden md:block" />
+                    <ArrowDown className="size-3.5 md:hidden" />
                   </div>
 
                   <div className="text-center">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">
                       Станет
                     </p>
                     <motion.p
                       animate={{ scale: 1 }}
                       className={cn(
-                        'text-lg font-black',
+                        'text-base font-black',
                         newBalance < originalBalance
                           ? 'text-destructive'
                           : 'text-success'
@@ -206,16 +312,14 @@ export function TransactionPreview({
                       initial={{ scale: 1.1 }}
                       key={newBalance}
                     >
-                      {newBalance.toLocaleString('ru-RU')} {symbol}
+                      {newBalance.toLocaleString('ru-RU')} {currencySymbol}
                     </motion.p>
                     {isEditMode &&
                       finalAmount !== originalTransaction?.amount && (
-                        <p className="text-[10px] text-muted-foreground mt-1">
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
                           изменение:{' '}
                           {newBalance - originalBalance > 0 ? '+' : ''}
-                          {(newBalance - originalBalance).toLocaleString(
-                            'ru-RU'
-                          )} {symbol}
+                          {(newBalance - originalBalance).toLocaleString('ru-RU')} {currencySymbol}
                         </p>
                       )}
                   </div>
