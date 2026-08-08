@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { currencyService } from '@/services/currency.service'
@@ -13,16 +14,21 @@ export function useCurrencies() {
     staleTime: Infinity,
   })
 
-  const currencyLabelMap: Record<string, string> = Object.fromEntries(
-    currencies.map(c => [c.code, `${c.symbol} ${c.name}`])
+  // Maps are derived once per fetch — rebuilding them on every render is wasteful
+  const currencyLabelMap = useMemo(
+    () =>
+      Object.fromEntries(currencies.map(c => [c.code, `${c.symbol} ${c.name}`])),
+    [currencies]
   )
 
-  const currencySymbolMap: Record<string, string> = Object.fromEntries(
-    currencies.map(c => [c.code, c.symbol])
+  const currencySymbolMap = useMemo(
+    () => Object.fromEntries(currencies.map(c => [c.code, c.symbol])),
+    [currencies]
   )
 
-  const currencyTypeMap: Record<string, CurrencyType> = Object.fromEntries(
-    currencies.map(c => [c.code, c.type as CurrencyType])
+  const currencyTypeMap = useMemo(
+    () => Object.fromEntries(currencies.map(c => [c.code, c.type as CurrencyType])),
+    [currencies]
   )
 
   return { currencies, currencyLabelMap, currencySymbolMap, currencyTypeMap, isLoading }

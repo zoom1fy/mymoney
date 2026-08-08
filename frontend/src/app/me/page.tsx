@@ -71,7 +71,7 @@ export default function DashboardPage() {
       </div>
 
       <TransactionsListModal
-        categories={categories}
+        categories={allCategories}
         isOpen={isTransactionListOpen}
         range={modalRange}
         transactions={modalTransactions}

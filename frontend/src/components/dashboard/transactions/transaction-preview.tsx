@@ -120,7 +120,7 @@ export function TransactionPreview({
             />
             <div className="flex w-28 flex-col items-center gap-2.5">
               <div
-                className="size-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)_/_0.12)]"
+                className="size-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.12)]"
                 ref={accountNodeRef}
               >
                 <AccountIcon className="size-8" />
@@ -131,7 +131,7 @@ export function TransactionPreview({
             </div>
             <div className="flex w-28 flex-col items-center gap-2.5">
               <div
-                className="size-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)_/_0.12)]"
+                className="size-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.12)]"
                 ref={categoryNodeRef}
               >
                 <CategoryIcon className="size-8" />
@@ -195,7 +195,7 @@ export function TransactionPreview({
   }
 
   return (
-    <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-muted/30 to-muted/10 border border-border/50 shadow-inner">
+    <div className="mb-6 p-4 rounded-2xl bg-linear-to-br from-muted/30 to-muted/10 border border-border/50 shadow-inner">
       <div className="flex flex-col items-center justify-center gap-4">
         <div className="text-center">
           <motion.div
