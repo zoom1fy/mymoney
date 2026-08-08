@@ -5,9 +5,14 @@ import type { ICategory } from '@/types/category.type'
 import type { ITransaction } from '@/types/transaction.type'
 
 describe('buildDonutData', () => {
+  const baseCategory = {
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z',
+  }
+
   const categories: ICategory[] = [
-    { id: 1, name: 'Food', color: '#ff0000', currencyCode: 'RUB', isExpense: true, icon: 'Circle', isArchived: false },
-    { id: 2, name: 'Salary', color: '#00ff00', currencyCode: 'RUB', isExpense: false, icon: 'Circle', isArchived: false },
+    { id: 1, name: 'Food', color: '#ff0000', currencyCode: 'RUB', isExpense: true, icon: 'Circle', isArchived: false, ...baseCategory },
+    { id: 2, name: 'Salary', color: '#00ff00', currencyCode: 'RUB', isExpense: false, icon: 'Circle', isArchived: false, ...baseCategory },
   ]
 
   const makeTx = (overrides: Partial<ITransaction>): ITransaction => ({
@@ -18,7 +23,8 @@ describe('buildDonutData', () => {
     type: TransactionType.EXPENSE,
     currencyCode: 'RUB',
     transactionDate: '2024-01-15T00:00:00.000Z',
-    description: null,
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z',
     ...overrides,
   })
 
@@ -38,8 +44,8 @@ describe('buildDonutData', () => {
     expect(result).toHaveLength(0)
   })
 
-  it('uses "Без категории" when categoryId is null', () => {
-    const transactions = [makeTx({ categoryId: null, amount: 100 })]
+  it('uses "Без категории" when categoryId is not provided', () => {
+    const transactions = [makeTx({ categoryId: undefined, amount: 100 })]
     const result = buildDonutData(transactions, TransactionType.EXPENSE, categories)
     expect(result).toHaveLength(1)
     expect(result[0].name).toBe('Без категории')
@@ -55,7 +61,7 @@ describe('buildDonutData', () => {
 
   it('falls back to gray when category has no valid hex color', () => {
     const catWithBadColor: ICategory[] = [
-      { id: 1, name: 'Food', color: '', currencyCode: 'RUB', isExpense: true, icon: 'Circle', isArchived: false },
+      { id: 1, name: 'Food', color: '', currencyCode: 'RUB', isExpense: true, icon: 'Circle', isArchived: false, ...baseCategory },
     ]
     const transactions = [makeTx({ categoryId: 1, amount: 50 })]
     const result = buildDonutData(transactions, TransactionType.EXPENSE, catWithBadColor)
