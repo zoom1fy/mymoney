@@ -92,7 +92,7 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
           </button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-[280px] bg-background/90 backdrop-blur-xl border rounded-2xl p-4 shadow-xl">
+        <PopoverContent className="w-70 bg-background/90 backdrop-blur-xl border rounded-2xl p-4 shadow-xl">
           <div className="space-y-4">
             <div className="flex gap-2">
               <Input
@@ -129,7 +129,7 @@ export function ColorPicker({ value, onChange, label = 'Цвет' }: Props) {
             </div>
 
             <HexColorPicker
-              className="!w-full"
+              className="w-full!"
               color={safeColor}
               onChange={newColor => {
                 setLocalColor(newColor)
