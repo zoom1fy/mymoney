@@ -6,82 +6,90 @@
 
 /* Импорты */
 /* @import "react-day-picker/dist/style.css"; */
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap");
 
 /* Shadcn-совместимые переменные в :root и .dark */
 @layer base {
-  :root {
-    /* Оборачиваем в hsl() */
-    --background: hsl(0 0% 100%);
-    --foreground: hsl(240 10% 3.9%);
+:root {
+    /* Brand-цвет: premium violet, одна цветная семья */
+    --background: #F6F7FA;
+    --foreground: #17151C;
 
-    --card: hsl(0, 0%, 96%);
-    --card-foreground: hsl(240 10% 3.9%);
+    --card: #FFFFFF;
+    --card-foreground: #17151C;
 
-    --muted: hsl(240 4.8% 95.9%);
-    --muted-foreground: hsl(240 3.8% 46.1%);
+    --muted: #F1F0F5;
+    --muted-foreground: #74717D;
 
-    --border: hsl(240 5.9% 90%);
-    --ring: hsl(267 78% 57%);
+    --border: #E5E2EA;
+    --ring: #7C3AED;
 
-    /* accent */
-    --accent: hsl(267 78% 57%);
-    --accent-foreground: hsl(0 0% 100%);
+    /* Accent — мягкий violet surface, производный от primary */
+    --accent: #BFA4FF;
+    --accent-foreground: #6D28D9;
 
-    /* Добавляем недостающие для shadcn */
-    --primary: hsl(267 78% 57%);
-    --primary-foreground: hsl(0 0% 100%);
+    --primary: #7C3AED;
+    --primary-hover: #6D28D9;
+    --primary-foreground: #FFFFFF;
 
-    --secondary: hsl(240 4.8% 95.9%);
-    --secondary-foreground: hsl(240 10% 3.9%);
+    --secondary: #F0EEF3;
+    --secondary-foreground: #2C2932;
 
-    /* Success - приятный зеленый для светлой темы */
-    --success: hsl(142 76% 36%);
-    --success-foreground: hsl(0 0% 98%);
+    /* Status */
+    --success: #16845B;
+    --success-foreground: #FFFFFF;
 
-    --destructive: hsl(0 84% 60%);
-    --destructive-foreground: hsl(0 0% 98%);
+    --warning: #B7791F;
+    --warning-foreground: #FFFFFF;
 
-    /* Скроллбар - плавный дефолтный стиль */
-    --scrollbar-track: hsl(0 0% 95%);
-    --scrollbar-thumb: hsl(240 5% 70%);
-    --scrollbar-thumb-hover: hsl(240 5% 65%);
+    --destructive: #D84B4B;
+    --destructive-foreground: #FFFFFF;
+
+    /* Нейтральный скроллбар - не brand-colored */
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #C9CCD3;
+    --scrollbar-thumb-hover: #B4B8C1;
     --scrollbar-border-radius: 8px;
   }
 
   .dark {
-    --background: hsl(240 10% 4%);
-    --foreground: hsl(0 0% 98%);
+    --background: #0E0B12;
+    --foreground: #F7F5FA;
 
-    --card: hsl(240 10% 6%);
-    --card-foreground: hsl(0 0% 98%);
+    --card: #151118;
+    --card-foreground: #F7F5FA;
 
-    --muted: hsl(240 5% 12%);
-    --muted-foreground: hsl(240 5% 65%);
+    --muted: #211B27;
+    --muted-foreground: #9A93A3;
 
-    --border: hsl(240 6% 18%);
-    --ring: hsl(267 85% 65%);
+    --border: #2B2532;
+    --ring: #9B6CFF;
 
-    --accent: hsl(267 85% 65%);
-    --accent-foreground: hsl(0 0% 100%);
+    /* Accent — мягкий violet surface */
+    --accent: #9B6CFF;
+    --accent-foreground: #BFA4FF;
 
-    /* Те же для dark */
-    --primary: hsl(267 85% 65%);
-    --primary-foreground: hsl(0 0% 100%);
+    --primary: #9B6CFF;
+    --primary-hover: #AA7DFF;
+    --primary-foreground: #FFFFFF;
 
-    --secondary: hsl(240 5% 12%);
-    --secondary-foreground: hsl(0 0% 98%);
+    --secondary: #211C25;
+    --secondary-foreground: #EAE6EF;
 
-    /* Success - более яркий зеленый для темной темы */
-    --success: hsl(142 70% 45%);
-    --success-foreground: hsl(144 61% 10%);
+    /* Status */
+    --success: #32A879;
+    --success-foreground: #071B12;
 
-    --destructive: hsl(0 84% 60%);
-    --destructive-foreground: hsl(0 0% 98%);
+    --warning: #D9A441;
+    --warning-foreground: #17120A;
 
-    /* Скроллбар для dark - темный плавный */
-    --scrollbar-track: hsla(240, 7%, 18%, 0);
-    --scrollbar-thumb: hsla(267, 85%, 65%, 0.25);
+    --destructive: #EE6A6A;
+    --destructive-foreground: #FFFFFF;
+
+    /* Нейтральный скроллбар - не brand-colored */
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: #363A44;
+    --scrollbar-thumb-hover: #454A56;
     --scrollbar-border-radius: 8px;
   }
 
@@ -99,18 +107,18 @@
   }
 
   *::-webkit-scrollbar-track {
-    @apply bg-[var(--scrollbar-track)];
+    @apply bg-(--scrollbar-track);
     border-radius: var(--scrollbar-border-radius);
   }
 
   *::-webkit-scrollbar-thumb {
-    @apply bg-[var(--scrollbar-thumb)] rounded-[var(--scrollbar-border-radius)];
+    @apply bg-(--scrollbar-thumb) rounded-(--scrollbar-border-radius);
     border: 1px solid var(--scrollbar-track);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    @apply bg-[var(--scrollbar-thumb-hover)];
+    @apply bg-(--scrollbar-thumb-hover);
   }
 
   *::-webkit-scrollbar-corner {
@@ -119,7 +127,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: Montserrat, system-ui, sans-serif;
+    font-family: Manrope, system-ui, sans-serif;
     /* Плавная прокрутка страницы */
     scroll-behavior: smooth;
   }
@@ -154,6 +162,7 @@
   --color-card-foreground: var(--card-foreground);
 
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
 
   --color-secondary: var(--secondary);
@@ -171,6 +180,9 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
 
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
   --color-border: var(--border);
   --color-ring: var(--ring);
 
@@ -182,25 +194,31 @@
 }
 
 :root {
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #181A1F;
+
+  --sidebar-primary: #5E60D8;
+  --sidebar-primary-foreground: #FFFFFF;
+
+  --sidebar-accent: #EEEEFF;
+  --sidebar-accent-foreground: #4F51C7;
+
+  --sidebar-border: #E3E5EA;
+  --sidebar-ring: #5E60D8;
 }
 
 .dark {
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --sidebar: #111317;
+  --sidebar-foreground: #F4F5F7;
+
+  --sidebar-primary: #7779E8;
+  --sidebar-primary-foreground: #FFFFFF;
+
+  --sidebar-accent: #24243A;
+  --sidebar-accent-foreground: #9B9CEF;
+
+  --sidebar-border: #25282F;
+  --sidebar-ring: #7779E8;
 }
 
 @theme inline {

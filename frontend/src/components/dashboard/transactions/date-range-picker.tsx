@@ -107,7 +107,7 @@ export function DateRangePicker({ value, onChange }: Props) {
       theme={{
         algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
-          colorPrimary: 'hsl(267 78% 57%)'
+          colorPrimary: isDark ? '#9B6CFF' : '#7C3AED'
         }
       }}
     >

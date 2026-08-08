@@ -16,7 +16,7 @@ export function AccentButton({
   return (
     <Button
       className={cn(
-        'rounded-full bg-accent text-accent-foreground font-medium cursor-pointer',
+        'rounded-full bg-accent text-foreground font-medium cursor-pointer',
         'hover:bg-accent/90 transition-all',
         // Semantic sizes that map cleanly to the design system
         size === 'lg' && 'h-12 px-10 text-xl',
