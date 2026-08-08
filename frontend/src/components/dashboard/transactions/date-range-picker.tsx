@@ -8,6 +8,8 @@ import theme from 'antd/es/theme'
 import ruRU from 'antd/locale/ru_RU'
 import dayjs, { Dayjs } from 'dayjs'
 import 'dayjs/locale/ru'
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 
 dayjs.locale('ru')
 
@@ -48,6 +50,13 @@ function getPresetFromRange(from: Dayjs, to: Dayjs): PresetKey | null {
 
 // Preset-based date picker with dayjs; detects which preset matches the current range for highlight
 export function DateRangePicker({ value, onChange }: Props) {
+  const { resolvedTheme } = useTheme()
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => setIsMounted(true), [])
+
+  const isDark = isMounted && resolvedTheme === 'dark'
+
   const fromD = dayjs(value.from)
   const toD = dayjs(value.to)
 
@@ -96,7 +105,7 @@ export function DateRangePicker({ value, onChange }: Props) {
     <ConfigProvider
       locale={ruRU}
       theme={{
-        algorithm: theme.darkAlgorithm,
+        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           colorPrimary: 'hsl(267 78% 57%)'
         }
