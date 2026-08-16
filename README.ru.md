@@ -37,8 +37,8 @@ MyMoney — полнофункциональное приложение для �
 | Технология | Назначение |
 |---|---|
 | [NestJS 11](https://nestjs.com/) | Node.js-фреймворк |
-| Prisma 6 | ORM и миграции |
-| MySQL 8.0 | База данных |
+| Prisma Next (v8) | ORM и миграции |
+| PostgreSQL 17 | База данных |
 | JWT + Passport | Аутентификация |
 | Argon2 | Хеширование паролей |
 
@@ -54,8 +54,8 @@ MyMoney — полнофункциональное приложение для �
 | Frontend (Next.js) | `3000` → `3001` (через nginx) |
 | Backend (NestJS) | `3000` (внутренний) |
 | nginx | `80` → `3001` |
-| MySQL 8.0 | `3306` |
-| phpMyAdmin | `80` → `8080` |
+| PostgreSQL 17 | `5432` |
+| Adminer | `80` → `8080` |
 
 
 ## Структура проекта
@@ -97,7 +97,7 @@ mymoney/
 │   └── Dockerfile(.dev/.prod)
 ├── nginx/
 │   └── nginx.conf               # Обратный прокси (frontend + API)
-├── docker-compose.yml           # Весь стек (MySQL, backend, frontend, nginx, phpMyAdmin)
+├── docker-compose.yml           # Весь стек (PostgreSQL, backend, frontend, nginx, Adminer)
 ├── docker-compose.dev.yml       # Dev-расширения (порты, volumes)
 ├── docker-compose.prod.yml      # Prod-расширения
 
@@ -112,7 +112,7 @@ mymoney/
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) или Docker Engine (Linux)
 - Git
-- Свободные порты: `3001`, `3306`, `8080`
+- Свободные порты: `3001`, `5432`, `8080`
 
 ### 1. Клонируйте и настройте
 
@@ -125,9 +125,10 @@ cp .example.env .env
 Отредактируйте `.env`:
 
 ```env
-MYSQL_ROOT_PASSWORD=ваш_пароль
-MYSQL_DATABASE=mymoneydb
-DATABASE_URL=mysql://root:ваш_пароль@db:3306/mymoneydb
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=ваш_пароль
+POSTGRES_DB=mymoneydb
+DATABASE_URL=postgresql://postgres:ваш_пароль@db:5432/mymoneydb
 JWT_SECRET=ваш-секретный-ключ
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
@@ -167,7 +168,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 | Сервис | URL |
 |---|---|
 | Фронтенд | http://localhost:3001 |
-| phpMyAdmin | http://localhost:8080 (пользователь: `root`) |
+| Adminer | http://localhost:8080 |
 
 
 ## API-справочник
@@ -231,9 +232,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 ```bash
 cd backend
 npm install
-npx prisma generate
-npx prisma migrate dev
-npm run prisma:seed
+npm run prisma:generate
+npm run prisma:migrate:dev
 npm run start:dev
 
 # Тесты (66+ unit-тестов)

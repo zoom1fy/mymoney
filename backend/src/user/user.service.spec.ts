@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { createPrismaDbMock } from '../prisma/fluent-mock';
 
 // Mock argon2 hashing behavior as specified
 jest.mock('argon2', () => ({
@@ -13,7 +14,10 @@ const mockArgon2Verify = jest.requireMock('argon2').verify as jest.Mock;
 
 describe('UserService', () => {
   let service: UserService;
-  let mockPrisma: any;
+  let mock: {
+    db: ReturnType<typeof createPrismaDbMock>['db'];
+    orm: ReturnType<typeof createPrismaDbMock>['orm'];
+  };
 
   const userId = 'user-uuid-1';
   const email = 'test@example.com';
@@ -33,34 +37,24 @@ describe('UserService', () => {
   });
 
   beforeEach(async () => {
-    mockPrisma = {
-      user: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      },
-    };
+    mock = createPrismaDbMock();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [UserService, { provide: PrismaService, useValue: mock }],
     }).compile();
 
     service = module.get<UserService>(UserService);
-    Object.values(mockPrisma.user as Record<string, jest.Mock>).forEach((mock) => {
-      mock.mockReset();
-    });
     mockArgon2Verify.mockResolvedValue(true);
   });
 
   describe('findById()', () => {
-    it('should return user without included relations', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+    it('should return user', async () => {
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
         lastLogin: now,
-      } as any);
+      });
 
       const result = await service.findById(userId);
 
@@ -68,34 +62,30 @@ describe('UserService', () => {
       expect(result.id).toBe(userId);
       expect(result.email).toBe(email);
 
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: userId },
-      });
+      expect(mock.orm.User.where).toHaveBeenCalledWith({ id: userId });
     });
 
     it('should throw NotFoundException if user not found', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce(null);
       await expect(service.findById(userId)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('getByEmail()', () => {
     it('should return user by email', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
         lastLogin: now,
-      } as any);
+      });
 
       const result = await service.getByEmail(email);
       expect(result).toBeTruthy();
       expect(result!.email).toBe(email);
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { email } });
+      expect(mock.orm.User.where).toHaveBeenCalledWith({ email });
     });
 
-    it('should return null/undefined if user not found (no exception)', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+    it('should return null if user not found (no exception)', async () => {
       const result = await service.getByEmail('absent@example.com');
       expect(result).toBeNull();
     });
@@ -105,16 +95,16 @@ describe('UserService', () => {
     it('should create user with hashed password and set lastLogin', async () => {
       const dto = { email, password };
 
-      mockPrisma.user.create.mockResolvedValueOnce({
+      mock.orm.User.create.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
         lastLogin: now,
-      } as any);
+      });
 
       const result = await service.create(dto);
 
-      expect(mockPrisma.user.create).toHaveBeenCalled();
+      expect(mock.orm.User.create).toHaveBeenCalled();
       expect(result.passwordHash).toBe(passwordHash);
       expect(result.email).toBe(email);
       expect(result.lastLogin).toBe(now);
@@ -124,41 +114,37 @@ describe('UserService', () => {
   describe('update()', () => {
     it('should update password (hash it first)', async () => {
       const newPass = 'newpass';
-      mockPrisma.user.update.mockResolvedValueOnce({
+      mock.orm.User.update.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
-      } as any);
+      });
 
       const result = await service.update(userId, { password: newPass });
 
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: { passwordHash: passwordHash },
+      expect(mock.orm.User.update).toHaveBeenCalledWith({
+        passwordHash: passwordHash,
       });
       expect(result).toBeTruthy();
     });
 
     it('should update email', async () => {
-      mockPrisma.user.update.mockResolvedValueOnce({
+      mock.orm.User.update.mockResolvedValueOnce({
         id: userId,
         email: updatedEmail,
         passwordHash,
-      } as any);
+      });
 
       const result = await service.update(userId, { email: updatedEmail });
 
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: { email: updatedEmail },
-      });
-      expect(result.email).toBe(updatedEmail);
+      expect(mock.orm.User.update).toHaveBeenCalledWith({ email: updatedEmail });
+      expect(result!.email).toBe(updatedEmail);
     });
   });
 
   describe('getProfile()', () => {
     it('should return user without passwordHash and with computed name', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
@@ -166,7 +152,7 @@ describe('UserService', () => {
         accounts: [],
         categories: [],
         transactions: [],
-      } as any);
+      });
 
       const profile = await service.getProfile(userId);
       expect(profile).not.toHaveProperty('passwordHash');
@@ -178,7 +164,7 @@ describe('UserService', () => {
   describe('updateProfile()', () => {
     it('should update email and return user without passwordHash with computed name', async () => {
       // findById fetches the current user from DB
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
@@ -186,33 +172,29 @@ describe('UserService', () => {
         accounts: [],
         categories: [],
         transactions: [],
-      } as any);
+      });
       // getByEmail confirms the new email is not taken
-      mockPrisma.user.findUnique.mockResolvedValueOnce(null);
-      mockPrisma.user.update.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce(null);
+      mock.orm.User.update.mockResolvedValueOnce({
         id: userId,
         email: updatedEmail,
         passwordHash,
         lastLogin: now,
-      } as any);
+      });
 
       const updated = await service.updateProfile(userId, {
         email: updatedEmail,
         currentPassword: password,
       });
       expect(mockArgon2Verify).toHaveBeenCalledWith(passwordHash, password);
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { email: updatedEmail } });
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: { email: updatedEmail },
-      });
+      expect(mock.orm.User.update).toHaveBeenCalledWith({ email: updatedEmail });
       expect(updated.email).toBe(updatedEmail);
       expect(updated).not.toHaveProperty('passwordHash');
       expect(updated.name).toBe('new'); // computed from updated email
     });
 
     it('should update password (hash it) and return user without passwordHash', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
@@ -220,28 +202,25 @@ describe('UserService', () => {
         accounts: [],
         categories: [],
         transactions: [],
-      } as any);
-      mockPrisma.user.update.mockResolvedValueOnce({
+      });
+      mock.orm.User.update.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
         lastLogin: now,
-      } as any);
+      });
 
       const updated = await service.updateProfile(userId, {
         password: 'newpass',
         currentPassword: password,
       });
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: { passwordHash: passwordHash },
-      });
+      expect(mock.orm.User.update).toHaveBeenCalledWith({ passwordHash: passwordHash });
       expect(updated).not.toHaveProperty('passwordHash');
     });
 
     it('should throw ConflictException if new email already in use', async () => {
       // findById fetches the current user
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
@@ -249,16 +228,16 @@ describe('UserService', () => {
         accounts: [],
         categories: [],
         transactions: [],
-      } as any);
+      });
       // getByEmail detects another user already owns the requested email
-      mockPrisma.user.findUnique.mockResolvedValueOnce({ id: 'other', email: updatedEmail } as any);
+      mock.orm.User.first.mockResolvedValueOnce({ id: 'other', email: updatedEmail });
       await expect(
         service.updateProfile(userId, { email: updatedEmail, currentPassword: password })
       ).rejects.toThrow(ConflictException);
     });
 
     it('should skip email uniqueness check if email unchanged', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
@@ -266,25 +245,22 @@ describe('UserService', () => {
         accounts: [],
         categories: [],
         transactions: [],
-      } as any);
-      mockPrisma.user.update.mockResolvedValueOnce({
+      });
+      mock.orm.User.update.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
         lastLogin: now,
-      } as any);
-      const updated = await service.updateProfile(userId, { email, currentPassword: password });
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: { email },
       });
+      const updated = await service.updateProfile(userId, { email, currentPassword: password });
+      expect(mock.orm.User.update).toHaveBeenCalledWith({ email });
       expect(updated.email).toBe(email);
       expect(updated).not.toHaveProperty('passwordHash');
     });
 
     it('should throw BadRequestException if current password is wrong', async () => {
       mockArgon2Verify.mockResolvedValueOnce(false);
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
@@ -292,7 +268,7 @@ describe('UserService', () => {
         accounts: [],
         categories: [],
         transactions: [],
-      } as any);
+      });
 
       await expect(
         service.updateProfile(userId, { email: updatedEmail, currentPassword: 'wrong' })
@@ -302,7 +278,7 @@ describe('UserService', () => {
 
   describe('deleteUser()', () => {
     it('should delete user', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce({
+      mock.orm.User.first.mockResolvedValueOnce({
         id: userId,
         email,
         passwordHash,
@@ -310,15 +286,15 @@ describe('UserService', () => {
         accounts: [],
         categories: [],
         transactions: [],
-      } as any);
-      mockPrisma.user.delete.mockResolvedValueOnce({ id: userId, email } as any);
+      });
+      mock.orm.User.delete.mockResolvedValueOnce({ id: userId, email });
       const result = await service.deleteUser(userId);
       expect(result).toEqual({ message: 'Пользователь успешно удалён' });
-      expect(mockPrisma.user.delete).toHaveBeenCalledWith({ where: { id: userId } });
+      expect(mock.orm.User.where).toHaveBeenCalledWith({ id: userId });
+      expect(mock.orm.User.delete).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if user not found', async () => {
-      mockPrisma.user.findUnique.mockResolvedValueOnce(null);
       await expect(service.deleteUser(userId)).rejects.toThrow(NotFoundException);
     });
   });

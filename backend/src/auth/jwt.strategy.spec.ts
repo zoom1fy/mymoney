@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { JwtStrategy } from './jwt.strategy';
 
 // Mock passport-jwt and @nestjs/passport to avoid importing the actual JWT verification library
 jest.mock('passport-jwt', () => ({
@@ -21,9 +22,7 @@ describe('JwtStrategy', () => {
   let strategy: any;
   let mockUserService: any;
 
-  beforeEach(async () => {
-    jest.resetModules();
-
+  beforeEach(() => {
     mockUserService = {
       findById: jest.fn(),
     };
@@ -34,8 +33,6 @@ describe('JwtStrategy', () => {
         return undefined;
       }),
     };
-
-    const { JwtStrategy } = await import('./jwt.strategy');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     strategy = new JwtStrategy(mockConfigService as unknown as ConfigService, mockUserService);

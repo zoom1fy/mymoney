@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionController } from './transaction.controller';
 import { TransactionService } from './transaction.service';
 import { TransactionType } from './enums/transaction-type.enum';
-import { User } from '@prisma/client';
+import type { User } from '../prisma/db';
 
 describe('TransactionController', () => {
   let controller: TransactionController;

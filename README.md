@@ -37,8 +37,8 @@ MyMoney is a full-stack personal finance application. Track income, expenses, an
 | Technology | Purpose |
 |---|---|
 | [NestJS 11](https://nestjs.com/) | Node.js framework |
-| Prisma 6 | ORM & migrations |
-| MySQL 8.0 | Database |
+| Prisma Next (v8) | ORM & migrations |
+| PostgreSQL 17 | Database |
 | JWT + Passport | Authentication |
 | Argon2 | Password hashing |
 
@@ -54,8 +54,8 @@ MyMoney is a full-stack personal finance application. Track income, expenses, an
 | Frontend (Next.js) | `3000` → `3001` (via nginx) |
 | Backend (NestJS) | `3000` (internal) |
 | nginx | `80` → `3001` |
-| MySQL 8.0 | `3306` |
-| phpMyAdmin | `80` → `8080` |
+| PostgreSQL 17 | `5432` |
+| Adminer | `80` → `8080` |
 
 
 ## Project Structure
@@ -97,7 +97,7 @@ mymoney/
 │   └── Dockerfile(.dev/.prod)
 ├── nginx/
 │   └── nginx.conf               # Reverse proxy (frontend + API)
-├── docker-compose.yml           # Full stack (MySQL, backend, frontend, nginx, phpMyAdmin)
+├── docker-compose.yml           # Full stack (PostgreSQL, backend, frontend, nginx, Adminer)
 ├── docker-compose.dev.yml       # Dev overrides (ports, volumes)
 ├── docker-compose.prod.yml      # Prod overrides
 
@@ -112,7 +112,7 @@ mymoney/
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine (Linux)
 - Git
-- Free ports: `3001`, `3306`, `8080`
+- Free ports: `3001`, `5432`, `8080`
 
 ### 1. Clone and configure
 
@@ -125,9 +125,10 @@ cp .example.env .env
 Edit `.env`:
 
 ```env
-MYSQL_ROOT_PASSWORD=your_pass
-MYSQL_DATABASE=mymoneydb
-DATABASE_URL=mysql://root:your_pass@db:3306/mymoneydb
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_pass
+POSTGRES_DB=mymoneydb
+DATABASE_URL=postgresql://postgres:your_pass@db:5432/mymoneydb
 JWT_SECRET=your-secret-key
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
@@ -167,7 +168,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 | Service | URL |
 |---|---|
 | Frontend | http://localhost:3001 |
-| phpMyAdmin | http://localhost:8080 (user: `root`) |
+| Adminer | http://localhost:8080 |
 
 
 ## API Reference
@@ -231,9 +232,8 @@ Response: `{ user: {id, email}, accessToken }` + `refresh_token` httpOnly cookie
 ```bash
 cd backend
 npm install
-npx prisma generate
-npx prisma migrate dev
-npm run prisma:seed
+npm run prisma:generate
+npm run prisma:migrate:dev
 npm run start:dev
 
 # Tests (66+ unit tests)

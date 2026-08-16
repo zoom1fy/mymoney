@@ -2,7 +2,7 @@ import { Controller, Get, Body, Patch, Delete, ValidationPipe, UsePipes } from '
 import { UserService } from './user.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CurrentUser } from '../auth/decorators/user.decorator';
-import { User } from '@prisma/client';
+import type { User } from '../prisma/db';
 import { Auth } from '../auth/decorators/auth.decorator';
 
 @Auth()

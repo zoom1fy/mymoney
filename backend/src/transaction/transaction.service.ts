@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import type { DbTransactionContext } from '../prisma/db';
+import { money } from '../prisma/money';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { ExchangeRateService } from '../currency/exchange-rate.service';
-import { TransactionType } from '../transaction/enums/transaction-type.enum';
+import { TransactionType } from './enums/transaction-type.enum';
 import { GetTransactionsDto } from './dto/get-transactions.dto';
 import { GetTransactionSummaryDto } from './dto/get-transaction-summary.dto';
 
@@ -14,19 +16,32 @@ export class TransactionService {
     private exchangeRateService: ExchangeRateService
   ) {}
 
-  // Runs balance updates + transaction creation inside a single Prisma transaction
+  // Applies a signed delta to an account balance inside the active transaction.
+  private async adjustBalance(tx: DbTransactionContext, accountId: number, delta: number) {
+    const account = await tx.orm.public.Account.where({ id: accountId }).first();
+    if (!account) {
+      throw new NotFoundException('Аккаунт не найден');
+    }
+    await tx.orm.public.Account.where({ id: accountId }).update({
+      currentBalance: money(Number(account.currentBalance) + delta),
+    });
+  }
+
+  // Runs balance updates + transaction creation inside a single transaction
   // to prevent partial updates if any step fails (e.g., debit without credit).
   async create(userId: string, dto: CreateTransactionDto) {
     const { accountId, categoryId, targetAccountId, amount, currencyCode, description, type } = dto;
 
-    const account = await this.prisma.account.findFirst({
-      where: { id: accountId, userId },
-    });
+    const account = await this.prisma.db.orm.public.Account.where({
+      id: accountId,
+      userId,
+    }).first();
     if (!account) throw new NotFoundException('Аккаунт не найден');
 
-    const category = await this.prisma.category.findFirst({
-      where: { id: categoryId, userId },
-    });
+    const category =
+      categoryId !== undefined
+        ? await this.prisma.db.orm.public.Category.where({ id: categoryId, userId }).first()
+        : null;
     if (type !== TransactionType.TRANSFER) {
       if (categoryId === undefined) {
         throw new BadRequestException('categoryId обязателен для данного типа транзакции');
@@ -42,118 +57,63 @@ export class TransactionService {
       throw new BadRequestException('Сумма должна быть положительным числом');
     }
 
-    const updates: any[] = [];
+    return this.prisma.db.transaction(async (tx) => {
+      switch (type) {
+        case TransactionType.INCOME:
+          await this.adjustBalance(tx, accountId, value);
+          break;
 
-    switch (type) {
-      case TransactionType.INCOME:
-        updates.push(
-          this.prisma.account.update({
-            where: { id: accountId },
-            data: { currentBalance: { increment: value } },
-          })
-        );
-        break;
+        case TransactionType.EXPENSE:
+          await this.adjustBalance(tx, accountId, -value);
+          break;
 
-      case TransactionType.EXPENSE:
-        updates.push(
-          this.prisma.account.update({
-            where: { id: accountId },
-            data: { currentBalance: { decrement: value } },
-          })
-        );
-        break;
+        case TransactionType.TRANSFER: {
+          if (!targetAccountId) {
+            throw new BadRequestException('Для перевода нужен целевой аккаунт');
+          }
 
-      case TransactionType.TRANSFER: {
-        if (!targetAccountId) {
-          throw new BadRequestException('Для перевода нужен целевой аккаунт');
+          const targetAccount = await tx.orm.public.Account.where({
+            id: targetAccountId,
+            userId,
+          }).first();
+          if (!targetAccount) {
+            throw new NotFoundException('Целевой аккаунт не найден');
+          }
+
+          await this.adjustBalance(tx, accountId, -value);
+          await this.adjustBalance(tx, targetAccountId, value);
+          break;
         }
 
-        const targetAccount = await this.prisma.account.findFirst({
-          where: { id: targetAccountId, userId },
-        });
-        if (!targetAccount) {
-          throw new NotFoundException('Целевой аккаунт не найден');
-        }
-
-        updates.push(
-          this.prisma.account.update({
-            where: { id: accountId },
-            data: { currentBalance: { decrement: value } },
-          })
-        );
-        updates.push(
-          this.prisma.account.update({
-            where: { id: targetAccountId },
-            data: { currentBalance: { increment: value } },
-          })
-        );
-        break;
+        default:
+          throw new BadRequestException(`Неизвестный тип транзакции: ${String(type)}`);
       }
 
-      default:
-        throw new BadRequestException(`Неизвестный тип транзакции: ${String(type)}`);
-    }
-
-    updates.push(
-      this.prisma.transaction.create({
-        data: {
-          userId,
-          accountId,
-          targetAccountId: targetAccountId ?? null,
-          categoryId,
-          amount: value,
-          currencyCode,
-          description: description ?? null,
-          transactionDate: dto.transactionDate ? new Date(dto.transactionDate) : new Date(),
-          type,
-        },
-      })
-    );
-
-    return this.prisma.$transaction(updates);
-  }
-
-  private buildDateFilter(from?: string, to?: string): { gte?: Date; lte?: Date } | undefined {
-    if (!from && !to) return undefined;
-
-    const dateFilter: { gte?: Date; lte?: Date } = {};
-    if (from) dateFilter.gte = new Date(from);
-    if (to) dateFilter.lte = new Date(to);
-
-    return dateFilter;
-  }
-
-  private buildWhereClause(userId: string, query: GetTransactionsDto) {
-    const { accountId, type, from, to } = query;
-    const where: {
-      userId: string;
-      accountId?: number;
-      type?: TransactionType;
-      transactionDate?: { gte?: Date; lte?: Date };
-    } = { userId };
-
-    if (accountId) where.accountId = accountId;
-    if (type) where.type = type;
-
-    const dateFilter = this.buildDateFilter(from, to);
-    if (dateFilter) where.transactionDate = dateFilter;
-
-    return where;
+      return tx.orm.public.Transaction.create({
+        userId,
+        accountId,
+        targetAccountId: targetAccountId ?? null,
+        categoryId: categoryId ?? null,
+        amount: money(value),
+        currencyCode,
+        description: description ?? null,
+        transactionDate: dto.transactionDate ? new Date(dto.transactionDate) : new Date(),
+        type,
+      });
+    });
   }
 
   // Fetches take+1 items so we can detect the next page without an extra count query.
   // If results exceed take, the extra item becomes nextCursor; it is removed from data.
-  private async applyPagination<T>(
-    queryBuilder: Promise<T[]>,
-    take: number,
-    _cursor?: number // eslint-disable-line @typescript-eslint/no-unused-vars
-  ): Promise<{ data: T[]; nextCursor: number | null }> {
-    const results = await queryBuilder;
+  private applyPagination<T extends { id: number }>(
+    results: T[],
+    take: number
+  ): { data: T[]; nextCursor: number | null } {
     let nextCursor: number | null = null;
 
     if (results.length > take) {
       const nextItem = results.pop();
-      nextCursor = (nextItem as { id: number }).id;
+      nextCursor = nextItem?.id ?? null;
     }
 
     return { data: results, nextCursor };
@@ -162,52 +122,33 @@ export class TransactionService {
   async findAll(userId: string, query: GetTransactionsDto) {
     const take = Number(query.take ?? 20);
     const cursor = query.cursor ? Number(query.cursor) : undefined;
+    const { accountId, type, from, to } = query;
 
-    const where = this.buildWhereClause(userId, query);
+    let chain = this.prisma.db.orm.public.Transaction.where({ userId });
+    if (accountId) chain = chain.where({ accountId });
+    if (type) chain = chain.where({ type });
+    if (from) chain = chain.where((t) => t.transactionDate.gte(new Date(from)));
+    if (to) chain = chain.where((t) => t.transactionDate.lte(new Date(to)));
 
-    const transactionsQuery = this.prisma.transaction.findMany({
-      take: take + 1,
-      cursor: cursor ? { id: cursor } : undefined,
-      skip: cursor ? 1 : 0,
-      where,
-      orderBy: [{ transactionDate: 'desc' }, { id: 'desc' }],
-      select: {
-        id: true,
-        amount: true,
-        type: true,
-        description: true,
-        transactionDate: true,
-        currencyCode: true,
-        accountId: true,
-        categoryId: true,
-      },
-    });
+    const results = await chain
+      .orderBy([(t) => t.transactionDate.desc(), (t) => t.id.desc()])
+      .skip(cursor ? 1 : 0)
+      .take(take + 1)
+      .all();
 
-    return this.applyPagination(transactionsQuery, take, cursor);
+    return this.applyPagination(results, take);
   }
 
   async getSummary(userId: string, query: GetTransactionSummaryDto) {
     const { type, from, to } = query;
 
-    const transactions = await this.prisma.transaction.findMany({
-      where: {
-        userId,
-        type,
-        ...(from || to
-          ? {
-              transactionDate: {
-                ...(from ? { gte: new Date(from) } : {}),
-                ...(to ? { lte: new Date(to) } : {}),
-              },
-            }
-          : {}),
-      },
-      include: {
-        category: {
-          select: { id: true, name: true, color: true },
-        },
-      },
-    });
+    let chain = this.prisma.db.orm.public.Transaction.include('category', (c) =>
+      c.select('id', 'name', 'color')
+    ).where({ userId, type });
+    if (from) chain = chain.where((t) => t.transactionDate.gte(new Date(from)));
+    if (to) chain = chain.where((t) => t.transactionDate.lte(new Date(to)));
+
+    const transactions = await chain.all();
 
     if (transactions.length === 0) return [];
 
@@ -245,12 +186,9 @@ export class TransactionService {
   }
 
   async findOne(userId: string, id: number) {
-    const transaction = await this.prisma.transaction.findFirst({
-      where: {
-        id,
-        account: { userId },
-      },
-    });
+    const transaction = await this.prisma.db.orm.public.Transaction.where({ id })
+      .where((t) => t.account.some((a) => a.userId.eq(userId)))
+      .first();
 
     if (!transaction) throw new NotFoundException('Транзакция не найдена');
 
@@ -258,67 +196,39 @@ export class TransactionService {
   }
 
   async remove(userId: string, id: number) {
-    const transaction = await this.prisma.transaction.findFirst({
-      where: {
-        id,
-        account: { userId },
-      },
-      include: {
-        account: true,
-      },
-    });
+    const transaction = await this.prisma.db.orm.public.Transaction.where({ id })
+      .where((t) => t.account.some((a) => a.userId.eq(userId)))
+      .first();
 
     if (!transaction) throw new NotFoundException('Транзакция не найдена');
 
     const amount = Number(transaction.amount);
-    const updates: any[] = [];
 
-    if (transaction.type === 'INCOME') {
-      // Revert income: deduct money
-      updates.push(
-        this.prisma.account.update({
-          where: { id: transaction.accountId },
-          data: { currentBalance: { decrement: amount } },
-        })
-      );
-    } else if (transaction.type === 'EXPENSE') {
-      // Revert expense: refund money
-      updates.push(
-        this.prisma.account.update({
-          where: { id: transaction.accountId },
-          data: { currentBalance: { increment: amount } },
-        })
-      );
-    } else if (transaction.type === 'TRANSFER') {
-      // Revert transfer: refund source, deduct from target
-      updates.push(
-        this.prisma.account.update({
-          where: { id: transaction.accountId },
-          data: { currentBalance: { increment: amount } },
-        })
-      );
-      if (transaction.targetAccountId) {
-        updates.push(
-          this.prisma.account.update({
-            where: { id: transaction.targetAccountId },
-            data: { currentBalance: { decrement: amount } },
-          })
-        );
+    await this.prisma.db.transaction(async (tx) => {
+      if ((transaction.type as TransactionType) === TransactionType.INCOME) {
+        // Revert income: deduct money
+        await this.adjustBalance(tx, transaction.accountId, -amount);
+      } else if ((transaction.type as TransactionType) === TransactionType.EXPENSE) {
+        // Revert expense: refund money
+        await this.adjustBalance(tx, transaction.accountId, amount);
+      } else if ((transaction.type as TransactionType) === TransactionType.TRANSFER) {
+        // Revert transfer: refund source, deduct from target
+        await this.adjustBalance(tx, transaction.accountId, amount);
+        if (transaction.targetAccountId) {
+          await this.adjustBalance(tx, transaction.targetAccountId, -amount);
+        }
       }
-    }
 
-    updates.push(this.prisma.transaction.delete({ where: { id } }));
-
-    return this.prisma.$transaction(updates);
+      await tx.orm.public.Transaction.where({ id }).delete();
+    });
   }
 
   // Reverts the old transaction effect on balances, then applies the new one.
   // This supports changing amount, type, or account within a single operation.
   async update(userId: string, id: number, dto: UpdateTransactionDto) {
-    const transaction = await this.prisma.transaction.findFirst({
-      where: { id, account: { userId } },
-      include: { account: true },
-    });
+    const transaction = await this.prisma.db.orm.public.Transaction.where({ id })
+      .where((t) => t.account.some((a) => a.userId.eq(userId)))
+      .first();
 
     if (!transaction) throw new NotFoundException('Транзакция не найдена');
 
@@ -331,10 +241,9 @@ export class TransactionService {
     if (newTargetAccountId !== null) accountsToCheck.push(newTargetAccountId);
 
     if (accountsToCheck.length > 0) {
-      const accounts = await this.prisma.account.findMany({
-        where: { id: { in: accountsToCheck }, userId },
-        select: { id: true, isDeleted: true },
-      });
+      const accounts = await this.prisma.db.orm.public.Account.where({ userId })
+        .where((a) => a.id.in(accountsToCheck))
+        .all();
 
       const deletedAccount = accounts.find((acc) => acc.isDeleted);
       if (deletedAccount) {
@@ -342,97 +251,49 @@ export class TransactionService {
       }
     }
 
-    const updates: any[] = [];
-
     const oldAmount = Number(transaction.amount);
     const newAmount = dto.amount !== undefined ? Number(dto.amount) : oldAmount;
-    const oldType = transaction.type;
-    const newType = dto.type ?? oldType;
-
-    // Reverse the original transaction's effect on balances to restore account state.
-    if (oldType === 'INCOME') {
-      updates.push(
-        this.prisma.account.update({
-          where: { id: transaction.accountId },
-          data: { currentBalance: { decrement: oldAmount } },
-        })
-      );
-    } else if (oldType === 'EXPENSE') {
-      updates.push(
-        this.prisma.account.update({
-          where: { id: transaction.accountId },
-          data: { currentBalance: { increment: oldAmount } },
-        })
-      );
-    } else if (oldType === 'TRANSFER') {
-      updates.push(
-        this.prisma.account.update({
-          where: { id: transaction.accountId },
-          data: { currentBalance: { increment: oldAmount } },
-        })
-      );
-      if (transaction.targetAccountId) {
-        updates.push(
-          this.prisma.account.update({
-            where: { id: transaction.targetAccountId },
-            data: { currentBalance: { decrement: oldAmount } },
-          })
-        );
-      }
-    }
-
-    // Apply the updated transaction values (amount, type, account) to balances.
+    const newType = dto.type ?? transaction.type;
+    const applyAccountId = dto.accountId ?? transaction.accountId;
     const targetAccountId = dto.targetAccountId ?? transaction.targetAccountId;
 
-    if (newType === TransactionType.INCOME) {
-      updates.push(
-        this.prisma.account.update({
-          where: { id: dto.accountId ?? transaction.accountId },
-          data: { currentBalance: { increment: newAmount } },
-        })
-      );
-    } else if (newType === TransactionType.EXPENSE) {
-      updates.push(
-        this.prisma.account.update({
-          where: { id: dto.accountId ?? transaction.accountId },
-          data: { currentBalance: { decrement: newAmount } },
-        })
-      );
-    } else if (newType === TransactionType.TRANSFER) {
-      updates.push(
-        this.prisma.account.update({
-          where: { id: dto.accountId ?? transaction.accountId },
-          data: { currentBalance: { decrement: newAmount } },
-        })
-      );
-      if (targetAccountId) {
-        updates.push(
-          this.prisma.account.update({
-            where: { id: targetAccountId },
-            data: { currentBalance: { increment: newAmount } },
-          })
-        );
+    await this.prisma.db.transaction(async (tx) => {
+      // Reverse the original transaction's effect on balances to restore account state.
+      if ((transaction.type as TransactionType) === TransactionType.INCOME) {
+        await this.adjustBalance(tx, transaction.accountId, -oldAmount);
+      } else if ((transaction.type as TransactionType) === TransactionType.EXPENSE) {
+        await this.adjustBalance(tx, transaction.accountId, oldAmount);
+      } else if ((transaction.type as TransactionType) === TransactionType.TRANSFER) {
+        await this.adjustBalance(tx, transaction.accountId, oldAmount);
+        if (transaction.targetAccountId) {
+          await this.adjustBalance(tx, transaction.targetAccountId, -oldAmount);
+        }
       }
-    }
 
-    updates.push(
-      this.prisma.transaction.update({
-        where: { id },
-        data: {
-          accountId: dto.accountId ?? transaction.accountId,
-          targetAccountId,
-          categoryId: dto.categoryId ?? transaction.categoryId,
-          amount: newAmount,
-          currencyCode: dto.currencyCode ?? transaction.currencyCode,
-          description: dto.description ?? transaction.description,
-          type: newType,
-          transactionDate: dto.transactionDate
-            ? new Date(dto.transactionDate)
-            : transaction.transactionDate,
-        },
-      })
-    );
+      // Apply the updated transaction values (amount, type, account) to balances.
+      if (newType === TransactionType.INCOME) {
+        await this.adjustBalance(tx, applyAccountId, newAmount);
+      } else if (newType === TransactionType.EXPENSE) {
+        await this.adjustBalance(tx, applyAccountId, -newAmount);
+      } else if (newType === TransactionType.TRANSFER) {
+        await this.adjustBalance(tx, applyAccountId, -newAmount);
+        if (targetAccountId) {
+          await this.adjustBalance(tx, targetAccountId, newAmount);
+        }
+      }
 
-    return this.prisma.$transaction(updates);
+      await tx.orm.public.Transaction.where({ id }).update({
+        accountId: applyAccountId,
+        targetAccountId,
+        categoryId: dto.categoryId ?? transaction.categoryId,
+        amount: money(newAmount),
+        currencyCode: dto.currencyCode ?? transaction.currencyCode,
+        description: dto.description !== undefined ? dto.description : transaction.description,
+        type: newType,
+        transactionDate: dto.transactionDate
+          ? new Date(dto.transactionDate)
+          : transaction.transactionDate,
+      });
+    });
   }
 }

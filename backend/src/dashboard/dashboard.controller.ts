@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { CurrentUser } from '../auth/decorators/user.decorator';
-import { User } from '@prisma/client';
+import type { User } from '../prisma/db';
 import { UserService } from '../user/user.service';
 import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';

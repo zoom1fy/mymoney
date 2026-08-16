@@ -60,19 +60,6 @@ jobs:
     name: Backend Tests
     needs: check-lockfile
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: test_password
-          MYSQL_DATABASE: test_db
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd "mysqladmin ping -h localhost"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     defaults:
       run:
         working-directory: backend
@@ -85,15 +72,9 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
         run: npm ci
-      - name: Generate Prisma Client
-        run: npx prisma generate
-      - name: Run migrations
-        env:
-          DATABASE_URL: mysql://root:test_password@localhost:3306/test_db
-        run: npx prisma migrate deploy
+      - name: Generate Prisma client (contract emit)
+        run: npm run prisma:generate
       - name: Run tests
-        env:
-          DATABASE_URL: mysql://root:test_password@localhost:3306/test_db
         run: npm test -- --coverage
       - uses: actions/upload-artifact@v4
         if: always()
@@ -117,7 +98,7 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
         run: npm ci
-      - run: npx prisma generate
+      - run: npm run prisma:generate
       - run: npm run build
 
   frontend-lint:
@@ -178,9 +159,10 @@ jobs:
       - name: Create test env file
         run: |
           cat > .env << EOF
-          MYSQL_ROOT_PASSWORD=test_password
-          MYSQL_DATABASE=test_db
-          DATABASE_URL=mysql://root:test_password@db:3306/test_db
+          POSTGRES_USER=test
+          POSTGRES_PASSWORD=test_password
+          POSTGRES_DB=test_db
+          DATABASE_URL=postgresql://test:test_password@db:5432/test_db
           JWT_SECRET=test_secret_key_for_ci
           JWT_ACCESS_EXPIRES_IN=15m
           JWT_REFRESH_EXPIRES_IN=7d

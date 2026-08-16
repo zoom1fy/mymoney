@@ -8,13 +8,11 @@ export class CategoryService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateCategoryDto) {
-    const hasExisting = await this.prisma.category.findFirst({
-      where: {
-        userId,
-        name: dto.name,
-        isArchived: false,
-      },
-    });
+    const hasExisting = await this.prisma.db.orm.public.Category.where({
+      userId,
+      name: dto.name,
+      isArchived: false,
+    }).first();
 
     if (hasExisting) {
       throw new BadRequestException('Категория с таким именем уже существует');
@@ -22,9 +20,10 @@ export class CategoryService {
 
     // Prevent assigning an archived parent
     if (dto.parentId) {
-      const parent = await this.prisma.category.findFirst({
-        where: { id: dto.parentId, userId },
-      });
+      const parent = await this.prisma.db.orm.public.Category.where({
+        id: dto.parentId,
+        userId,
+      }).first();
 
       if (!parent) throw new BadRequestException('Родительская категория не найдена');
 
@@ -32,37 +31,29 @@ export class CategoryService {
         throw new BadRequestException('Нельзя создавать подкатегорию внутри архивной категории');
     }
 
-    return this.prisma.category.create({
-      data: {
-        userId,
-        name: dto.name,
-        icon: dto.icon ?? 'default',
-        currencyCode: dto.currencyCode,
-        isExpense: dto.isExpense,
-        parentId: dto.parentId ?? null,
-        color: dto.color ?? '',
-      },
+    return this.prisma.db.orm.public.Category.create({
+      userId,
+      name: dto.name,
+      icon: dto.icon ?? 'default',
+      currencyCode: dto.currencyCode,
+      isExpense: dto.isExpense,
+      parentId: dto.parentId ?? null,
+      color: dto.color ?? '',
     });
   }
 
   // Return only active (non-archived) categories so the UI doesn't show deleted ones
   async findAll(userId: string) {
-    return this.prisma.category.findMany({
-      where: {
-        userId,
-        isArchived: false,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
+    return this.prisma.db.orm.public.Category.where({
+      userId,
+      isArchived: false,
+    })
+      .orderBy((c) => c.createdAt.asc())
+      .all();
   }
 
   async findOne(userId: string, id: number) {
-    const category = await this.prisma.category.findFirst({
-      where: {
-        id: { equals: id },
-        userId,
-      },
-    });
+    const category = await this.prisma.db.orm.public.Category.where({ id, userId }).first();
 
     if (!category) throw new NotFoundException('Категория не найдена');
     return category;
@@ -76,14 +67,13 @@ export class CategoryService {
     }
 
     if (dto.name && dto.name !== category.name) {
-      const hasExisting = await this.prisma.category.findFirst({
-        where: {
-          userId,
-          name: dto.name,
-          isArchived: false,
-          NOT: { id },
-        },
-      });
+      const hasExisting = await this.prisma.db.orm.public.Category.where({
+        userId,
+        name: dto.name,
+        isArchived: false,
+      })
+        .where((c) => c.id.neq(id))
+        .first();
 
       if (hasExisting) {
         throw new BadRequestException('Другая активная категория с таким именем уже существует');
@@ -92,9 +82,10 @@ export class CategoryService {
 
     // Validate the new parent only if it actually changed — skip redundant DB checks
     if (dto.parentId && dto.parentId !== category.parentId) {
-      const parent = await this.prisma.category.findFirst({
-        where: { id: dto.parentId, userId },
-      });
+      const parent = await this.prisma.db.orm.public.Category.where({
+        id: dto.parentId,
+        userId,
+      }).first();
 
       if (!parent) throw new BadRequestException('Родительская категория не найдена');
 
@@ -102,10 +93,23 @@ export class CategoryService {
         throw new BadRequestException('Нельзя перенести категорию под архивную');
     }
 
-    return this.prisma.category.update({
-      where: { id },
-      data: { ...dto },
-    });
+    const data: {
+      name?: string;
+      icon?: string;
+      currencyCode?: string;
+      color?: string;
+      isExpense?: boolean;
+      parentId?: number;
+    } = {};
+
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.icon !== undefined) data.icon = dto.icon;
+    if (dto.currencyCode !== undefined) data.currencyCode = dto.currencyCode;
+    if (dto.color !== undefined) data.color = dto.color;
+    if (dto.isExpense !== undefined) data.isExpense = dto.isExpense;
+    if (dto.parentId !== undefined) data.parentId = dto.parentId;
+
+    return this.prisma.db.orm.public.Category.where({ id }).update(data);
   }
 
   async remove(userId: string, id: number) {
@@ -116,27 +120,19 @@ export class CategoryService {
     }
 
     // Archive the category and all children
-    await this.prisma.category.update({
-      where: { id },
-      data: { isArchived: true },
-    });
-
-    await this.prisma.category.updateMany({
-      where: { parentId: id },
-      data: { isArchived: true },
-    });
+    await this.prisma.db.orm.public.Category.where({ id }).update({ isArchived: true });
+    await this.prisma.db.orm.public.Category.where({ parentId: id }).update({ isArchived: true });
 
     return { success: true };
   }
 
   async getArchived(userId: string) {
-    return this.prisma.category.findMany({
-      where: {
-        userId,
-        isArchived: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
+    return this.prisma.db.orm.public.Category.where({
+      userId,
+      isArchived: true,
+    })
+      .orderBy((c) => c.createdAt.asc())
+      .all();
   }
 
   async unarchive(userId: string, id: number) {
@@ -148,9 +144,10 @@ export class CategoryService {
 
     // Prevent unarchiving under an archived parent — child can't exist without a valid parent
     if (category.parentId) {
-      const parent = await this.prisma.category.findFirst({
-        where: { id: category.parentId, userId },
-      });
+      const parent = await this.prisma.db.orm.public.Category.where({
+        id: category.parentId,
+        userId,
+      }).first();
 
       if (!parent) {
         throw new BadRequestException('Родительская категория не найдена');
@@ -164,19 +161,9 @@ export class CategoryService {
     }
 
     // Unarchive the category first, then all its children
-    await this.prisma.category.update({
-      where: { id },
-      data: { isArchived: false },
-    });
-
-    // Always keep children in sync — archived parent with active children breaks the hierarchy
-    await this.prisma.category.updateMany({
-      where: {
-        parentId: id,
-      },
-      data: {
-        isArchived: false,
-      },
+    await this.prisma.db.orm.public.Category.where({ id }).update({ isArchived: false });
+    await this.prisma.db.orm.public.Category.where({ parentId: id }).update({
+      isArchived: false,
     });
 
     return this.findOne(userId, id);

@@ -9,24 +9,13 @@ while ! nc -z "$REDIS_HOST" "$REDIS_PORT" 2>/dev/null; do
 done
 echo "Redis is ready"
 
-echo "Running Prisma generate..."
-npx prisma generate
-
-MIGRATION_NAME=$(ls prisma/migrations/ | grep -v migration_lock | sort | tail -1)
-
-echo "Trying prisma migrate deploy..."
-if npx prisma migrate deploy; then
-  echo "Migrations applied successfully ($MIGRATION_NAME)"
+echo "Syncing database schema to contract..."
+if npm run prisma:migrate; then
+  echo "Migrations applied successfully"
 else
-  echo "Migration history not found, using db push..."
-  npx prisma db push --accept-data-loss
-  echo "Resolving migration as applied..."
-  npx prisma migrate resolve --applied "$MIGRATION_NAME"
-  echo "Migration resolved: $MIGRATION_NAME"
+  echo "No migration path yet, syncing schema directly..."
+  npx prisma-next db update
 fi
-
-echo "Running seed..."
-npm run prisma:seed
 
 echo "Starting application..."
 exec "$@"

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryController } from './category.controller';
 import { CategoryService } from './category.service';
-import { User } from '@prisma/client';
+import type { User } from '../prisma/db';
 
 describe('CategoryController', () => {
   let controller: CategoryController;

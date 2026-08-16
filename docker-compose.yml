@@ -1,22 +1,22 @@
 services:
   db:
-    image: mysql:8.0
+    image: postgres:17-alpine
     platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 30s
+      start_period: 10s
     networks:
       - app-network
 
@@ -79,16 +79,14 @@ services:
     networks:
       - app-network
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
+  adminer:
+    image: adminer:latest
     platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
     restart: always
     environment:
-      PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      PMA_ARBITRARY: 1
+      ADMINER_DEFAULT_SERVER: db
     ports:
-      - "8080:80"
+      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy

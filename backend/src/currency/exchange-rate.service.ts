@@ -22,11 +22,7 @@ export class ExchangeRateService implements OnApplicationBootstrap {
     for (const from of currencies) {
       try {
         const rate = await this.currencyService.getExchangeRate(from, 'RUB');
-        await this.prisma.exchangeRate.upsert({
-          where: { from_to: { from, to: 'RUB' } },
-          update: { rate },
-          create: { from, to: 'RUB', rate },
-        });
+        await this.upsertRate(from, rate);
       } catch {
         // skip if rate unavailable
       }
@@ -37,9 +33,10 @@ export class ExchangeRateService implements OnApplicationBootstrap {
   async convertToRub(amount: number, from: string): Promise<number> {
     if (from === 'RUB') return amount;
     let rate: number | null = null;
-    const row = await this.prisma.exchangeRate.findUnique({
-      where: { from_to: { from, to: 'RUB' } },
-    });
+    const row = await this.prisma.db.orm.public.ExchangeRate.where({
+      from,
+      to: 'RUB',
+    }).first();
     if (row) {
       rate = Number(row.rate);
     } else {
@@ -51,9 +48,9 @@ export class ExchangeRateService implements OnApplicationBootstrap {
 
   /** Bulk-fetch rates — try DB first, live-fetch any missing currencies. */
   async getRatesToRub(currencies: string[]): Promise<Map<string, number>> {
-    const cached = await this.prisma.exchangeRate.findMany({
-      where: { to: 'RUB', from: { in: currencies } },
-    });
+    const cached = await this.prisma.db.orm.public.ExchangeRate.where({ to: 'RUB' })
+      .where((r) => r.from.in(currencies))
+      .all();
     const map = new Map<string, number>(cached.map((r) => [r.from, Number(r.rate)]));
     map.set('RUB', 1);
 
@@ -66,15 +63,19 @@ export class ExchangeRateService implements OnApplicationBootstrap {
     return map;
   }
 
+  private async upsertRate(from: string, rate: number) {
+    await this.prisma.db.orm.public.ExchangeRate.upsert({
+      conflictOn: { from, to: 'RUB' },
+      update: { rate: String(rate) },
+      create: { from, to: 'RUB', rate: String(rate) },
+    });
+  }
+
   /** Try to fetch a live rate and persist it, return null on failure. */
   private async fetchAndStoreRate(from: string): Promise<number | null> {
     try {
       const rate = await this.currencyService.getExchangeRate(from, 'RUB');
-      await this.prisma.exchangeRate.upsert({
-        where: { from_to: { from, to: 'RUB' } },
-        update: { rate },
-        create: { from, to: 'RUB', rate },
-      });
+      await this.upsertRate(from, rate);
       return rate;
     } catch {
       return null;

@@ -4,11 +4,12 @@ import { of } from 'rxjs';
 import { BadRequestException } from '@nestjs/common';
 import { CurrencyService } from './currency.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { createPrismaDbMock } from '../prisma/fluent-mock';
 
 describe('CurrencyService', () => {
   let service: CurrencyService;
   let mockHttpService: Partial<HttpService>;
-  let mockPrisma: any;
+  let dbMock: ReturnType<typeof createPrismaDbMock>;
 
   const mockApiResponse = {
     Valute: {
@@ -22,17 +23,13 @@ describe('CurrencyService', () => {
       get: jest.fn(),
     };
 
-    mockPrisma = {
-      currency: {
-        findMany: jest.fn(),
-      },
-    };
+    dbMock = createPrismaDbMock();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CurrencyService,
         { provide: HttpService, useValue: mockHttpService },
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: PrismaService, useValue: { db: dbMock.db } },
       ],
     }).compile();
 

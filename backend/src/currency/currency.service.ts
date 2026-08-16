@@ -96,7 +96,7 @@ export class CurrencyService {
 
   /** Return all currencies from the database. */
   async findAll() {
-    return this.prisma.currency.findMany({ orderBy: { code: 'asc' } });
+    return this.prisma.db.orm.public.Currency.orderBy((c) => c.code.asc()).all();
   }
 
   async getExchangeRate(from: string, to: string): Promise<number> {

@@ -14,9 +14,7 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async findById(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
+    const user = await this.prisma.db.orm.public.User.where({ id }).first();
 
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
@@ -26,25 +24,23 @@ export class UserService {
   }
 
   getByEmail(email: string) {
-    return this.prisma.user.findUnique({
-      where: { email },
-    });
+    return this.prisma.db.orm.public.User.where({ email }).first();
   }
 
   async create(dto: LoginDto) {
-    const user = {
+    return this.prisma.db.orm.public.User.create({
       email: dto.email,
       passwordHash: await hash(dto.password),
       lastLogin: new Date(),
-    };
-
-    return this.prisma.user.create({ data: user });
+    });
   }
 
   // Used by OAuth / social sign-in where the password is already hashed by the provider
   async createFromHash(email: string, passwordHash: string) {
-    return this.prisma.user.create({
-      data: { email, passwordHash, lastLogin: new Date() },
+    return this.prisma.db.orm.public.User.create({
+      email,
+      passwordHash,
+      lastLogin: new Date(),
     });
   }
 
@@ -58,10 +54,7 @@ export class UserService {
       updateData.email = dto.email;
     }
 
-    return this.prisma.user.update({
-      where: { id },
-      data: updateData,
-    });
+    return this.prisma.db.orm.public.User.where({ id }).update(updateData);
   }
 
   private getNameFromEmail(email: string): string {
@@ -106,26 +99,21 @@ export class UserService {
       updateData.passwordHash = await hash(dto.password);
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: updateData,
-    });
+    const updatedUser = await this.prisma.db.orm.public.User.where({ id }).update(updateData);
 
-    const { passwordHash, ...safeProfile } = updatedUser;
+    const { passwordHash, ...safeProfile } = updatedUser!;
     void passwordHash;
 
     return {
       ...safeProfile,
-      name: this.getNameFromEmail(updatedUser.email),
+      name: this.getNameFromEmail(updatedUser!.email),
     };
   }
 
   async deleteUser(id: string) {
     await this.findById(id);
 
-    await this.prisma.user.delete({
-      where: { id },
-    });
+    await this.prisma.db.orm.public.User.where({ id }).delete();
 
     return { message: 'Пользователь успешно удалён' };
   }

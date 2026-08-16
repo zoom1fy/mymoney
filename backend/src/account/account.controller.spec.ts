@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountController } from './account.controller';
 import { AccountService } from './account.service';
-import { User } from '@prisma/client';
+import type { User } from '../prisma/db';
 
 describe('AccountController', () => {
   let controller: AccountController;

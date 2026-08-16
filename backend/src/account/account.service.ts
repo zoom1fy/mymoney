@@ -2,42 +2,37 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import Decimal from 'decimal.js';
+import { money } from '../prisma/money';
 
 @Injectable()
 export class AccountService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateAccountDto) {
-    const hasExisting = await this.prisma.account.findFirst({
-      where: {
-        userId,
-        name: dto.name,
-        isDeleted: false,
-      },
-    });
+    const hasExisting = await this.prisma.db.orm.public.Account.where({
+      userId,
+      name: dto.name,
+      isDeleted: false,
+    }).first();
 
     if (hasExisting) {
       throw new BadRequestException('Счёт с таким именем уже существует');
     }
 
-    const balance =
-      dto.currentBalance !== undefined && !isNaN(dto.currentBalance)
-        ? new Decimal(dto.currentBalance)
-        : new Decimal(0);
+    const currentBalance =
+      dto.currentBalance !== undefined && !Number.isNaN(dto.currentBalance)
+        ? money(dto.currentBalance)
+        : '0';
 
-    const account = await this.prisma.account.create({
-      data: {
-        userId,
-        name: dto.name,
-        icon: dto.icon ?? 'default',
-        categoryId: dto.categoryId,
-        typeId: dto.typeId,
-        currencyCode: dto.currencyCode,
-        currentBalance: balance,
-        isDeleted: false,
-      },
-      include: { currency: true },
+    const account = await this.prisma.db.orm.public.Account.include('currency').create({
+      userId,
+      name: dto.name,
+      icon: dto.icon ?? 'default',
+      categoryId: dto.categoryId,
+      typeId: dto.typeId,
+      currencyCode: dto.currencyCode,
+      currentBalance,
+      isDeleted: false,
     });
 
     const { currency, ...rest } = account;
@@ -49,11 +44,13 @@ export class AccountService {
   }
 
   async findAll(userId: string) {
-    const accounts = await this.prisma.account.findMany({
-      where: { userId, isDeleted: false },
-      include: { currency: true },
-      orderBy: { createdAt: 'asc' },
-    });
+    const accounts = await this.prisma.db.orm.public.Account.where({
+      userId,
+      isDeleted: false,
+    })
+      .include('currency')
+      .orderBy((a) => a.createdAt.asc())
+      .all();
 
     return accounts.map(({ currency, ...account }) => ({
       ...account,
@@ -63,10 +60,9 @@ export class AccountService {
   }
 
   async findOne(userId: string, id: number) {
-    const account = await this.prisma.account.findFirst({
-      where: { id, userId },
-      include: { currency: true },
-    });
+    const account = await this.prisma.db.orm.public.Account.where({ id, userId })
+      .include('currency')
+      .first();
 
     if (!account) throw new NotFoundException('Счёт не найден');
 
@@ -79,49 +75,46 @@ export class AccountService {
   }
 
   async update(userId: string, id: number, dto: UpdateAccountDto) {
-    // Verify the account exists before allowing any update.
     const account = await this.findOne(userId, id);
 
-    if (dto.name && dto.name !== account.name) {
-      const hasConflict = await this.prisma.account.findFirst({
-        where: {
-          userId,
-          name: dto.name,
-          isDeleted: false,
-          NOT: { id },
-        },
-      });
+    if (dto.name && dto.name !== String((account as { name?: unknown }).name)) {
+      const hasConflict = await this.prisma.db.orm.public.Account.where({
+        userId,
+        name: dto.name,
+        isDeleted: false,
+      })
+        .where((a) => a.id.neq(id))
+        .first();
 
       if (hasConflict) {
         throw new BadRequestException('Другой счёт с таким именем уже существует');
       }
     }
 
-    const updated = await this.prisma.account.update({
-      where: { id },
-      data: {
-        ...dto,
-        currentBalance:
-          dto.currentBalance !== undefined ? new Decimal(dto.currentBalance) : undefined,
-      },
-      include: { currency: true },
-    });
+    const data: {
+      name?: string;
+      icon?: string;
+      categoryId?: number;
+      typeId?: number;
+      currencyCode?: string;
+      currentBalance?: string;
+    } = {};
 
-    const { currency, ...rest } = updated;
-    return {
-      ...rest,
-      currencySymbol: currency.symbol,
-      currentBalance: Number(rest.currentBalance),
-    };
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.icon !== undefined) data.icon = dto.icon;
+    if (dto.categoryId !== undefined) data.categoryId = dto.categoryId;
+    if (dto.typeId !== undefined) data.typeId = dto.typeId;
+    if (dto.currencyCode !== undefined) data.currencyCode = dto.currencyCode;
+    if (dto.currentBalance !== undefined) data.currentBalance = money(dto.currentBalance);
+
+    await this.prisma.db.orm.public.Account.where({ id }).update(data);
+
+    return this.findOne(userId, id);
   }
 
   async remove(userId: string, id: number) {
-    // Confirm the account exists before soft-deleting it.
     await this.findOne(userId, id);
 
-    return this.prisma.account.update({
-      where: { id },
-      data: { isDeleted: true },
-    });
+    return this.prisma.db.orm.public.Account.where({ id }).update({ isDeleted: true });
   }
 }

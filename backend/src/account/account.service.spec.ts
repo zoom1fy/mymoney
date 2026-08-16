@@ -1,34 +1,37 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import Decimal from 'decimal.js';
 
 import { AccountService } from './account.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { createPrismaDbMock } from '../prisma/fluent-mock';
 
 describe('AccountService', () => {
   let service: AccountService;
-  let mockPrisma: any;
+  let dbMock: ReturnType<typeof createPrismaDbMock>;
 
   const userId = 'user-uuid-1';
 
+  const accountRow = (overrides: Record<string, unknown> = {}) => ({
+    id: 1,
+    userId,
+    name: 'Savings',
+    currentBalance: '120.5',
+    icon: 'wallet',
+    isDeleted: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    currency: { symbol: '₽' },
+    ...overrides,
+  });
+
   beforeEach(async () => {
-    mockPrisma = {
-      account: {
-        findFirst: jest.fn(),
-        findMany: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-      },
-    };
+    dbMock = createPrismaDbMock();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AccountService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [AccountService, { provide: PrismaService, useValue: { db: dbMock.db } }],
     }).compile();
 
     service = module.get<AccountService>(AccountService);
-    Object.values(mockPrisma.account as Record<string, jest.Mock>).forEach((mock) => {
-      mock.mockReset();
-    });
   });
 
   it('should be defined', () => {
@@ -37,18 +40,7 @@ describe('AccountService', () => {
 
   describe('create()', () => {
     it('should create account with all fields', async () => {
-      mockPrisma.account.findFirst.mockResolvedValue(null);
-      mockPrisma.account.create.mockResolvedValue({
-        id: 1,
-        userId,
-        name: 'Savings',
-        currentBalance: new Decimal(120.5),
-        icon: 'wallet',
-        isDeleted: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        currency: { symbol: '₽' },
-      });
+      dbMock.orm.Account.create.mockResolvedValueOnce(accountRow());
 
       const dto = {
         name: 'Savings',
@@ -62,25 +54,21 @@ describe('AccountService', () => {
       const result = await service.create(userId, dto);
 
       expect(result).toBeDefined();
-      expect(mockPrisma.account.findFirst).toHaveBeenCalledWith({
-        where: { userId, name: 'Savings', isDeleted: false },
-      });
-      const createArg = mockPrisma.account.create.mock.calls[0][0];
-      expect(createArg.data.userId).toBe(userId);
-      expect(createArg.data.name).toBe('Savings');
-      expect(createArg.data.icon).toBe('wallet');
-      expect(createArg.data.currentBalance).toBeInstanceOf(Decimal);
-      expect(Number(createArg.data.currentBalance)).toBeCloseTo(120.5);
-    });
-
-    it('should throw BadRequestException if account with same name already exists (not deleted)', async () => {
-      mockPrisma.account.findFirst.mockResolvedValue({
-        id: 10,
+      expect(dbMock.orm.Account.where).toHaveBeenCalledWith({
         userId,
         name: 'Savings',
         isDeleted: false,
-        currentBalance: new Decimal(0),
       });
+      const createArg = dbMock.orm.Account.create.mock.calls[0][0] as Record<string, unknown>;
+      expect(createArg.name).toBe('Savings');
+      expect(createArg.icon).toBe('wallet');
+      expect(createArg.currentBalance).toBe('120.5');
+      expect(result.currencySymbol).toBe('₽');
+      expect(result.currentBalance).toBe(120.5);
+    });
+
+    it('should throw BadRequestException if account with same name already exists (not deleted)', async () => {
+      dbMock.orm.Account.first.mockResolvedValue(accountRow());
 
       await expect(
         service.create(userId, {
@@ -93,18 +81,7 @@ describe('AccountService', () => {
     });
 
     it('should default icon to "default" when not provided', async () => {
-      mockPrisma.account.findFirst.mockResolvedValue(null);
-      mockPrisma.account.create.mockResolvedValue({
-        id: 3,
-        userId,
-        name: 'New',
-        currentBalance: new Decimal(0),
-        icon: 'default',
-        isDeleted: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        currency: { symbol: '₽' },
-      });
+      dbMock.orm.Account.create.mockResolvedValueOnce(accountRow({ icon: 'default' }));
 
       await service.create(userId, {
         name: 'New',
@@ -112,23 +89,12 @@ describe('AccountService', () => {
         typeId: 'bank' as any,
         currencyCode: 'RUB' as any,
       });
-      const createArg = mockPrisma.account.create.mock.calls[0][0];
-      expect(createArg.data.icon).toBe('default');
+      const createArg = dbMock.orm.Account.create.mock.calls[0][0];
+      expect(createArg.icon).toBe('default');
     });
 
-    it('should default currentBalance to Decimal(0) if undefined', async () => {
-      mockPrisma.account.findFirst.mockResolvedValue(null);
-      mockPrisma.account.create.mockResolvedValue({
-        id: 4,
-        userId,
-        name: 'Empty',
-        currentBalance: new Decimal(0),
-        icon: 'default',
-        isDeleted: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        currency: { symbol: '₽' },
-      });
+    it('should default currentBalance to "0" if undefined', async () => {
+      dbMock.orm.Account.create.mockResolvedValueOnce(accountRow());
 
       await service.create(userId, {
         name: 'Empty',
@@ -136,24 +102,12 @@ describe('AccountService', () => {
         typeId: 'bank' as any,
         currencyCode: 'RUB' as any,
       });
-      const createArg = mockPrisma.account.create.mock.calls[0][0];
-      expect(createArg.data.currentBalance).toBeInstanceOf(Decimal);
-      expect(Number(createArg.data.currentBalance)).toBeCloseTo(0);
+      const createArg = dbMock.orm.Account.create.mock.calls[0][0];
+      expect(createArg.currentBalance).toBe('0');
     });
 
-    it('should default NaN currentBalance to 0', async () => {
-      mockPrisma.account.findFirst.mockResolvedValue(null);
-      mockPrisma.account.create.mockResolvedValue({
-        id: 5,
-        userId,
-        name: 'NaN',
-        currentBalance: new Decimal(0),
-        icon: 'default',
-        isDeleted: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        currency: { symbol: '₽' },
-      });
+    it('should default NaN currentBalance to "0"', async () => {
+      dbMock.orm.Account.create.mockResolvedValueOnce(accountRow());
 
       await service.create(userId, {
         name: 'NaN',
@@ -162,107 +116,59 @@ describe('AccountService', () => {
         typeId: 'bank' as any,
         currencyCode: 'RUB' as any,
       });
-      const createArg = mockPrisma.account.create.mock.calls[0][0];
-      expect(createArg.data.currentBalance).toBeInstanceOf(Decimal);
-      expect(Number(createArg.data.currentBalance)).toBeCloseTo(0);
+      const createArg = dbMock.orm.Account.create.mock.calls[0][0];
+      expect(createArg.currentBalance).toBe('0');
     });
   });
 
   describe('findAll()', () => {
-    it('should return non-deleted accounts and convert balance to Number, ordered asc by createdAt', async () => {
-      const firstAccount = {
-        id: 1,
-        userId,
-        name: 'A',
-        isDeleted: false,
-        currentBalance: new Decimal(10),
-        icon: 'default',
-        createdAt: new Date('2020-01-01'),
-        updatedAt: new Date(),
-        currency: { symbol: '₽' },
-      };
-      mockPrisma.account.findMany.mockResolvedValue([firstAccount]);
+    it('should return non-deleted accounts and convert balance to Number', async () => {
+      dbMock.orm.Account.all.mockResolvedValueOnce([
+        accountRow({ name: 'A', currentBalance: '10' }),
+      ] as never);
 
       const result = await service.findAll(userId);
       expect(result.length).toBe(1);
       expect(result[0].isDeleted).toBeFalsy();
       expect(typeof result[0].currentBalance).toBe('number');
       expect(result[0].currentBalance).toBe(10);
-      expect(mockPrisma.account.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId, isDeleted: false },
-          orderBy: { createdAt: 'asc' },
-        })
-      );
+      expect(dbMock.orm.Account.where).toHaveBeenCalledWith({ userId, isDeleted: false });
     });
   });
 
   describe('findOne()', () => {
     it('should return account with Number balance', async () => {
-      const account = {
-        id: 1,
-        userId,
-        name: 'A',
-        isDeleted: false,
-        currentBalance: new Decimal(25),
-        icon: 'default',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        currency: { symbol: '₽' },
-      };
-      mockPrisma.account.findFirst.mockResolvedValue(account);
+      dbMock.orm.Account.first.mockResolvedValueOnce(accountRow({ currentBalance: '25' }));
+
       const result = await service.findOne(userId, 1);
       expect(result.currentBalance).toBe(25);
       expect(result.currencySymbol).toBe('₽');
     });
 
     it('should throw NotFoundException if account not found', async () => {
-      mockPrisma.account.findFirst.mockResolvedValue(null);
       await expect(service.findOne(userId, 999)).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
   describe('update()', () => {
     it('should update account fields', async () => {
-      const existing = {
-        id: 1,
-        userId,
-        name: 'A',
-        isDeleted: false,
-        currentBalance: new Decimal(50),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        currency: { symbol: '₽' },
-      };
-      mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
-      mockPrisma.account.findFirst.mockResolvedValueOnce(null);
-      mockPrisma.account.update.mockResolvedValue({
-        ...existing,
-        name: 'A+',
-        currentBalance: new Decimal(60),
-      });
+      const updated = accountRow({ name: 'A+', currentBalance: '60', currency: { symbol: '₽' } });
+      dbMock.orm.Account.first
+        .mockResolvedValueOnce(accountRow({ name: 'A' }))
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(updated);
 
       const result = await service.update(userId, 1, { name: 'A+', currentBalance: 60 });
       expect(result.name).toBe('A+');
-      expect(mockPrisma.account.update).toHaveBeenCalled();
+      expect(dbMock.orm.Account.update).toHaveBeenCalledWith(
+        expect.objectContaining({ currentBalance: '60' })
+      );
     });
 
     it('should throw BadRequestException if new name conflicts with another account', async () => {
-      const existing = {
-        id: 1,
-        userId,
-        name: 'A',
-        isDeleted: false,
-        currentBalance: new Decimal(50),
-        currency: { symbol: '₽' },
-      };
-      mockPrisma.account.findFirst.mockResolvedValueOnce(existing).mockResolvedValueOnce({
-        id: 2,
-        userId,
-        name: 'B',
-        isDeleted: false,
-        currentBalance: new Decimal(20),
-      });
+      dbMock.orm.Account.first
+        .mockResolvedValueOnce(accountRow({ name: 'A' }))
+        .mockResolvedValueOnce(accountRow({ id: 2, name: 'B' }));
 
       await expect(service.update(userId, 1, { name: 'B' })).rejects.toBeInstanceOf(
         BadRequestException
@@ -270,61 +176,35 @@ describe('AccountService', () => {
     });
 
     it('should skip name check if name unchanged', async () => {
-      const existing = {
-        id: 1,
-        userId,
-        name: 'A',
-        isDeleted: false,
-        currentBalance: new Decimal(50),
-        currency: { symbol: '₽' },
-      };
-      mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
-      mockPrisma.account.update.mockResolvedValue({ ...existing });
+      dbMock.orm.Account.first
+        .mockResolvedValueOnce(accountRow({ name: 'A' }))
+        .mockResolvedValueOnce(accountRow({ name: 'A' }));
 
       const result = await service.update(userId, 1, { name: 'A' });
       expect(result.name).toBe('A');
     });
 
     it('should convert Decimal for currentBalance if provided', async () => {
-      const existing = {
-        id: 1,
-        userId,
-        name: 'A',
-        isDeleted: false,
-        currentBalance: new Decimal(50),
-        currency: { symbol: '₽' },
-      };
-      mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
-      mockPrisma.account.update.mockResolvedValue({ ...existing, currentBalance: new Decimal(75) });
+      dbMock.orm.Account.first
+        .mockResolvedValueOnce(accountRow({ name: 'A' }))
+        .mockResolvedValueOnce(accountRow({ name: 'A', currentBalance: '75' }));
 
       const result = await service.update(userId, 1, { currentBalance: 75 });
-      // update() returns raw Prisma result; Decimal is converted by client
       expect(Number(result.currentBalance)).toBe(75);
     });
   });
 
   describe('remove()', () => {
     it('should soft-delete (isDeleted: true)', async () => {
-      const existing = {
-        id: 1,
-        userId,
-        name: 'A',
-        isDeleted: false,
-        currentBalance: new Decimal(50),
-        currency: { symbol: '₽' },
-      };
-      mockPrisma.account.findFirst.mockResolvedValueOnce(existing);
-      mockPrisma.account.update.mockResolvedValue({ ...existing, isDeleted: true });
+      dbMock.orm.Account.first.mockResolvedValueOnce(accountRow());
+      dbMock.orm.Account.update.mockResolvedValueOnce(accountRow({ isDeleted: true }));
 
       const result = await service.remove(userId, 1);
-      expect(mockPrisma.account.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ isDeleted: true }) })
-      );
+      expect(dbMock.orm.Account.update).toHaveBeenCalledWith({ isDeleted: true });
       expect(result).toBeDefined();
     });
 
     it('should throw NotFoundException if account not found', async () => {
-      mockPrisma.account.findFirst.mockResolvedValue(null);
       await expect(service.remove(userId, 999)).rejects.toBeInstanceOf(NotFoundException);
     });
   });

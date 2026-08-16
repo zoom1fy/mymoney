@@ -1,0 +1,147 @@
+// use prisma-next
+
+// ==============================================================
+//  MyMoney data contract — Prisma Next (v8) — PostgreSQL.
+//  Single source of truth for the backend schema;
+//  manage via `npm run prisma:migrate` (prisma-next).
+// ==============================================================
+
+enum CurrencyType {
+  @@type("pg/text@1")
+  FIAT   = "FIAT"
+  CRYPTO = "CRYPTO"
+}
+
+enum TransactionType {
+  @@type("pg/text@1")
+  INCOME   = "INCOME"
+  EXPENSE  = "EXPENSE"
+  TRANSFER = "TRANSFER"
+}
+
+model User {
+  id           Uuid               @id @default(uuid())
+  email        String             @unique
+  passwordHash String
+  createdAt    DateTime           @default(now())
+  lastLogin    DateTime?
+
+  accounts           Account[]
+  categories         Category[]
+  transactions       Transaction[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PendingUser {
+  id           Uuid      @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  code         String
+  sentAt       DateTime
+  createdAt    DateTime  @default(now())
+}
+
+model PasswordResetToken {
+  id        Uuid      @id @default(uuid())
+  userId    Uuid
+  code      String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Currency {
+  code   String       @id
+  name   String
+  symbol String
+  type   CurrencyType
+
+  accounts     Account[]
+  categories   Category[]
+  transactions Transaction[]
+}
+
+model ExchangeRate {
+  from      String
+  to        String
+  rate      Decimal
+  updatedAt temporal.updatedAt()
+
+  @@id([from, to])
+}
+
+model AccountCategory {
+  id       Int       @id
+  name     String    @unique
+  accounts Account[]
+}
+
+model AccountType {
+  id       Int       @id
+  name     String    @unique
+  accounts Account[]
+}
+
+model Account {
+  id             Int      @id @default(autoincrement())
+  userId         Uuid
+  categoryId     Int
+  typeId         Int
+  currencyCode   String
+  name           String
+  icon           String   @default("default")
+  currentBalance Decimal  @default(0)
+  isDeleted      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      temporal.updatedAt()
+
+  user         User               @relation(fields: [userId], references: [id])
+  category     AccountCategory @relation(fields: [categoryId], references: [id])
+  type         AccountType     @relation(fields: [typeId], references: [id])
+  currency     Currency        @relation(fields: [currencyCode], references: [code])
+
+  transactions Transaction[]
+}
+
+model Category {
+  id           Int       @id @default(autoincrement())
+  userId       Uuid
+  name         String
+  icon         String    @default("default")
+  currencyCode String
+  color        String?
+  isExpense    Boolean
+  parentId     Int?
+  isArchived   Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+
+  user          User          @relation(fields: [userId], references: [id])
+  parent        Category?     @relation("CategoryParent", fields: [parentId], references: [id])
+  subcategories Category[]    @relation("CategoryParent")
+  currency      Currency      @relation(fields: [currencyCode], references: [code])
+
+  transactions Transaction[]
+
+  @@unique([userId, name])
+}
+
+model Transaction {
+  id              Int             @id @default(autoincrement())
+  userId          Uuid
+  accountId       Int
+  targetAccountId Int?
+  categoryId      Int?
+  amount          Decimal
+  currencyCode    String
+  transactionDate DateTime
+  description     String?
+  type            TransactionType
+  createdAt       DateTime        @default(now())
+
+  user     User      @relation(fields: [userId], references: [id])
+  account  Account   @relation(fields: [accountId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+  currency Currency  @relation(fields: [currencyCode], references: [code])
+}

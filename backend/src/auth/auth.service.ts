@@ -34,9 +34,8 @@ export class AuthService {
 
     const tokens = this.issueToken(user.id);
 
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLogin: new Date() },
+    await this.prisma.db.orm.public.User.where({ id: user.id }).update({
+      lastLogin: new Date(),
     });
 
     return { user: { id: user.id, email: user.email }, ...tokens };
@@ -50,16 +49,18 @@ export class AuthService {
     const existingUser = await this.userService.getByEmail(dto.email);
     if (existingUser) throw new ConflictException('Пользователь с таким email уже существует');
 
-    const pendingUser = await this.prisma.pendingUser.findUnique({ where: { email: dto.email } });
+    const pendingUser = await this.prisma.db.orm.public.PendingUser.where({
+      email: dto.email,
+    }).first();
     if (pendingUser) {
       // Enforce 1-minute cooldown to prevent abuse of the send-code endpoint
       if (Date.now() - pendingUser.sentAt.getTime() < 60 * 1000) {
         throw new BadRequestException('Код уже отправлен. Повторите через минуту.');
       }
       const code = this.generateCode();
-      await this.prisma.pendingUser.update({
-        where: { id: pendingUser.id },
-        data: { code, sentAt: new Date() },
+      await this.prisma.db.orm.public.PendingUser.where({ id: pendingUser.id }).update({
+        code,
+        sentAt: new Date(),
       });
       await this.tasksService.sendVerificationEmail(dto.email, code);
       return { email: dto.email };
@@ -68,8 +69,11 @@ export class AuthService {
     const passwordHash = await hash(dto.password);
     const code = this.generateCode();
 
-    await this.prisma.pendingUser.create({
-      data: { email: dto.email, passwordHash, code, sentAt: new Date() },
+    await this.prisma.db.orm.public.PendingUser.create({
+      email: dto.email,
+      passwordHash,
+      code,
+      sentAt: new Date(),
     });
 
     await this.tasksService.sendVerificationEmail(dto.email, code);
@@ -79,11 +83,11 @@ export class AuthService {
 
   // Completes registration: validates the code (15-min TTL), creates user, seeds starter data
   async verifyEmail(email: string, code: string) {
-    const pending = await this.prisma.pendingUser.findUnique({ where: { email } });
+    const pending = await this.prisma.db.orm.public.PendingUser.where({ email }).first();
     if (!pending) throw new BadRequestException('Код не запрашивался или истёк');
 
     if (Date.now() - pending.sentAt.getTime() > 15 * 60 * 1000) {
-      await this.prisma.pendingUser.delete({ where: { id: pending.id } });
+      await this.prisma.db.orm.public.PendingUser.where({ id: pending.id }).delete();
       throw new BadRequestException('Код истёк. Зарегистрируйтесь заново.');
     }
 
@@ -93,7 +97,7 @@ export class AuthService {
 
     await this.tasksService.seedNewUser(user.id);
 
-    await this.prisma.pendingUser.delete({ where: { id: pending.id } });
+    await this.prisma.db.orm.public.PendingUser.where({ id: pending.id }).delete();
 
     const tokens = this.issueToken(user.id);
 
@@ -101,7 +105,7 @@ export class AuthService {
   }
 
   async resendCode(email: string) {
-    const pending = await this.prisma.pendingUser.findUnique({ where: { email } });
+    const pending = await this.prisma.db.orm.public.PendingUser.where({ email }).first();
     if (!pending) throw new NotFoundException('Регистрация не найдена. Зарегистрируйтесь заново.');
 
     // Same 1-minute cooldown as in register to prevent abuse
@@ -110,9 +114,9 @@ export class AuthService {
     }
 
     const code = this.generateCode();
-    await this.prisma.pendingUser.update({
-      where: { id: pending.id },
-      data: { code, sentAt: new Date() },
+    await this.prisma.db.orm.public.PendingUser.where({ id: pending.id }).update({
+      code,
+      sentAt: new Date(),
     });
 
     await this.tasksService.sendVerificationEmail(email, code);
@@ -124,16 +128,20 @@ export class AuthService {
     const user = await this.userService.getByEmail(email);
     if (!user) throw new NotFoundException('Пользователь с таким email не найден');
 
-    const recent = await this.prisma.passwordResetToken.findFirst({
-      where: { userId: user.id, createdAt: { gte: new Date(Date.now() - 60 * 1000) } },
-    });
+    const recent = await this.prisma.db.orm.public.PasswordResetToken.where({
+      userId: user.id,
+    })
+      .where((t) => t.createdAt.gte(new Date(Date.now() - 60 * 1000)))
+      .first();
     if (recent) throw new BadRequestException('Код уже отправлен. Повторите через минуту.');
 
     const code = this.generateCode();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    await this.prisma.passwordResetToken.create({
-      data: { userId: user.id, code, expiresAt },
+    await this.prisma.db.orm.public.PasswordResetToken.create({
+      userId: user.id,
+      code,
+      expiresAt,
     });
 
     await this.tasksService.sendPasswordResetEmail(user.email, code);
@@ -146,21 +154,24 @@ export class AuthService {
     const user = await this.userService.getByEmail(email);
     if (!user) throw new NotFoundException('Пользователь не найден');
 
-    const resetToken = await this.prisma.passwordResetToken.findFirst({
-      where: { userId: user.id, code, usedAt: null, expiresAt: { gte: new Date() } },
-      orderBy: { createdAt: 'desc' },
-    });
+    const resetToken = await this.prisma.db.orm.public.PasswordResetToken.where({
+      userId: user.id,
+      code,
+    })
+      .where((t) => t.usedAt.isNull())
+      .where((t) => t.expiresAt.gte(new Date()))
+      .orderBy((t) => t.createdAt.desc())
+      .first();
 
     if (!resetToken) throw new BadRequestException('Неверный или истёкший код');
 
     const passwordHash = await hash(newPassword);
-    await this.prisma.$transaction([
-      this.prisma.user.update({ where: { id: user.id }, data: { passwordHash } }),
-      this.prisma.passwordResetToken.update({
-        where: { id: resetToken.id },
-        data: { usedAt: new Date() },
-      }),
-    ]);
+    await this.prisma.db.transaction(async (tx) => {
+      await tx.orm.public.User.where({ id: user.id }).update({ passwordHash });
+      await tx.orm.public.PasswordResetToken.where({ id: resetToken.id }).update({
+        usedAt: new Date(),
+      });
+    });
 
     return { message: 'Пароль успешно изменён' };
   }

@@ -4,46 +4,24 @@ import { CategoryService } from './category.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-
-type Category = {
-  id: number;
-  name: string;
-  icon?: string;
-  color?: string;
-  isArchived?: boolean;
-  userId: string;
-  parentId?: number | null;
-  createdAt?: Date;
-  updatedAt?: Date;
-};
+import { createPrismaDbMock } from '../prisma/fluent-mock';
 
 describe('CategoryService', () => {
   const userId = 'user-uuid-1';
   const categoryId = 1;
   const parentId = 2;
 
-  // Mock Prisma client to control DB responses without a real database
-  const mockPrisma = {
-    category: {
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-    },
-  };
-
   let service: CategoryService;
+  let dbMock: ReturnType<typeof createPrismaDbMock>;
 
   beforeEach(async () => {
+    dbMock = createPrismaDbMock();
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CategoryService, { provide: PrismaService, useValue: mockPrisma }],
+      providers: [CategoryService, { provide: PrismaService, useValue: { db: dbMock.db } }],
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
-    Object.values(mockPrisma.category).forEach((mock) => {
-      mock.mockReset();
-    });
   });
 
   describe('create()', () => {
@@ -56,7 +34,7 @@ describe('CategoryService', () => {
         currencyCode: 'RUB' as const,
         parentId: null,
       } as unknown as CreateCategoryDto;
-      const created: Category = {
+      const created = {
         id: 5,
         name: dto.name,
         icon: dto.icon,
@@ -67,13 +45,12 @@ describe('CategoryService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      mockPrisma.category.findFirst.mockResolvedValue(null);
-      mockPrisma.category.create.mockResolvedValue(created);
+      dbMock.orm.Category.create.mockResolvedValueOnce(created);
 
       const result = await service.create(userId, dto);
 
-      expect(mockPrisma.category.findFirst).toHaveBeenCalled();
-      expect(mockPrisma.category.create).toHaveBeenCalled();
+      expect(dbMock.orm.Category.where).toHaveBeenCalled();
+      expect(dbMock.orm.Category.create).toHaveBeenCalled();
       expect(result).toEqual(created);
     });
 
@@ -85,24 +62,11 @@ describe('CategoryService', () => {
         currencyCode: 'RUB' as const,
         parentId: null,
       } as unknown as CreateCategoryDto;
-      const created: Category = {
-        id: 6,
-        name: dto.name,
-        icon: 'default',
-        color: dto.color,
-        isArchived: false,
-        userId,
-        parentId: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      mockPrisma.category.findFirst.mockResolvedValue(null);
-      mockPrisma.category.create.mockResolvedValue(created);
+      dbMock.orm.Category.create.mockResolvedValueOnce({ id: 6, ...dto });
 
-      const result = await service.create(userId, dto);
-      const data = mockPrisma.category.create.mock.calls[0][0].data;
+      await service.create(userId, dto);
+      const data = dbMock.orm.Category.create.mock.calls[0][0];
       expect(data.icon).toBe('default');
-      expect(result).toEqual(created);
     });
 
     it('should default color to "" if not provided', async () => {
@@ -111,24 +75,11 @@ describe('CategoryService', () => {
         isExpense: false,
         currencyCode: 'RUB' as const,
       } as unknown as CreateCategoryDto;
-      const created: Category = {
-        id: 7,
-        name: dto.name,
-        icon: 'default',
-        color: '',
-        isArchived: false,
-        userId,
-        parentId: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      mockPrisma.category.findFirst.mockResolvedValue(null);
-      mockPrisma.category.create.mockResolvedValue(created);
+      dbMock.orm.Category.create.mockResolvedValueOnce({ id: 7, ...dto });
 
-      const result = await service.create(userId, dto);
-      const data = mockPrisma.category.create.mock.calls[0][0].data;
+      await service.create(userId, dto);
+      const data = dbMock.orm.Category.create.mock.calls[0][0];
       expect(data.color).toBe('');
-      expect(result).toEqual(created);
     });
 
     it('should throw BadRequestException if category with same name exists (isArchived: false)', async () => {
@@ -137,7 +88,7 @@ describe('CategoryService', () => {
         isExpense: true,
         currencyCode: 'RUB' as const,
       } as unknown as CreateCategoryDto;
-      mockPrisma.category.findFirst.mockResolvedValue({ id: 99, isArchived: false });
+      dbMock.orm.Category.first.mockResolvedValueOnce({ id: 99, isArchived: false });
       await expect(service.create(userId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
@@ -148,8 +99,6 @@ describe('CategoryService', () => {
         isExpense: true,
         currencyCode: 'RUB' as const,
       } as unknown as CreateCategoryDto;
-      mockPrisma.category.findFirst.mockResolvedValueOnce(null);
-      mockPrisma.category.findFirst.mockResolvedValueOnce(null);
       await expect(service.create(userId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
@@ -160,8 +109,7 @@ describe('CategoryService', () => {
         isExpense: true,
         currencyCode: 'RUB' as const,
       } as unknown as CreateCategoryDto;
-      mockPrisma.category.findFirst.mockResolvedValueOnce(null);
-      mockPrisma.category.findFirst.mockResolvedValueOnce({ id: parentId, isArchived: true });
+      dbMock.orm.Category.first.mockResolvedValueOnce({ id: parentId, isArchived: true });
       await expect(service.create(userId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
@@ -173,7 +121,7 @@ describe('CategoryService', () => {
         currencyCode: 'RUB' as const,
       } as unknown as CreateCategoryDto;
       const parent = { id: parentId, isArchived: false };
-      const created: Category = {
+      const created = {
         id: 8,
         name: dto.name,
         parentId,
@@ -184,13 +132,13 @@ describe('CategoryService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(null);
-      mockPrisma.category.findFirst.mockResolvedValueOnce(parent);
-      mockPrisma.category.create.mockResolvedValueOnce(created);
+      dbMock.orm.Category.first.mockResolvedValueOnce(null); // no duplicate name
+      dbMock.orm.Category.first.mockResolvedValueOnce(parent);
+      dbMock.orm.Category.create.mockResolvedValueOnce(created);
 
       const result = await service.create(userId, dto);
       expect(result).toEqual(created);
-      const data = mockPrisma.category.create.mock.calls[0][0].data;
+      const data = dbMock.orm.Category.create.mock.calls[0][0];
       expect(data.parentId).toBe(parentId);
     });
   });
@@ -201,12 +149,9 @@ describe('CategoryService', () => {
         { id: 1, name: 'Alpha', isArchived: false, userId, createdAt: new Date('2020-01-01') },
         { id: 2, name: 'Beta', isArchived: false, userId, createdAt: new Date('2020-01-02') },
       ];
-      mockPrisma.category.findMany.mockResolvedValue(list);
+      dbMock.orm.Category.all.mockResolvedValueOnce(list);
       const res = await service.findAll(userId);
-      expect(mockPrisma.category.findMany).toHaveBeenCalledWith({
-        where: { isArchived: false, userId },
-        orderBy: { createdAt: 'asc' },
-      });
+      expect(dbMock.orm.Category.where).toHaveBeenCalledWith({ userId, isArchived: false });
       expect(res).toEqual(list);
     });
   });
@@ -214,13 +159,12 @@ describe('CategoryService', () => {
   describe('findOne()', () => {
     it('returns category by id and userId', async () => {
       const found = { id: categoryId, name: 'Food', userId };
-      mockPrisma.category.findFirst.mockResolvedValue(found);
+      dbMock.orm.Category.first.mockResolvedValueOnce(found);
       const res = await service.findOne(userId, categoryId);
       expect(res).toEqual(found);
     });
 
     it('throws NotFoundException if not found', async () => {
-      mockPrisma.category.findFirst.mockResolvedValue(null);
       await expect(service.findOne(userId, categoryId)).rejects.toBeInstanceOf(NotFoundException);
     });
   });
@@ -233,17 +177,19 @@ describe('CategoryService', () => {
         color: '#123456',
         parentId: 3,
       } as unknown as UpdateCategoryDto;
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(null);
-      mockPrisma.category.findFirst.mockResolvedValueOnce({ id: 3, isArchived: false });
-      mockPrisma.category.update.mockResolvedValueOnce({ ...current, ...dto });
+      dbMock.orm.Category.first
+        .mockResolvedValueOnce(current)
+        .mockResolvedValueOnce(null) // no duplicate name
+        .mockResolvedValueOnce({ id: 3, isArchived: false }); // new parent lookup
+      dbMock.orm.Category.update.mockResolvedValueOnce({ ...current, ...dto });
 
       const res = await service.update(userId, categoryId, dto);
-      expect(res.name).toBe('New Name');
+      expect(res!.name).toBe('New Name');
     });
 
     it('throws BadRequestException if category is archived', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: true, parentId: 2 };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current);
+      dbMock.orm.Category.first.mockResolvedValueOnce(current);
       await expect(service.update(userId, categoryId, { name: 'Anything' })).rejects.toBeInstanceOf(
         BadRequestException
       );
@@ -251,9 +197,9 @@ describe('CategoryService', () => {
 
     it('throws BadRequestException if new name conflicts with another active category', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
-      mockPrisma.category.findFirst
+      dbMock.orm.Category.first
         .mockResolvedValueOnce(current)
-        .mockResolvedValueOnce({ id: 999, isArchived: false });
+        .mockResolvedValueOnce({ id: 999, name: 'Conflicting', isArchived: false });
       await expect(
         service.update(userId, categoryId, { name: 'Conflicting' })
       ).rejects.toBeInstanceOf(BadRequestException);
@@ -261,15 +207,15 @@ describe('CategoryService', () => {
 
     it('skips name check if name unchanged', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(null);
-      mockPrisma.category.update.mockResolvedValueOnce({ ...current, name: 'Old' });
+      dbMock.orm.Category.first.mockResolvedValueOnce(current);
+      dbMock.orm.Category.update.mockResolvedValueOnce({ ...current, name: 'Old' });
       const res = await service.update(userId, categoryId, { name: 'Old' });
       expect(res).toBeDefined();
     });
 
     it('throws BadRequestException if new parent not found', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(null);
+      dbMock.orm.Category.first.mockResolvedValueOnce(current);
       await expect(service.update(userId, categoryId, { parentId: 99 })).rejects.toBeInstanceOf(
         BadRequestException
       );
@@ -277,7 +223,7 @@ describe('CategoryService', () => {
 
     it('throws BadRequestException if new parent is archived', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
-      mockPrisma.category.findFirst
+      dbMock.orm.Category.first
         .mockResolvedValueOnce(current)
         .mockResolvedValueOnce({ id: 99, isArchived: true });
       await expect(service.update(userId, categoryId, { parentId: 99 })).rejects.toBeInstanceOf(
@@ -287,8 +233,8 @@ describe('CategoryService', () => {
 
     it('skips parent check if parentId unchanged', async () => {
       const current = { id: categoryId, name: 'Old', userId, isArchived: false, parentId: 2 };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current);
-      mockPrisma.category.update.mockResolvedValueOnce({ ...current, name: 'Old' });
+      dbMock.orm.Category.first.mockResolvedValueOnce(current);
+      dbMock.orm.Category.update.mockResolvedValueOnce({ ...current, name: 'Old' });
       const res = await service.update(userId, categoryId, { name: 'Old', parentId: 2 });
       expect(res).toBeDefined();
     });
@@ -303,18 +249,11 @@ describe('CategoryService', () => {
         isArchived: false,
         parentId: null,
       };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current);
-      mockPrisma.category.update.mockResolvedValueOnce({ ...current, isArchived: true });
-      mockPrisma.category.updateMany.mockResolvedValueOnce({ count: 2 });
+      dbMock.orm.Category.first.mockResolvedValueOnce(current);
+      dbMock.orm.Category.update.mockResolvedValue({ isArchived: true });
       const res = await service.remove(userId, categoryId);
-      expect(mockPrisma.category.update).toHaveBeenCalledWith({
-        where: { id: categoryId },
-        data: { isArchived: true },
-      });
-      expect(mockPrisma.category.updateMany).toHaveBeenCalledWith({
-        where: { parentId: categoryId },
-        data: { isArchived: true },
-      });
+      expect(dbMock.orm.Category.update).toHaveBeenCalledWith({ isArchived: true });
+      expect(dbMock.orm.Category.update).toHaveBeenCalledTimes(2);
       expect(res).toEqual({ success: true });
     });
 
@@ -326,11 +265,10 @@ describe('CategoryService', () => {
         isArchived: true,
         parentId: null,
       };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current);
+      dbMock.orm.Category.first.mockResolvedValueOnce(current);
       const res = await service.remove(userId, categoryId);
       expect(res).toEqual(current);
-      expect(mockPrisma.category.update).not.toHaveBeenCalled();
-      expect(mockPrisma.category.updateMany).not.toHaveBeenCalled();
+      expect(dbMock.orm.Category.update).not.toHaveBeenCalled();
     });
   });
 
@@ -340,12 +278,9 @@ describe('CategoryService', () => {
         { id: 9, name: 'Old', isArchived: true, userId, createdAt: new Date('2020-01-01') },
         { id: 10, name: 'Older', isArchived: true, userId, createdAt: new Date('2020-01-02') },
       ];
-      mockPrisma.category.findMany.mockResolvedValue(archived);
+      dbMock.orm.Category.all.mockResolvedValueOnce(archived);
       const res = await service.getArchived(userId);
-      expect(mockPrisma.category.findMany).toHaveBeenCalledWith({
-        where: { isArchived: true, userId },
-        orderBy: { createdAt: 'asc' },
-      });
+      expect(dbMock.orm.Category.where).toHaveBeenCalledWith({ userId, isArchived: true });
       expect(res).toEqual(archived);
     });
   });
@@ -355,28 +290,21 @@ describe('CategoryService', () => {
       const current = { id: categoryId, name: 'Cat', userId, isArchived: true, parentId: 2 };
       const parent = { id: current.parentId, isArchived: false };
       const unarchived = { ...current, isArchived: false };
-      mockPrisma.category.findFirst
+      dbMock.orm.Category.first
         .mockResolvedValueOnce(current) // by id
         .mockResolvedValueOnce(parent) // parent readiness
         .mockResolvedValueOnce(unarchived); // final findOne return
-      mockPrisma.category.update.mockResolvedValueOnce(unarchived);
-      mockPrisma.category.updateMany.mockResolvedValueOnce({ count: 2 });
+      dbMock.orm.Category.update.mockResolvedValueOnce(unarchived);
       const res = await service.unarchive(userId, categoryId);
-      expect(mockPrisma.category.update).toHaveBeenCalledWith({
-        where: { id: categoryId },
-        data: { isArchived: false },
-      });
-      expect(mockPrisma.category.updateMany).toHaveBeenCalledWith({
-        where: { parentId: categoryId },
-        data: { isArchived: false },
-      });
-      expect(res).toEqual({ id: categoryId, name: 'Cat', isArchived: false, userId, parentId: 2 });
+      expect(dbMock.orm.Category.update).toHaveBeenCalledWith({ isArchived: false });
+      expect(dbMock.orm.Category.update).toHaveBeenCalledTimes(2);
+      expect(res).toEqual(unarchived);
     });
 
     it('throws BadRequestException if parent is still archived', async () => {
       const current = { id: categoryId, name: 'Cat', userId, isArchived: true, parentId: 2 };
       const parent = { id: 2, isArchived: true };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(parent);
+      dbMock.orm.Category.first.mockResolvedValueOnce(current).mockResolvedValueOnce(parent);
       await expect(service.unarchive(userId, categoryId)).rejects.toBeInstanceOf(
         BadRequestException
       );
@@ -384,14 +312,14 @@ describe('CategoryService', () => {
 
     it('returns category as-is if not archived', async () => {
       const current = { id: categoryId, name: 'Cat', userId, isArchived: false, parentId: 2 };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current);
+      dbMock.orm.Category.first.mockResolvedValueOnce(current);
       const res = await service.unarchive(userId, categoryId);
       expect(res).toEqual(current);
     });
 
     it('throws BadRequestException if parent not found for child category', async () => {
       const current = { id: categoryId, name: 'Cat', userId, isArchived: true, parentId: 99 };
-      mockPrisma.category.findFirst.mockResolvedValueOnce(current).mockResolvedValueOnce(null);
+      dbMock.orm.Category.first.mockResolvedValueOnce(current);
       await expect(service.unarchive(userId, categoryId)).rejects.toBeInstanceOf(
         BadRequestException
       );

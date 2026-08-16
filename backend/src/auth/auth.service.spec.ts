@@ -8,6 +8,7 @@ import { TasksService } from '../queue/tasks.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { TOKEN_CONFIG, TokenConfig } from '../config/token.config';
+import { createPrismaDbMock } from '../prisma/fluent-mock';
 
 jest.mock('argon2', () => ({
   verify: jest.fn(),
@@ -39,7 +40,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let jwtService: JwtService;
   let userService: Partial<UserService>;
-  let prismaService: any;
+  let dbMock: ReturnType<typeof createPrismaDbMock>;
   let tokenConfig: TokenConfig;
 
   const dto: LoginDto = { email: TEST_EMAIL, password: TEST_PASSWORD };
@@ -72,23 +73,7 @@ describe('AuthService', () => {
       seedNewUser: jest.fn().mockResolvedValue(undefined),
     };
 
-    prismaService = {
-      user: {
-        update: jest.fn(),
-      },
-      pendingUser: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      },
-      passwordResetToken: {
-        create: jest.fn(),
-        findFirst: jest.fn(),
-        update: jest.fn(),
-      },
-      $transaction: jest.fn(),
-    };
+    dbMock = createPrismaDbMock();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -96,7 +81,7 @@ describe('AuthService', () => {
         { provide: JwtService, useValue: mockJwtService },
         { provide: UserService, useValue: mockUserService },
         { provide: TasksService, useValue: mockTasksService },
-        { provide: PrismaService, useValue: prismaService },
+        { provide: PrismaService, useValue: { db: dbMock.db } },
         { provide: TOKEN_CONFIG, useValue: mockTokenConfig },
       ],
     }).compile();
@@ -123,13 +108,14 @@ describe('AuthService', () => {
   describe('login()', () => {
     it('should return user and tokens when credentials are valid', async () => {
       (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
-      prismaService.user.update.mockResolvedValueOnce(mockUser);
+      dbMock.orm.User.update.mockResolvedValueOnce(mockUser);
 
       const result = await service.login(dto);
 
       expect(result.user).toEqual({ id: TEST_USER_ID, email: TEST_EMAIL });
       expect(result.accessToken).toBe('ACCESS_TOKEN');
       expect(result.refreshToken).toBe('REFRESH_TOKEN');
+      expect(dbMock.orm.User.where).toHaveBeenCalledWith({ id: TEST_USER_ID });
     });
 
     it('should throw NotFoundException if user not found', async () => {
@@ -147,16 +133,13 @@ describe('AuthService', () => {
   describe('register()', () => {
     it('should create pending user and return email', async () => {
       (userService.getByEmail as jest.Mock).mockResolvedValueOnce(null);
-      prismaService.pendingUser.findUnique.mockResolvedValueOnce(null);
-      prismaService.pendingUser.create.mockResolvedValueOnce({});
+      dbMock.orm.PendingUser.create.mockResolvedValueOnce({});
 
       const result = await service.register(dto);
 
       expect(result).toEqual({ email: TEST_EMAIL });
-      expect(prismaService.pendingUser.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ email: TEST_EMAIL }),
-        })
+      expect(dbMock.orm.PendingUser.create).toHaveBeenCalledWith(
+        expect.objectContaining({ email: TEST_EMAIL })
       );
     });
 
@@ -176,14 +159,15 @@ describe('AuthService', () => {
         code,
         sentAt: new Date(),
       };
-      prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
+      dbMock.orm.PendingUser.first.mockResolvedValueOnce(pendingUser);
       (userService.createFromHash as jest.Mock).mockResolvedValueOnce(mockUser);
-      prismaService.pendingUser.delete.mockResolvedValueOnce({});
+      dbMock.orm.PendingUser.delete.mockResolvedValueOnce({});
 
       const result = await service.verifyEmail(TEST_EMAIL, code);
 
       expect(result.accessToken).toBe('ACCESS_TOKEN');
       expect(result.refreshToken).toBe('REFRESH_TOKEN');
+      expect(dbMock.orm.PendingUser.delete).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException if code expired', async () => {
@@ -196,7 +180,7 @@ describe('AuthService', () => {
         code,
         sentAt: oldDate,
       };
-      prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
+      dbMock.orm.PendingUser.first.mockResolvedValueOnce(pendingUser);
 
       await expect(service.verifyEmail(TEST_EMAIL, code)).rejects.toThrow('истёк');
     });
@@ -209,23 +193,24 @@ describe('AuthService', () => {
         email: TEST_EMAIL,
         sentAt: new Date(Date.now() - 120 * 1000),
       };
-      prismaService.pendingUser.findUnique.mockResolvedValueOnce(pendingUser);
+      dbMock.orm.PendingUser.first.mockResolvedValueOnce(pendingUser);
 
       const result = await service.resendCode(TEST_EMAIL);
 
       expect(result).toEqual({ message: 'Новый код отправлен на почту' });
-      expect(prismaService.pendingUser.update).toHaveBeenCalled();
+      expect(dbMock.orm.PendingUser.update).toHaveBeenCalled();
     });
   });
 
   describe('forgotPassword()', () => {
     it('should create reset token and send email', async () => {
       (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
-      prismaService.passwordResetToken.create.mockResolvedValueOnce({});
+      dbMock.orm.PasswordResetToken.create.mockResolvedValueOnce({});
 
       const result = await service.forgotPassword(TEST_EMAIL);
 
       expect(result).toEqual({ message: 'Код для восстановления пароля отправлен на почту' });
+      expect(dbMock.orm.PasswordResetToken.create).toHaveBeenCalled();
     });
   });
 
@@ -240,12 +225,13 @@ describe('AuthService', () => {
         usedAt: null,
       };
       (userService.getByEmail as jest.Mock).mockResolvedValueOnce(mockUser);
-      prismaService.passwordResetToken.findFirst.mockResolvedValueOnce(resetToken);
-      prismaService.$transaction.mockResolvedValueOnce([{}, {}]);
+      dbMock.orm.PasswordResetToken.first.mockResolvedValueOnce(resetToken);
 
       const result = await service.resetPassword(TEST_EMAIL, code, 'newPass1');
 
       expect(result).toEqual({ message: 'Пароль успешно изменён' });
+      expect(dbMock.db.transaction).toHaveBeenCalled();
+      expect(dbMock.orm.User.update).toHaveBeenCalledWith(expect.objectContaining({}));
     });
   });
 

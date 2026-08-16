@@ -18,16 +18,12 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "prisma:migrate:dev": "prisma migrate dev",
-    "prisma:seed": "prisma db seed",
-    "prisma:studio": "prisma studio",
+    "prisma:generate": "prisma-next contract emit",
+    "prisma:migrate": "prisma-next migrate",
+    "prisma:migrate:dev": "prisma-next migration plan",
+    "prisma:verify": "prisma-next db verify",
     "docker:start": "./docker-entrypoint.sh npm run start:prod",
     "docker:start:dev": "./docker-entrypoint.sh npm run start:dev"
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
@@ -41,7 +37,8 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/throttler": "^6.5.0",
-    "@prisma/client": "^6.12.0",
+    "@prisma-next/sql-orm-client": "^0.16.0",
+    "@prisma/orm-postgres": "^8.0.0-rc.1",
     "argon2": "^0.43.1",
     "axios": "^1.11.0",
     "bullmq": "^5.80.4",
@@ -53,7 +50,7 @@
     "lodash": "^4.17.21",
     "nodemailer": "^9.0.3",
     "passport-jwt": "^4.0.1",
-    "prisma": "^6.12.0",
+    "prisma-next": "^8.0.0-rc.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -100,6 +97,18 @@
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "diagnostics": {
+          "ignoreCodes": [
+            151002
+          ]
+        }
+      }
+    },
+    "moduleNameMapper": {
+      "^@prisma/orm-postgres/runtime$": "<rootDir>/../test/mocks/orm-postgres-runtime.ts"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
