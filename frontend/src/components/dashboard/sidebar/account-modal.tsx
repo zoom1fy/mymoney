@@ -40,7 +40,11 @@ import {
   AccountTypeEnum,
   IAccount,
   ICreateAccount,
-  accountIcons
+  accountCategories,
+  accountCategoryNameMap,
+  accountIcons,
+  accountTypeNameMap,
+  accountTypes
 } from '@/types/account.type'
 
 import { useAccounts } from '@/hooks/use-accounts'
@@ -102,7 +106,7 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
       name: '',
       currentBalance: 0,
       categoryId: AccountCategoryEnum.ACCOUNTS,
-      typeId: AccountTypeEnum.CARD,
+      typeId: AccountTypeEnum.BANK,
       currencyCode: 'RUB'
     }
   })
@@ -352,8 +356,14 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                         <SelectValue placeholder="Категория" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl bg-background">
-                        <SelectItem value="1">Счёт</SelectItem>
-                        <SelectItem value="2">Сберегательный</SelectItem>
+                        {accountCategories.map(category => (
+                          <SelectItem
+                            key={category}
+                            value={String(category)}
+                          >
+                            {accountCategoryNameMap[category]}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -378,11 +388,14 @@ export function AccountModal({ mode = 'create', account, trigger }: Props) {
                         <SelectValue placeholder="Тип" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl bg-background">
-                        <SelectItem value="1">Наличные</SelectItem>
-                        <SelectItem value="2">Карта</SelectItem>
-                        <SelectItem value="3">Крипто</SelectItem>
-                        <SelectItem value="4">Накопительный</SelectItem>
-                        <SelectItem value="5">Депозит</SelectItem>
+                        {accountTypes.map(type => (
+                          <SelectItem
+                            key={type}
+                            value={String(type)}
+                          >
+                            {accountTypeNameMap[type]}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

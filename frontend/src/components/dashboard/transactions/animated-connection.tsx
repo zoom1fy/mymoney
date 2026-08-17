@@ -46,6 +46,10 @@ interface FlowParticleProps {
 const PARTICLE_COUNT = 3
 const PARTICLE_RADIUS = 2
 const NODE_RADIUS = 2.5
+const STROKE_WIDTH = 1.5
+// Pulse dots sit centered on the node edge, so line tips must extend past the dot
+// center by the dot radius minus the round-cap overhang to terminate at the outer edge.
+const EDGE_EXTENSION = NODE_RADIUS - STROKE_WIDTH / 2
 
 const DEFAULT_FROM: ConnectionPoint = { x: 0, y: 50 }
 const DEFAULT_TO: ConnectionPoint = { x: 100, y: 50 }
@@ -230,15 +234,20 @@ export function AnimatedConnection({
   }, [])
 
   const { startX, startY, endX, endY } = points
-  const dx = endX - startX
+  // Shift the tips outward so the stroke reaches the outer edge of the node dot
+  const extendEdge = (x: number, edge: ConnectionEdge) =>
+    edge === 'center' ? x : x + (edge === 'right' ? EDGE_EXTENSION : -EDGE_EXTENSION)
+  const lineStartX = extendEdge(startX, fromEdge)
+  const lineEndX = extendEdge(endX, toEdge)
+  const dx = lineEndX - lineStartX
   // Gentle vertical bulge proportional to the container height keeps the curve readable
   const curve = Math.min(18, Math.max(8, size.height * 0.12))
 
   const pathData =
     size.width > 0
-      ? `M ${startX} ${startY} C ${startX + dx * 0.25} ${startY + curve}, ${
-          startX + dx * 0.75
-        } ${endY - curve}, ${endX} ${endY}`
+      ? `M ${lineStartX} ${startY} C ${lineStartX + dx * 0.25} ${startY + curve}, ${
+          lineStartX + dx * 0.75
+        } ${endY - curve}, ${lineEndX} ${endY}`
       : 'M 0 0'
 
   return (

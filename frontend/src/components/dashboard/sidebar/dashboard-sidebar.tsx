@@ -15,6 +15,7 @@ import {
 
 import {
   AccountCategoryEnum,
+  accountCategories,
   accountCategoryNameMap,
   IAccount
 } from '@/types/account.type'
@@ -29,12 +30,6 @@ import { AccountModal } from './account-modal'
 export function DashboardSidebar() {
   const { accounts, isLoading } = useDashboard()
 
-  const accountCategories: AccountCategoryEnum[] = [
-    AccountCategoryEnum.ACCOUNTS,
-    AccountCategoryEnum.SAVINGS
-  ]
-
-  // Group accounts by their category (accounts / savings)
   const groupedAccounts = accounts.reduce<
     Record<AccountCategoryEnum, IAccount[]>
   >(
@@ -51,7 +46,9 @@ export function DashboardSidebar() {
     },
     {
       [AccountCategoryEnum.ACCOUNTS]: [],
-      [AccountCategoryEnum.SAVINGS]: []
+      [AccountCategoryEnum.SAVINGS]: [],
+      [AccountCategoryEnum.INVESTMENTS]: [],
+      [AccountCategoryEnum.LOANS]: []
     }
   )
 

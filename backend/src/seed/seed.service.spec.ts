@@ -59,8 +59,8 @@ describe('SeedService', () => {
           create: expect.objectContaining({ code: 'RUB', type: 'FIAT' }),
         })
       );
-      expect(dbMock.orm.AccountCategory.upsert).toHaveBeenCalledTimes(2);
-      expect(dbMock.orm.AccountType.upsert).toHaveBeenCalledTimes(4);
+      expect(dbMock.orm.AccountCategory.upsert).toHaveBeenCalledTimes(4);
+      expect(dbMock.orm.AccountType.upsert).toHaveBeenCalledTimes(6);
     });
 
     it('should create accounts with currencyCode RUB', async () => {

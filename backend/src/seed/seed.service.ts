@@ -23,15 +23,19 @@ const CURRENCY_META: Record<CurrencyCode, { name: string; symbol: string }> = {
 };
 
 const ACCOUNT_CATEGORIES = [
-  { id: 1, name: 'Счета' },
-  { id: 2, name: 'Накопительные' },
+  { id: 1, name: 'Основные счета' },
+  { id: 2, name: 'Накопления' },
+  { id: 3, name: 'Инвестиции' },
+  { id: 4, name: 'Кредиты и долги' },
 ];
 
 const ACCOUNT_TYPES = [
   { id: 1, name: 'Наличные' },
-  { id: 2, name: 'Карта' },
-  { id: 3, name: 'Депозит' },
-  { id: 4, name: 'Инвестиционный счет' },
+  { id: 2, name: 'Банковский счет' },
+  { id: 3, name: 'Депозит/Вклад' },
+  { id: 4, name: 'Брокерский счет' },
+  { id: 5, name: 'Кредитная карта' },
+  { id: 6, name: 'Криптокошелек' },
 ];
 
 @Injectable()
@@ -91,7 +95,6 @@ export class SeedService {
       isExpense: false,
     });
 
-    // Expense categories
     const foodCategory = await this.prisma.db.orm.public.Category.create({
       userId,
       name: 'Продукты',
@@ -126,7 +129,7 @@ export class SeedService {
       name: 'Копилка',
       icon: 'PiggyBank',
       categoryId: 2,
-      typeId: 4,
+      typeId: 3,
       currencyCode,
       currentBalance: '20000',
     });

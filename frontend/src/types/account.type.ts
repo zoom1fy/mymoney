@@ -63,20 +63,51 @@ export enum CurrencyType {
 
 export enum AccountCategoryEnum {
   ACCOUNTS = 1,
-  SAVINGS = 2
+  SAVINGS = 2,
+  INVESTMENTS = 3,
+  LOANS = 4
 }
 
+// Options for category/type pickers — single source of truth for the UI
+export const accountCategories: AccountCategoryEnum[] = [
+  AccountCategoryEnum.ACCOUNTS,
+  AccountCategoryEnum.SAVINGS,
+  AccountCategoryEnum.INVESTMENTS,
+  AccountCategoryEnum.LOANS
+]
+
 export const accountCategoryNameMap: Record<AccountCategoryEnum, string> = {
-  [AccountCategoryEnum.ACCOUNTS]: 'Счет',
-  [AccountCategoryEnum.SAVINGS]: 'Сберегательный'
+  [AccountCategoryEnum.ACCOUNTS]: 'Основные счета',
+  [AccountCategoryEnum.SAVINGS]: 'Накопления',
+  [AccountCategoryEnum.INVESTMENTS]: 'Инвестиции',
+  [AccountCategoryEnum.LOANS]: 'Кредиты и долги'
 }
 
 export enum AccountTypeEnum {
   CASH = 1,
-  CARD = 2,
-  CRYPTO = 3,
-  SAVING = 4,
-  DEPOSIT = 5
+  BANK = 2,
+  DEPOSIT = 3,
+  BROKER = 4,
+  CREDIT_CARD = 5,
+  CRYPTO = 6
+}
+
+export const accountTypes: AccountTypeEnum[] = [
+  AccountTypeEnum.CASH,
+  AccountTypeEnum.BANK,
+  AccountTypeEnum.DEPOSIT,
+  AccountTypeEnum.BROKER,
+  AccountTypeEnum.CREDIT_CARD,
+  AccountTypeEnum.CRYPTO
+]
+
+export const accountTypeNameMap: Record<AccountTypeEnum, string> = {
+  [AccountTypeEnum.CASH]: 'Наличные',
+  [AccountTypeEnum.BANK]: 'Банковский счет',
+  [AccountTypeEnum.DEPOSIT]: 'Депозит/Вклад',
+  [AccountTypeEnum.BROKER]: 'Брокерский счет',
+  [AccountTypeEnum.CREDIT_CARD]: 'Кредитная карта',
+  [AccountTypeEnum.CRYPTO]: 'Криптокошелек'
 }
 
 // Icon lookup for the account picker UI — name → Lucide component
