@@ -13,14 +13,18 @@
 # Игнорировать зависимости Node.js
 backend/node_modules/
 frontend/node_modules/
+desktop/node_modules/
 
 # Игнорировать сборочные артефакты
 backend/dist/
 backend/coverage/
 backend/tsconfig.build.tsbuildinfo
 frontend/.next/
+frontend/out/
 frontend/package-lock.json
 frontend/*.tsbuildinfo
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
 
 # Игнорировать временные файлы и логи
 *.log

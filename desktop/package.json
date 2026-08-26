@@ -1,0 +1,10 @@
+{
+  "name": "mymoney-desktop",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/tauri.mjs dev",
+    "build": "node scripts/tauri.mjs build",
+    "dev:fe": "node scripts/fe.mjs dev",
+    "build:fe": "node scripts/fe.mjs build"
+  }
+}
