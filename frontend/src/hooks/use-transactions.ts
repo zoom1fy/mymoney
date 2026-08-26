@@ -1,5 +1,6 @@
 'use client'
 
+import { catchError } from '@/api/error'
 import { transactionService } from '@/services/transaction.service'
 import {
   InfiniteData,
@@ -203,8 +204,7 @@ export function useTransactions() {
         queryClient.setQueryData(['accounts'], context.previousAccounts)
       }
 
-      const apiError = error as { response?: { data?: { message?: string } } }
-      toast.error(apiError.response?.data?.message || 'Ошибка обновления')
+      toast.error(catchError(error) || 'Ошибка обновления')
     },
 
     onSuccess: () => {

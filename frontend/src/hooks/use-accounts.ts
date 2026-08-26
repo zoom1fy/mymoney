@@ -1,5 +1,6 @@
 'use client'
 
+import { catchError } from '@/api/error'
 import { accountService } from '@/services/account.service'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -68,11 +69,7 @@ export function useAccounts() {
           context.previousAccounts
         )
       }
-      const apiError = error as { response?: { data?: { message?: string } } }
-      const message =
-        apiError.response?.data?.message ||
-        error.message ||
-        'Ошибка создания счёта'
+      const message = catchError(error) || 'Ошибка создания счёта'
       toast.error(message)
     },
 
@@ -113,8 +110,7 @@ export function useAccounts() {
     },
 
     onError: (error: Error) => {
-      const apiError = error as { response?: { data?: { message?: string } } }
-      const message = apiError.response?.data?.message || error.message || 'Ошибка обновления'
+      const message = catchError(error) || 'Ошибка обновления'
       toast.error(message)
     }
   })

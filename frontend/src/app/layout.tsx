@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Toaster } from 'sonner'
 
 import { SITE_NAME } from '@/constants/seo.constants'
+import { AuthGuard } from '@/components/auth-guard'
 
 import './globals.css'
 import { Providers } from './providers'
@@ -30,7 +31,7 @@ export default function RootLayout({
     >
       <body className="antialiased">
         <Providers>
-          {children}
+          <AuthGuard>{children}</AuthGuard>
           <Toaster
             duration={1500}
             position="bottom-right"

@@ -1,5 +1,6 @@
 'use client'
 
+import { catchError } from '@/api/error'
 import { removeTokenStorage } from '@/services/auth-token.service'
 import { authService } from '@/services/auth.service'
 import { userService } from '@/services/user.service'
@@ -31,8 +32,7 @@ export function useProfile() {
       router.refresh()
     },
     onError: (error: Error) => {
-      const apiError = error as { response?: { data?: { message?: string } } }
-      const message = apiError.response?.data?.message || 'Ошибка при выходе'
+      const message = catchError(error) || 'Ошибка при выходе'
       toast.error(message)
 
       removeTokenStorage()
@@ -51,8 +51,7 @@ export function useProfile() {
       toast.success('Профиль обновлён')
     },
     onError: (error: Error) => {
-      const apiError = error as { response?: { data?: { message?: string } } }
-      const message = apiError.response?.data?.message || 'Ошибка при обновлении профиля'
+      const message = catchError(error) || 'Ошибка при обновлении профиля'
       toast.error(message)
     }
   })

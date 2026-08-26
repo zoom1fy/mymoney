@@ -1,4 +1,6 @@
+import { isTauri } from '../lib/platform'
 import { axiosWithAuth } from '../api/interceptor'
+import { currencyLocalService } from './local/currency.service'
 
 export interface ICurrency {
   code: string
@@ -7,9 +9,11 @@ export interface ICurrency {
   type: 'FIAT' | 'CRYPTO'
 }
 
-export const currencyService = {
+const currencyServiceHttp = {
   async getAll() {
     const response = await axiosWithAuth.get<ICurrency[]>('/currency')
     return response.data
-  },
+  }
 }
+
+export const currencyService = isTauri() ? currencyLocalService : currencyServiceHttp

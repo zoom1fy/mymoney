@@ -1,11 +1,13 @@
+import { isTauri } from '../lib/platform'
 import { axiosWithAuth } from '../api/interceptor'
+import { accountLocalService } from './local/account.service'
 import {
   IAccount,
   ICreateAccount,
   IUpdateAccount
 } from '../types/account.type'
 
-export const accountService = {
+const accountServiceHttp = {
   async create(data: ICreateAccount) {
     const response = await axiosWithAuth.post<IAccount>('/accounts', data)
     return response.data
@@ -36,3 +38,5 @@ export const accountService = {
     return response.data
   }
 }
+
+export const accountService = isTauri() ? accountLocalService : accountServiceHttp

@@ -1,7 +1,7 @@
 'use client'
 
 import { LogOut, User } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { ProfileModal } from '@/components/dashboard/profile/profile-modal'
 import { ThemeToggle } from '@/components/ui/buttons/theme-toggle'
@@ -19,11 +19,22 @@ import { SidebarTrigger } from '@/components/ui/shadui/sidebar'
 
 import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import { useProfile } from '@/hooks/use-profile'
+import { isTauri } from '@/lib/platform'
 
 export function DashboardHeader() {
   const { profile } = useDashboard()
   const { logout, isLoggingOut } = useProfile()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Desktop build has no auth flow: profile/logout menu items are web-only.
+  // The mounted gate keeps server and first client render identical
+  // (isTauri() branches on window, which does not exist during SSR)
+  const isDesktop = isMounted && isTauri()
 
   const getInitials = () => {
     if (profile?.name) {
@@ -61,8 +72,16 @@ export function DashboardHeader() {
 
         <ThemeToggle />
 
-        {/* Dropdown меню профиля */}
-        <DropdownMenu>
+        {isDesktop ? (
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+              {getInitials()}
+            </AvatarFallback>
+          </Avatar>
+        ) : (
+          <>
+            {/* Dropdown меню профиля */}
+            <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               className="relative h-8 w-8 rounded-full cursor-pointer"
@@ -112,6 +131,8 @@ export function DashboardHeader() {
           isOpen={isProfileOpen}
           onOpenChange={setIsProfileOpen}
         />
+          </>
+        )}
       </div>
     </header>
   )

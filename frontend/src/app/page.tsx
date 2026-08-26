@@ -2,11 +2,23 @@ import { dashboardPages } from '@/config/pages-url.config'
 import { ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react'
 import Link from 'next/link'
 
+import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 import { AccentButton } from '@/components/ui/buttons/accent-button'
 import { GlassCard } from '@/components/ui/cards/glass-card'
 import { Button } from '@/components/ui/shadui/button'
 
+import DashboardPage from './me/page'
+
 export default function HomePage() {
+  // Desktop build has no landing: the window opens straight into the dashboard
+  if (process.env.NEXT_PLATFORM === 'desktop') {
+    return (
+      <DashboardShell>
+        <DashboardPage />
+      </DashboardShell>
+    )
+  }
+
   return (
     <main className="relative overflow-hidden text-foreground">
       {/* ================= HERO ================= */}

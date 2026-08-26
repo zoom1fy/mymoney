@@ -1,4 +1,6 @@
+import { isTauri } from '../lib/platform'
 import { axiosWithAuth } from '../api/interceptor'
+import { categoryLocalService } from './local/category.service'
 import {
   ICategory,
   ICreateCategory,
@@ -6,7 +8,7 @@ import {
 } from '../types/category.type'
 
 // Archived categories are hidden by default; unarchive to re-activate
-export const categoryService = {
+const categoryServiceHttp = {
   async create(data: ICreateCategory) {
     const response = await axiosWithAuth.post<ICategory>('/category', data)
     return response.data
@@ -49,3 +51,5 @@ export const categoryService = {
     return response.data
   }
 }
+
+export const categoryService = isTauri() ? categoryLocalService : categoryServiceHttp

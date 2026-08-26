@@ -1,7 +1,9 @@
+import { isTauri } from '../lib/platform'
 import { axiosWithAuth } from '../api/interceptor'
+import { userLocalService } from './local/user.service'
 import { IUser } from '../types/auth.type'
 
-export const userService = {
+const userServiceHttp = {
   async getProfile() {
     const response = await axiosWithAuth.get<IUser>('/user/profile')
     return response.data
@@ -26,3 +28,5 @@ export const userService = {
     return response.data
   }
 }
+
+export const userService = isTauri() ? userLocalService : userServiceHttp

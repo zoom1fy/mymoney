@@ -1,10 +1,18 @@
 'use client'
 
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { createContext, useContext, useMemo, useState, type PropsWithChildren } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type PropsWithChildren
+} from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { dashboardService } from '@/services/dashboard.service'
+import { syncRatesIfNeeded } from '@/services/local/rates.service'
 import { DonutItem } from '@/lib/transactions-donut'
 import { IAccount } from '@/types/account.type'
 import { ICategory } from '@/types/category.type'
@@ -40,9 +48,26 @@ function mapSummary(
 }
 
 export function DashboardProvider({ children }: PropsWithChildren) {
+  const queryClient = useQueryClient()
   const [isExpense, setIsExpense] = useState(true)
   const [from, setFrom] = useState(startOfMonth(new Date()).toISOString())
   const [to, setTo] = useState(endOfMonth(new Date()).toISOString())
+
+  // Daily exchange-rate sync (desktop): refreshes when older than a day and
+  // re-reads the summary so totals reflect the new rates
+  useEffect(() => {
+    let cancelled = false
+
+    void syncRatesIfNeeded().then(updated => {
+      if (updated > 0 && !cancelled) {
+        void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [queryClient])
 
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard', from, to],

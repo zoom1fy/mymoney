@@ -1,3 +1,5 @@
+import { isTauri } from '../lib/platform'
+import { transactionLocalService } from './local/transaction.service'
 import { axiosWithAuth } from '../api/interceptor'
 import {
   ICreateTransaction,
@@ -9,7 +11,7 @@ import {
 import { DonutItem } from '@/lib/transactions-donut'
 
 // API sends amount as string and type as string; normalise to number/enum on every read
-export const transactionService = {
+const transactionServiceHttp = {
   async create(data: ICreateTransaction) {
     const response = await axiosWithAuth.post<ITransaction>(
       '/transactions',
@@ -106,6 +108,10 @@ export const transactionService = {
     return response.data
   }
 }
+
+export const transactionService = isTauri()
+  ? transactionLocalService
+  : transactionServiceHttp
 
 // API returns transaction type as string; map to enum for consistent frontend usage
 function mapTransactionType(type: string | number): TransactionType {

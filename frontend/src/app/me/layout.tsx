@@ -1,9 +1,4 @@
-import { DashboardProvider } from '@/components/dashboard/dashboard-provider'
-
-import { DashboardSidebar } from '@/components/dashboard/sidebar/dashboard-sidebar'
-import { SidebarInset, SidebarProvider } from '@/components/ui/shadui/sidebar'
-
-import { DashboardHeader } from './header'
+import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 
 export const metadata = {
   title: 'Дашборд'
@@ -14,15 +9,5 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <DashboardProvider>
-      <SidebarProvider>
-        <DashboardSidebar />
-        <SidebarInset>
-          <DashboardHeader />
-          <main className="flex-1 overflow-y-auto p-6 lg:p-10">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
-    </DashboardProvider>
-  )
+  return <DashboardShell>{children}</DashboardShell>
 }

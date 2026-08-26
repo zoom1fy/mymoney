@@ -2,6 +2,8 @@ import { IAccount } from '@/types/account.type'
 import { ICategory } from '@/types/category.type'
 import { IUser } from '@/types/auth.type'
 
+import { isTauri } from '../lib/platform'
+import { dashboardLocalService } from './local/dashboard.service'
 import { axiosWithAuth } from '../api/interceptor'
 
 export interface IDashboardResponse {
@@ -13,7 +15,7 @@ export interface IDashboardResponse {
   incomeSummary: { categoryId: number | null; categoryName: string | null; categoryColor: string | null; totalAmount: number }[]
 }
 
-export const dashboardService = {
+const dashboardServiceHttp = {
   async getDashboard(from: string, to: string) {
     const response = await axiosWithAuth.get<IDashboardResponse>('/dashboard', {
       params: { from, to }
@@ -21,3 +23,7 @@ export const dashboardService = {
     return response.data
   }
 }
+
+export const dashboardService = isTauri()
+  ? dashboardLocalService
+  : dashboardServiceHttp
