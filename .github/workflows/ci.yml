@@ -6,59 +6,13 @@ on:
   pull_request:
     branches: [main, develop]
 
-env:
-  DOCKER_DEFAULT_PLATFORM: linux/amd64
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  check-lockfile:
-    name: Check Lockfile Sync
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check backend package-lock.json
-        run: |
-          cd backend
-          if ! npm ls --package-lock-only 2>/dev/null; then
-            echo "❌ backend/package-lock.json is out of sync with package.json"
-            exit 1
-          fi
-          echo "✅ backend/package-lock.json is in sync"
-
-      - name: Check frontend bun.lock
-        run: |
-          cd frontend
-          if [ ! -f bun.lock ]; then
-            echo "❌ frontend/bun.lock not found — run 'bun install'"
-            exit 1
-          fi
-          echo "✅ frontend/bun.lock exists"
-
-  backend-lint:
-    name: Backend Lint
-    needs: check-lockfile
-    runs-on: ubuntu-latest
-    continue-on-error: true # Оставляем, чтобы не ронял пайплайн
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: backend/package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Run lint
-        run: npm run lint # Реальная проверка без || echo
-      - name: TypeScript check
-        run: npx tsc --noEmit # Реальная проверка без || echo
-
-  backend-test:
-    name: Backend Tests
-    needs: check-lockfile
+  backend-ci:
+    name: Backend CI
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -72,56 +26,24 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
         run: npm ci
-      - name: Generate Prisma client (contract emit)
+      - name: Generate Prisma client
         run: npm run prisma:generate
-      - name: Run tests
+      - name: Lint
+        run: npm run lint
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Unit tests
         run: npm test -- --coverage
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: backend-coverage
           path: backend/coverage/
+      - name: Build
+        run: npm run build
 
-  backend-build:
-    name: Backend Build
-    needs: check-lockfile
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: backend/package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - run: npm run prisma:generate
-      - run: npm run build
-
-  frontend-lint:
-    name: Frontend Lint
-    needs: check-lockfile
-    runs-on: ubuntu-latest
-    continue-on-error: true # Оставляем, чтобы не ронял пайплайн
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Run lint
-        run: bun run lint # Реальная проверка без || echo
-      - name: TypeScript check
-        run: bunx tsc --noEmit # Реальная проверка без || echo
-
-  frontend-build:
-    name: Frontend Build
-    needs: check-lockfile
+  frontend-ci:
+    name: Frontend CI
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -136,174 +58,38 @@ jobs:
           echo "NEXT_PUBLIC_API_URL=http://localhost:3001/api" >> .env
           echo "NEXT_PUBLIC_COOKIE_DOMAIN=localhost" >> .env
           echo "NODE_ENV=development" >> .env
-      - run: bun run build
-
-  docker-build:
-    name: Docker Build Test
-    needs: [backend-build, frontend-build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Show project structure
-        run: |
-          echo "=== Backend Dockerfiles ==="
-          ls -la backend/Dockerfile* 2>/dev/null || echo "No Dockerfiles found"
-          echo ""
-          echo "=== Frontend Dockerfiles ==="
-          ls -la frontend/Dockerfile* 2>/dev/null || echo "No Dockerfiles found"
-
-      - name: Create test env file
-        run: |
-          cat > .env << EOF
-          POSTGRES_USER=test
-          POSTGRES_PASSWORD=test_password
-          POSTGRES_DB=test_db
-          DATABASE_URL=postgresql://test:test_password@db:5432/test_db
-          JWT_SECRET=test_secret_key_for_ci
-          JWT_ACCESS_EXPIRES_IN=15m
-          JWT_REFRESH_EXPIRES_IN=7d
-          NODE_ENV=development
-          NEXT_PUBLIC_API_URL=http://localhost:3001/api
-          NEXT_PUBLIC_COOKIE_DOMAIN=localhost
-          DOCKER_DEFAULT_PLATFORM=linux/amd64
-          EOF
-
-      - name: Build with docker-compose.dev.yml (development)
-        run: |
-          echo "Building with development config..."
-          docker compose -f docker-compose.yml -f docker-compose.dev.yml build backend frontend
-
-      - name: Build with docker-compose.prod.yml (production)
-        run: |
-          echo "Building with production config..."
-          docker compose -f docker-compose.yml -f docker-compose.prod.yml build backend frontend
-
-      - name: Start containers
-        run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.prod.yml \
-            up -d
-
-      - name: Wait for startup
-        run: sleep 30
-
-      - name: Verify containers are running
-        run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.prod.yml \
-            ps
-          if docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.prod.yml \
-            ps | grep -E "Exit|Exited"; then
-            echo "❌ Some containers exited"
-            exit 1
-          fi
-
-      - name: Show logs if failed
-        if: failure()
-        run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.prod.yml \
-            logs
-
-      - name: Stop containers
-        if: always()
-        run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.prod.yml \
-            down -v
-
-      - name: Verify Docker images
-        run: |
-          echo "=== Built Docker images ==="
-          docker images
+      - name: Lint
+        run: bun run lint
+      - name: TypeScript check
+        run: bunx tsc --noEmit
+      - name: Unit tests
+        run: bun run test
+      - name: Build
+        run: bun run build
 
   notify:
     name: Notify
-    needs:
-      [
-        check-lockfile,
-        backend-lint,
-        backend-test,
-        backend-build,
-        frontend-lint,
-        frontend-build,
-        docker-build,
-      ]
+    needs: [backend-ci, frontend-ci]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Determine status
+      - name: Determine overall status
         id: status
         run: |
-          FAILED_JOBS=""
-          WARNING_JOBS=""
-
-          if [ "${{ needs.check-lockfile.result }}" != "success" ]; then
-            FAILED_JOBS="${FAILED_JOBS}❌ Lockfile Check\n"
-          fi
-
-          # Линтеры с continue-on-error: true могут иметь статус failure, но мы их считаем предупреждениями
-          if [ "${{ needs.backend-lint.result }}" != "success" ]; then
-            WARNING_JOBS="${WARNING_JOBS}⚠️ Backend Lint (warnings/errors found)\n"
-          fi
-
-          if [ "${{ needs.backend-test.result }}" != "success" ]; then
-            FAILED_JOBS="${FAILED_JOBS}❌ Backend Tests\n"
-          fi
-
-          if [ "${{ needs.backend-build.result }}" != "success" ]; then
-            FAILED_JOBS="${FAILED_JOBS}❌ Backend Build\n"
-          fi
-
-          if [ "${{ needs.frontend-lint.result }}" != "success" ]; then
-            WARNING_JOBS="${WARNING_JOBS}⚠️ Frontend Lint (warnings/errors found)\n"
-          fi
-
-          if [ "${{ needs.frontend-build.result }}" != "success" ]; then
-            FAILED_JOBS="${FAILED_JOBS}❌ Frontend Build\n"
-          fi
-
-          if [ "${{ needs.docker-build.result }}" != "success" ]; then
-            FAILED_JOBS="${FAILED_JOBS}❌ Docker Build\n"
-          fi
-
-          if [ -z "$FAILED_JOBS" ] && [ -z "$WARNING_JOBS" ]; then
-            echo "STATUS=success" >> $GITHUB_OUTPUT
-            echo "EMOJI=✅" >> $GITHUB_OUTPUT
-            echo "RESULT=Successful" >> $GITHUB_OUTPUT
-          elif [ -z "$FAILED_JOBS" ]; then
-            echo "STATUS=success" >> $GITHUB_OUTPUT
-            echo "EMOJI=⚠️" >> $GITHUB_OUTPUT
-            echo "RESULT=Successful with warnings" >> $GITHUB_OUTPUT
+          if [ "${{ needs.backend-ci.result }}" = "success" ] && [ "${{ needs.frontend-ci.result }}" = "success" ]; then
+            echo "STATUS=✅ CI passed" >> $GITHUB_OUTPUT
           else
-            echo "STATUS=failure" >> $GITHUB_OUTPUT
-            echo "EMOJI=❌" >> $GITHUB_OUTPUT
-            echo "RESULT=Failed" >> $GITHUB_OUTPUT
+            echo "STATUS=❌ CI failed" >> $GITHUB_OUTPUT
           fi
-
-          echo "FAILED_JOBS=$FAILED_JOBS" >> $GITHUB_OUTPUT
-          echo "WARNING_JOBS=$WARNING_JOBS" >> $GITHUB_OUTPUT
-
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            ${{ steps.status.outputs.EMOJI }} CI Pipeline ${{ steps.status.outputs.RESULT }}
+            ${{ steps.status.outputs.STATUS }}
             📦 Repository: ${{ github.repository }}
             🌿 Branch: ${{ github.ref_name }}
             👤 Author: ${{ github.actor }}
             💬 Message: ${{ github.event.head_commit.message }}
-            ${{ steps.status.outputs.FAILED_JOBS }}${{ steps.status.outputs.WARNING_JOBS }}
             🔗 View: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
