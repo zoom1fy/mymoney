@@ -32,6 +32,13 @@ jobs:
           JWT_ACCESS_EXPIRES_IN=15m
           JWT_REFRESH_EXPIRES_IN=7d
           NODE_ENV=production
+          CORS_ORIGINS=http://localhost:3001
+          SMTP_HOST=127.0.0.1
+          SMTP_PORT=1025
+          SMTP_USER=
+          SMTP_PASS=
+          SMTP_FROM=test@localhost
+          SMTP_TLS=false
           NEXT_PUBLIC_API_URL=http://localhost:3001/api
           NEXT_PUBLIC_COOKIE_DOMAIN=localhost
           DOCKER_DEFAULT_PLATFORM=linux/amd64
