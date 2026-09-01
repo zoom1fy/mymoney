@@ -1,0 +1,15 @@
+# Shell scripts must stay LF (CRLF breaks exec in Linux containers)
+*.sh text eol=lf
+
+# Force LF for Windows dev, keep as-is for portable scripts
+*.mjs text eol=lf
+*.mts text eol=lf
+
+# Text files
+*.ts text
+*.tsx text
+*.js text
+*.json text
+*.yml text
+*.yaml text
+*.md text
