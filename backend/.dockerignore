@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+
+# Build artifacts
+dist
+coverages
+build
+.next
+
+# Tests & coverage output
+coverage
+*.tsbuildinfo
+
+# Local env & secrets
+.env
+.env.*
+!.env.example
+
+# Git & CI
+.git
+
+# Logs & temp
+*.log
+npm-debug.log*

@@ -1,0 +1,4 @@
+# Local backups
+backups
+*.dump
+*.sql.gz
