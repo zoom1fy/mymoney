@@ -22,8 +22,8 @@
     "prisma:migrate": "prisma-next migrate",
     "prisma:migrate:dev": "prisma-next migration plan",
     "prisma:verify": "prisma-next db verify",
-    "docker:start": "./docker-entrypoint.sh npm run start:prod",
-    "docker:start:dev": "./docker-entrypoint.sh npm run start:dev"
+    "docker:start": "sh ./docker-entrypoint.sh npm run start:prod",
+    "docker:start:dev": "sh ./docker-entrypoint.sh npm run start:dev"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
