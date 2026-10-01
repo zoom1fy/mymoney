@@ -68,12 +68,18 @@ jobs:
         run: bun run build
 
   desktop-build:
-    name: Desktop Build (${{ matrix.os }})
+    name: Desktop Build (${{ matrix.label }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            label: windows
+            bundles: msi
+          - os: macos-latest
+            label: macos
+            bundles: dmg
     defaults:
       run:
         working-directory: desktop
@@ -95,13 +101,42 @@ jobs:
         working-directory: frontend
 
       - name: Build desktop app
-        run: bun run build
+        run: bun run build --bundles ${{ matrix.bundles }}
 
-      - name: Upload bundles
+      - name: Package portable Windows build
+        if: matrix.label == 'windows'
+        shell: pwsh
+        run: |
+          $version = (Get-Content src-tauri/tauri.conf.json | ConvertFrom-Json).version
+          $portableDir = "src-tauri/portable"
+          New-Item -ItemType Directory -Force -Path $portableDir | Out-Null
+          Copy-Item "src-tauri/target/release/mymoney.exe" "$portableDir/MyMoney.exe"
+          Compress-Archive -Path "$portableDir/MyMoney.exe" `
+            -DestinationPath "$portableDir/MyMoney_${version}_x64_portable.zip" -Force
+          Get-ChildItem $portableDir | Select-Object Name, Length
+
+      - name: Upload Windows portable
+        if: matrix.label == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-${{ matrix.os }}
-          path: desktop/src-tauri/target/release/bundle/
+          name: mymoney-windows-portable
+          path: desktop/src-tauri/portable/*.zip
+          if-no-files-found: error
+
+      - name: Upload Windows MSI
+        if: matrix.label == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mymoney-windows-msi
+          path: desktop/src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error
+
+      - name: Upload macOS DMG
+        if: matrix.label == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mymoney-macos-dmg
+          path: desktop/src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
 
   notify:
