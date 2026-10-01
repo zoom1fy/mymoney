@@ -6,7 +6,6 @@
 
 /* Импорты */
 /* @import "react-day-picker/dist/style.css"; */
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap");
 
 /* Shadcn-совместимые переменные в :root и .dark */
 @layer base {
@@ -127,7 +126,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: Manrope, system-ui, sans-serif;
+    font-family: var(--font-manrope), system-ui, sans-serif;
     /* Плавная прокрутка страницы */
     scroll-behavior: smooth;
   }

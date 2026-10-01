@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Manrope } from 'next/font/google'
 import { Toaster } from 'sonner'
 
 import { SITE_NAME } from '@/constants/seo.constants'
@@ -6,6 +7,12 @@ import { AuthGuard } from '@/components/auth-guard'
 
 import './globals.css'
 import { Providers } from './providers'
+
+const manrope = Manrope({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-manrope',
+  display: 'swap'
+})
 
 export const metadata: Metadata = {
   title: {
@@ -28,6 +35,7 @@ export default function RootLayout({
     <html
       suppressHydrationWarning
       lang="ru"
+      className={manrope.variable}
     >
       <body className="antialiased">
         <Providers>
