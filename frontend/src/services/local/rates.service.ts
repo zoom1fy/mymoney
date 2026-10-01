@@ -43,7 +43,7 @@ const BINANCE_RUB_PAIRS: Record<string, string> = {
   BTC: 'BTCRUB',
   ETH: 'ETHRUB',
   BNB: 'BNBRUB',
-  XRP: 'XRPUSRUB',
+  XRP: 'XRPRUB',
   SOL: 'SOLRUB',
   TRX: 'TRXRUB',
   DOGE: 'DOGERUB'
