@@ -67,16 +67,53 @@ jobs:
       - name: Build
         run: bun run build
 
+  desktop-build:
+    name: Desktop Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Set Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ./desktop/src-tauri -> target
+
+      - name: Install frontend dependencies
+        run: bun install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Build desktop app
+        run: bun run build
+
+      - name: Upload bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.os }}
+          path: desktop/src-tauri/target/release/bundle/
+          if-no-files-found: error
+
   notify:
     name: Notify
-    needs: [backend-ci, frontend-ci]
+    needs: [backend-ci, frontend-ci, desktop-build]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Determine overall status
         id: status
         run: |
-          if [ "${{ needs.backend-ci.result }}" = "success" ] && [ "${{ needs.frontend-ci.result }}" = "success" ]; then
+          if [ "${{ needs.backend-ci.result }}" = "success" ] && [ "${{ needs.frontend-ci.result }}" = "success" ] && [ "${{ needs.desktop-build.result }}" = "success" ]; then
             echo "STATUS=✅ CI passed" >> $GITHUB_OUTPUT
           else
             echo "STATUS=❌ CI failed" >> $GITHUB_OUTPUT
