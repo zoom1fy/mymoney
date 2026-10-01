@@ -133,8 +133,13 @@ export const accountLocalService = {
   },
 
   async delete(id: number): Promise<{ message: string }> {
+    await this.getById(id)
+
     const db = await getDb()
-    await db.execute('UPDATE "Account" SET isDeleted = 1 WHERE id = $1', [id])
+    await db.execute(
+      'UPDATE "Account" SET isDeleted = 1, updatedAt = $2 WHERE id = $1 AND userId = $3',
+      [id, new Date().toISOString(), LOCAL_USER_ID]
+    )
 
     return { message: 'Счёт удалён' }
   }
