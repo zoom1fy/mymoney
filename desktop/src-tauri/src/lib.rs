@@ -79,6 +79,10 @@ pub fn run() {
                 migrator.run(&pool).await?;
                 pool.close().await;
                 Ok::<(), Box<dyn std::error::Error>>(())
+            })
+            .map_err(|e| {
+                eprintln!("[mymoney] failed to run database migrations: {e}");
+                e
             })?;
 
             Ok(())
