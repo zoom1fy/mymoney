@@ -7,12 +7,12 @@ const frontendDir = path.resolve(
   '../../frontend'
 )
 
-const script = process.argv[2] === 'build' ? 'build:desktop' : 'dev:desktop'
+const frontendScript = process.argv[2] === 'build' ? 'build:desktop' : 'dev:desktop'
 
-const result = spawnSync('bun', ['run', script], {
+const spawnResult = spawnSync('bun', ['run', frontendScript], {
   stdio: 'inherit',
   shell: true,
   cwd: frontendDir
 })
 
-process.exit(result.status ?? 1)
+process.exit(spawnResult.status ?? 1)
