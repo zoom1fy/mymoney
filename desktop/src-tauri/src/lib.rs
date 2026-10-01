@@ -37,6 +37,13 @@ fn migrations() -> Vec<SqlxMigration> {
             MigrationType::ReversibleUp,
             include_str!("../migrations/0003_exchange_rates.sql").into(),
             false,
+        ),
+        SqlxMigration::new(
+            4,
+            "transaction_balance_triggers".into(),
+            MigrationType::ReversibleUp,
+            include_str!("../migrations/0004_transaction_balance_triggers.sql").into(),
+            false,
         )
     ]
 }
