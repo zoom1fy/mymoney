@@ -55,19 +55,20 @@ jobs:
           releaseName: "MyMoney ${{ github.ref_name }}"
           releaseDraft: true
 
-  notify:
-    name: Notify
+  notify-failure:
+    name: Notify on failure
     needs: [desktop-build]
-    if: always()
+    # Skipped on success: only a broken tag build reaches Telegram.
+    if: failure()
     runs-on: ubuntu-latest
     steps:
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
+        continue-on-error: true
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
             🔖 Release ${{ github.ref_name }} — ${{ needs.desktop-build.result }}
             📦 Repository: ${{ github.repository }}
-            🖥 Matrix: ${{ needs.desktop-build.job }}/${{ strategy.job-index }}
             🔗 View: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

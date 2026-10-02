@@ -139,22 +139,37 @@ jobs:
           path: desktop/src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
 
-  notify:
-    name: Notify
+  notify-failure:
+    name: Notify on failure
     needs: [backend-ci, frontend-ci, desktop-build]
-    if: always()
+    # `failure` (not `always`) is what keeps successful runs silent: the job is
+    # skipped unless one of the needed jobs actually broke.
+    if: failure()
     runs-on: ubuntu-latest
     steps:
-      - name: Determine overall status
+      - name: Collect failed jobs
         id: status
+        # Results are passed through env instead of inlined as `${{ }}` so the
+        # script body stays free of expression interpolation.
+        env:
+          BACKEND_RESULT: ${{ needs.backend-ci.result }}
+          FRONTEND_RESULT: ${{ needs.frontend-ci.result }}
+          DESKTOP_RESULT: ${{ needs.desktop-build.result }}
         run: |
-          if [ "${{ needs.backend-ci.result }}" = "success" ] && [ "${{ needs.frontend-ci.result }}" = "success" ] && [ "${{ needs.desktop-build.result }}" = "success" ]; then
-            echo "STATUS=✅ CI passed" >> $GITHUB_OUTPUT
-          else
-            echo "STATUS=❌ CI failed" >> $GITHUB_OUTPUT
-          fi
+          failed=""
+          [ "$BACKEND_RESULT" = "failure" ] && failed="${failed}Backend CI, "
+          [ "$FRONTEND_RESULT" = "failure" ] && failed="${failed}Frontend CI, "
+          [ "$DESKTOP_RESULT" = "failure" ] && failed="${failed}Desktop Build, "
+          {
+            echo "### ❌ CI failed"
+            echo ""
+            echo "Failed: ${failed%, }"
+          } >> "$GITHUB_OUTPUT"
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
+        # A broken notifier must never turn a red build into a confusing double
+        # failure, so this step is allowed to fail on its own.
+        continue-on-error: true
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
