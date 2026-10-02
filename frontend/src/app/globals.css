@@ -1,11 +1,9 @@
 @import 'tailwindcss';
 @import "tw-animate-css";
+@import "react-day-picker/style.css";
 
 /* Dark mode по class (next-themes) */
 @custom-variant dark (&:where(.dark, .dark *));
-
-/* Импорты */
-/* @import "react-day-picker/dist/style.css"; */
 
 /* Shadcn-совместимые переменные в :root и .dark */
 @layer base {
@@ -286,17 +284,4 @@
   outline: none !important;
   box-shadow: none !important;
   border: none !important;
-}
-
-@media (max-width: 756px) {
-
-  /* Главный контейнер, где лежат [Пресеты | Календари] */
-  .ant-picker-dropdown .ant-picker-range-wrapper {
-    flex-direction: column !important;
-  }
-
-  /* Убираем лишние отступы у панелей календаря */
-  .ant-picker-panels {
-    flex-direction: column !important;
-  }
 }
