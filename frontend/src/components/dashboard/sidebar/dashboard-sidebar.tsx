@@ -1,6 +1,8 @@
 'use client'
 
 import { Wallet } from 'lucide-react'
+
+import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import {
   Sidebar,
   SidebarContent,
@@ -15,12 +17,12 @@ import {
 
 import {
   AccountCategoryEnum,
+  IAccount,
   accountCategories,
-  accountCategoryNameMap,
-  IAccount
+  accountCategoryNameMap
 } from '@/types/account.type'
 
-import { useDashboard } from '@/components/dashboard/dashboard-provider'
+import { useAppVersion } from '@/hooks/use-app-version'
 
 import { ScrollArea } from '../../ui/shadui/scroll-area'
 import { AccountCard } from './account-card'
@@ -29,6 +31,7 @@ import { AccountModal } from './account-modal'
 
 export function DashboardSidebar() {
   const { accounts, isLoading } = useDashboard()
+  const appVersion = useAppVersion()
 
   const groupedAccounts = accounts.reduce<
     Record<AccountCategoryEnum, IAccount[]>
@@ -70,7 +73,10 @@ export function DashboardSidebar() {
         <ScrollArea className="flex-1 px-3 py-2">
           {isLoading &&
             accountCategories.map(category => (
-              <SidebarGroup className="py-2" key={`skeleton-${category}`}>
+              <SidebarGroup
+                className="py-2"
+                key={`skeleton-${category}`}
+              >
                 <SidebarGroupLabel className="px-3 text-base font-semibold text-foreground/80">
                   <div className="h-4 w-20 bg-muted/40 rounded-full animate-pulse" />
                 </SidebarGroupLabel>
@@ -125,6 +131,12 @@ export function DashboardSidebar() {
             <AccountModal />
           </SidebarMenuItem>
         </SidebarMenu>
+
+        {appVersion && (
+          <p className="px-4 pb-1 text-center text-xs text-muted-foreground">
+            Версия {appVersion}
+          </p>
+        )}
       </SidebarFooter>
     </Sidebar>
   )

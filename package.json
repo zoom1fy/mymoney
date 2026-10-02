@@ -1,0 +1,10 @@
+{
+  "name": "mymoney",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "version": "node scripts/app-version.mjs",
+    "version:set": "node scripts/app-version.mjs --set",
+    "version:check": "node scripts/app-version.mjs --check"
+  }
+}
