@@ -18,18 +18,17 @@ export function CategoryToggle({ isExpense, onChange }: Props) {
       )}
       onClick={() => onChange(!isExpense)}
     >
-      {/* Animated slider that follows active state */}
+      {/* Позиция пилюли задаётся классом, а не style-пропом: CSP десктопного
+          приложения блокирует inline-стили из SSR-разметки, и translate не применялся. */}
       <div
         className={cn(
           'absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full',
-          'bg-primary transition-transform duration-500',
+          'bg-primary transition-[translate] duration-500',
           'ease-[cubic-bezier(0.2,0.8,0.2,1.1)]',
           'shadow-[0_2px_8px_rgba(0,0,0,0.14)]',
-          'hover:scale-105 group-active:scale-[0.98]'
+          'hover:scale-105 group-active:scale-[0.98]',
+          isExpense ? 'translate-x-full' : 'translate-x-0'
         )}
-        style={{
-          transform: isExpense ? 'translateX(99%)' : 'translateX(1%)'
-        }}
       />
 
       {/* Income label */}
