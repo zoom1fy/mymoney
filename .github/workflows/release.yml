@@ -142,8 +142,9 @@ jobs:
         run: bun install --frozen-lockfile
         working-directory: frontend
 
-      # Uploading to the pre-created draft keeps every matrix job off the
-      # release-creation path; the assets only go live when publish-release runs.
+      # releaseId targets the draft created above. tagName + releaseDraft are a
+      # fallback: if the releaseId output is ever empty, the action still finds
+      # the existing draft by tag instead of silently skipping the asset upload.
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -151,6 +152,8 @@ jobs:
           projectPath: desktop
           args: ${{ matrix.args }}
           releaseId: ${{ needs.create-release.outputs.release_id }}
+          tagName: ${{ github.ref_name }}
+          releaseDraft: true
 
   publish-release:
     name: Publish Release
