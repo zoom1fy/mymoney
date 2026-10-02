@@ -5,6 +5,10 @@
 *.mjs text eol=lf
 *.mts text eol=lf
 
+# SQL migrations are embedded via include_str! and checksummed by sqlx;
+# CRLF checkout on Windows would silently change the checksum and crash startup
+*.sql text eol=lf
+
 # Text files
 *.ts text
 *.tsx text

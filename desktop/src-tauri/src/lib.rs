@@ -82,6 +82,14 @@ pub fn run() {
             })
             .map_err(|e| {
                 eprintln!("[mymoney] failed to run database migrations: {e}");
+                // A GUI build has no console, so persist the reason where it can
+                // be found instead of only printing to the swallowed stderr.
+                if let Ok(dir) = app.path().app_local_data_dir() {
+                    let _ = std::fs::write(
+                        dir.join("mymoney-startup-error.log"),
+                        format!("failed to run database migrations: {e}\n"),
+                    );
+                }
                 e
             })?;
 
