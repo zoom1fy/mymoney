@@ -16,7 +16,7 @@ export function DashboardShell({
         <DashboardSidebar />
         <SidebarInset>
           <DashboardHeader />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-10">
+          <main className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-6 lg:p-10">
             {children}
           </main>
         </SidebarInset>

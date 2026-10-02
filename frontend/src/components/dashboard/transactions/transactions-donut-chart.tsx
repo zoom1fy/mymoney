@@ -27,7 +27,7 @@ export function TransactionsDonutChart({
 }: Props) {
   return (
     /* Recharts donut chart with empty-state fallback and loading skeletons */
-    <div className="space-y-6 min-w-0">
+    <div className="flex grow flex-col gap-6 min-w-0">
       {' '}
       <div className="flex justify-center">
         {isLoading ? (
@@ -39,7 +39,7 @@ export function TransactionsDonutChart({
           />
         )}
       </div>
-      <div className="relative h-[300px] sm:h-[450px] w-full">
+      <div className="relative h-[300px] w-full grow shrink-0 sm:h-[450px]">
         {isLoading ? (
           <TransactionsDonutChartSkeleton />
         ) : (

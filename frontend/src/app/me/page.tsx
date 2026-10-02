@@ -45,21 +45,21 @@ export default function DashboardPage() {
   const { data: modalTransactions = [] } =
     useTransactionsForPeriod(modalRange.from, modalRange.to, isTransactionListOpen)
 
-  return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-8 xl:flex-row xl:gap-8">
-        <div className="flex-1 min-w-0 rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
+return (
+    <div className="flex grow flex-col">
+      <div className="flex grow flex-col gap-8 xl:flex-row xl:gap-8">
+        <div className="flex grow min-w-0 flex-col rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
           <TransactionsDonutChart
             donutData={donutData}
             isExpense={isExpense}
             isLoading={isLoading}
             range={{ from: new Date(from), to: new Date(to) }}
             total={total}
-            onRangeChange={(range) => setRange(range.from, range.to)}
+            onRangeChange={range => setRange(range.from, range.to)}
           />
         </div>
 
-        <div className="w-full shrink-0 space-y-4 xl:w-[460px]">
+        <div className="flex w-full shrink-0 flex-col xl:w-[460px]">
           <CategoriesPanel
             categories={categories}
             donutData={donutData}
