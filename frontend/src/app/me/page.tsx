@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
+      <div className="flex flex-col gap-8 xl:flex-row xl:gap-8">
         <div className="flex-1 min-w-0 rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
           <TransactionsDonutChart
             donutData={donutData}
@@ -59,7 +59,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="w-full lg:w-[460px] shrink-0 space-y-4">
+        <div className="w-full shrink-0 space-y-4 xl:w-[460px]">
           <CategoriesPanel
             categories={categories}
             donutData={donutData}

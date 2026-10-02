@@ -104,9 +104,9 @@ export function DateRangePicker({ value, onChange }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-2 items-center">
+    <div className="flex w-full flex-col items-center gap-2">
       {/* Presets */}
-      <div className="grid grid-cols-4 gap-2 w-full sm:w-auto">
+      <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
         {presets.map(p => {
           const isActive = currentPreset === p.key
 
@@ -129,9 +129,10 @@ export function DateRangePicker({ value, onChange }: Props) {
       </div>
 
       {/* Arrows + Picker */}
-      <div className="flex items-center gap-2">
+      <div className="flex w-full items-center justify-center gap-1 sm:gap-2">
         <Button
           aria-label="Предыдущий период"
+          className="shrink-0"
           size="icon"
           variant="outline"
           onClick={() => shiftRange(-1)}
@@ -142,7 +143,7 @@ export function DateRangePicker({ value, onChange }: Props) {
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
-              className="w-[240px] cursor-pointer justify-between font-normal tabular-nums"
+              className="min-w-0 flex-1 cursor-pointer justify-between font-normal tabular-nums sm:w-[240px] sm:flex-none"
               variant="outline"
             >
               <span>{format(value.from, displayFormat, { locale: ru })}</span>
@@ -153,7 +154,7 @@ export function DateRangePicker({ value, onChange }: Props) {
 
           <PopoverContent
             align="end"
-            className="w-auto p-0 border border-border bg-card shadow-2xl rounded-2xl overflow-x-auto"
+            className="w-auto rounded-2xl border border-border bg-card p-0 shadow-2xl"
           >
             <Calendar
               className="p-3"
@@ -175,6 +176,7 @@ export function DateRangePicker({ value, onChange }: Props) {
 
         <Button
           aria-label="Следующий период"
+          className="shrink-0"
           size="icon"
           variant="outline"
           onClick={() => shiftRange(1)}
