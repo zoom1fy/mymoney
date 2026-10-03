@@ -97,12 +97,14 @@ mymoney/
 │   └── Dockerfile(.dev/.prod)
 ├── nginx/
 │   └── nginx.conf               # Обратный прокси (frontend + API)
-├── docker-compose.yml           # Весь стек (PostgreSQL, backend, frontend, nginx, Adminer)
-├── docker-compose.dev.yml       # Dev-расширения (порты, volumes)
-├── docker-compose.prod.yml      # Prod-расширения
-
-├── deploy.sh                    # Скрипт деплоя (macOS/Linux)
-├── deploy.bat                   # Скрипт деплоя (Windows)
+├── compose.yaml                 # Точка входа Compose (подключает deploy/compose.yml)
+├── deploy/
+│   ├── compose.yml              # Весь стек (PostgreSQL, backend, frontend, nginx, Adminer)
+│   ├── compose.dev.yml          # Dev-расширения (порты, volumes)
+│   ├── compose.prod.yml         # Prod-расширения
+│   ├── compose.ci.yml           # BuildKit-кэш слоёв только для CI
+│   ├── deploy.sh                # Скрипт деплоя (macOS/Linux)
+│   └── deploy.bat               # Скрипт деплоя (Windows)
 └── Insomnia_mymoney.yaml        # Коллекция API-запросов для Insomnia
 ```
 
@@ -149,16 +151,16 @@ SMTP_TLS=true
 
 ```bash
 # macOS / Linux
-./deploy.sh
+./deploy/deploy.sh
 
 # Windows
-deploy.bat
+deploy\deploy.bat
 ```
 
 Или вручную:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d
 ```
 
 
@@ -252,12 +254,19 @@ npm run lint
 ```
 
 ### Docker
+
+Точка входа — `compose.yaml` в корне репозитория; оверрайды окружений лежат в `deploy/`.
+
 ```bash
-docker compose up -d --build
-docker compose logs -f backend
-docker compose down
-docker compose down -v   # Сброс БД
+COMPOSE="docker compose -f compose.yaml -f deploy/compose.dev.yml"
+
+$COMPOSE up -d --build
+$COMPOSE logs -f backend
+$COMPOSE down
+$COMPOSE down -v   # Сброс БД
 ```
+
+Чтобы запустить прод-стек, замените `compose.dev.yml` на `compose.prod.yml`.
 
 ## База данных
 

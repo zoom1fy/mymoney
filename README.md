@@ -97,12 +97,14 @@ mymoney/
 │   └── Dockerfile(.dev/.prod)
 ├── nginx/
 │   └── nginx.conf               # Reverse proxy (frontend + API)
-├── docker-compose.yml           # Full stack (PostgreSQL, backend, frontend, nginx, Adminer)
-├── docker-compose.dev.yml       # Dev overrides (ports, volumes)
-├── docker-compose.prod.yml      # Prod overrides
-
-├── deploy.sh                    # Deploy script (macOS/Linux)
-├── deploy.bat                   # Deploy script (Windows)
+├── compose.yaml                 # Compose entry point (includes deploy/compose.yml)
+├── deploy/
+│   ├── compose.yml              # Full stack (PostgreSQL, backend, frontend, nginx, Adminer)
+│   ├── compose.dev.yml          # Dev overrides (ports, volumes)
+│   ├── compose.prod.yml         # Prod overrides
+│   ├── compose.ci.yml           # CI-only BuildKit layer caches
+│   ├── deploy.sh                # Deploy script (macOS/Linux)
+│   └── deploy.bat               # Deploy script (Windows)
 └── Insomnia_mymoney.yaml        # API collection for Insomnia
 ```
 
@@ -149,16 +151,16 @@ SMTP_TLS=true
 
 ```bash
 # macOS / Linux
-./deploy.sh
+./deploy/deploy.sh
 
 # Windows
-deploy.bat
+deploy\deploy.bat
 ```
 
 Or manually:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d
 ```
 
 
@@ -252,12 +254,20 @@ npm run lint
 ```
 
 ### Docker
+
+`compose.yaml` in the repository root is the entry point; environment-specific
+overrides live in `deploy/`.
+
 ```bash
-docker compose up -d --build
-docker compose logs -f backend
-docker compose down
-docker compose down -v   # Reset DB
+COMPOSE="docker compose -f compose.yaml -f deploy/compose.dev.yml"
+
+$COMPOSE up -d --build
+$COMPOSE logs -f backend
+$COMPOSE down
+$COMPOSE down -v   # Reset DB
 ```
+
+Swap `compose.dev.yml` for `compose.prod.yml` to run the production stack.
 
 ## Database
 
