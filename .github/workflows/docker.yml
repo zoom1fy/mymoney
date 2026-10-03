@@ -10,6 +10,9 @@ concurrency:
 
 env:
   DOCKER_DEFAULT_PLATFORM: linux/amd64
+  # Explicit because the layer caches in deploy/compose.ci.yml are only consulted
+  # when the build runs through BuildKit.
+  DOCKER_BUILDKIT: "1"
 
 jobs:
   docker-integration:
@@ -44,66 +47,67 @@ jobs:
           DOCKER_DEFAULT_PLATFORM=linux/amd64
           EOF
 
-      - name: Build production images
-        run: |
-          docker compose -f docker-compose.yml -f docker-compose.prod.yml build backend frontend
+      - name: Set compose alias
+        # deploy/compose.ci.yml only adds the type=gha layer cache backends.
+        run: echo "COMPOSE=docker compose -f compose.yaml -f deploy/compose.prod.yml -f deploy/compose.ci.yml" >> "$GITHUB_ENV"
 
-      - name: Start production stack
+      - name: Build and start production stack
+        # One invocation instead of a separate `build` followed by `up`, so the
+        # images under test are exactly the ones just built. `adminer` is left
+        # out on purpose: nothing in the smoke test talks to it.
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+          $COMPOSE up -d --build db redis backend frontend nginx
 
       - name: Wait for healthy containers
         run: |
           for i in $(seq 1 60); do
-            unhealthy=$(docker compose -f docker-compose.yml -f docker-compose.prod.yml ps \
-              | grep -E "unhealthy|starting|exited" || true)
-            if [ -z "$unhealthy" ]; then
-              echo "All containers healthy after ${i} attempts"
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://localhost:3001/ || true)
+            if [ "$status" = "200" ]; then
+              echo "Stack is serving HTTP 200 after ${i} attempts"
               exit 0
             fi
-            echo "attempt ${i}: waiting ($(echo $unhealthy | tr '\n' ' '))"
+            # Container states are sampled every 5th iteration only: it still
+            # fails fast on a crashed service, but stops spawning a compose
+            # subprocess on every single poll.
+            if [ $((i % 5)) -eq 0 ]; then
+              broken=$($COMPOSE ps --format '{{.Service}} {{.State}} {{.Health}}' \
+                | grep -E 'exited|unhealthy' || true)
+              if [ -n "$broken" ]; then
+                echo "❌ Container not healthy:"
+                echo "$broken"
+                exit 1
+              fi
+            fi
+            echo "attempt ${i}: http=${status}"
             sleep 2
           done
-          echo "❌ Containers did not become healthy in time"
-          exit 1
-
-      - name: Smoke test
-        run: |
-          for i in $(seq 1 60); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/ || true)
-            if [ "$status" = "200" ]; then
-              echo "✅ Smoke test passed on attempt ${i}: nginx returned $status"
-              exit 0
-            fi
-            echo "attempt ${i}: nginx not ready yet ($status)"
-            sleep 3
-          done
-          echo "❌ Smoke test failed: nginx never returned 200"
+          echo "❌ Stack did not become healthy in time"
+          $COMPOSE ps
           exit 1
 
       - name: Show logs if failed
         if: failure()
-        run: |
-          docker compose -f docker-compose.yml -f docker-compose.prod.yml logs
+        run: $COMPOSE logs
 
       - name: Stop containers
         if: always()
-        run: |
-          docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v
+        run: $COMPOSE down -v
 
-  notify:
-    name: Notify
+  notify-failure:
+    name: Notify on failure
     needs: [docker-integration]
-    if: always()
+    # Skipped on success, so the Telegram message only fires on a broken stack.
+    if: failure()
     runs-on: ubuntu-latest
     steps:
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
+        continue-on-error: true
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            🐳 Docker ${{ needs.docker-integration.result }}
+            🐳 Docker integration ${{ needs.docker-integration.result }}
             📦 Repository: ${{ github.repository }}
             🌿 Branch: ${{ github.ref_name }}
             👤 Author: ${{ github.actor }}

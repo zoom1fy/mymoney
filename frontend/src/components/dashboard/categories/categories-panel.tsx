@@ -29,8 +29,8 @@ export function CategoriesPanel({
   const [isEditMode, setIsEditMode] = useState(false)
 
   return (
-    <div className="w-full">
-      <div className="rounded-2xl border bg-card/50 backdrop-blur-sm p-6 space-y-6">
+    <div className="flex w-full grow flex-col">
+      <div className="flex flex-1 flex-col gap-6 rounded-2xl border bg-card/50 backdrop-blur-sm p-6">
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <CategoryToggle

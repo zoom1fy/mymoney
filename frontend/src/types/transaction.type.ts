@@ -30,5 +30,11 @@ export interface ITransactionResponse {
   nextCursor: number | null
 }
 
-// Partial update — only changed fields are sent to PATCH /api/transactions/:id
-export type IUpdateTransaction = Partial<ICreateTransaction>
+// Partial update — only changed fields are sent to PATCH /api/transactions/:id.
+// `number` sets a link, `null` clears it, `undefined` leaves it unchanged.
+export type IUpdateTransaction = Partial<
+  Omit<ICreateTransaction, 'categoryId' | 'targetAccountId'>
+> & {
+  categoryId?: number | null
+  targetAccountId?: number | null
+}

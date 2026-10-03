@@ -1,19 +1,24 @@
 'use client'
 
-import { LeftOutlined, RightOutlined } from '@ant-design/icons'
-import Button from 'antd/es/button'
-import ConfigProvider from 'antd/es/config-provider'
-import DatePicker from 'antd/es/date-picker'
-import theme from 'antd/es/theme'
-import ruRU from 'antd/locale/ru_RU'
+import { format } from 'date-fns'
+import { ru } from 'date-fns/locale'
 import dayjs, { Dayjs } from 'dayjs'
 import 'dayjs/locale/ru'
-import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
+import type { DayPickerLocale } from 'react-day-picker/locale'
+
+import { Button } from '@/components/ui/shadui/button'
+import { Calendar } from '@/components/ui/shadui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/shadui/popover'
+
+import { cn } from '@/lib/cn'
 
 dayjs.locale('ru')
-
-const { RangePicker } = DatePicker
 
 interface Props {
   value: {
@@ -31,6 +36,8 @@ const presets = [
 ] as const
 
 type PresetKey = (typeof presets)[number]['key']
+
+const displayFormat = 'dd.MM.yyyy'
 
 function getPresetFromRange(from: Dayjs, to: Dayjs): PresetKey | null {
   if (from.isSame(from.startOf('day')) && to.isSame(from.endOf('day')))
@@ -50,12 +57,7 @@ function getPresetFromRange(from: Dayjs, to: Dayjs): PresetKey | null {
 
 // Preset-based date picker with dayjs; detects which preset matches the current range for highlight
 export function DateRangePicker({ value, onChange }: Props) {
-  const { resolvedTheme } = useTheme()
-  const [isMounted, setIsMounted] = useState(false)
-
-  useEffect(() => setIsMounted(true), [])
-
-  const isDark = isMounted && resolvedTheme === 'dark'
+  const [open, setOpen] = useState(false)
 
   const fromD = dayjs(value.from)
   const toD = dayjs(value.to)
@@ -102,73 +104,86 @@ export function DateRangePicker({ value, onChange }: Props) {
   }
 
   return (
-    <ConfigProvider
-      locale={ruRU}
-      theme={{
-        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: {
-          colorPrimary: isDark ? '#9B6CFF' : '#7C3AED'
-        }
-      }}
-    >
-      <div className="flex flex-col gap-2 items-center">
-        {/* Presets */}
-        <div className="grid grid-cols-4 gap-2 w-full sm:w-auto">
-          {' '}
-          {presets.map(p => {
-            const isActive = currentPreset === p.key
+    <div className="flex w-full flex-col items-center gap-2">
+      {/* Presets */}
+      <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
+        {presets.map(p => {
+          const isActive = currentPreset === p.key
 
-            return (
-              <Button
-                className={`
-          h-9 px-4 rounded-lg text-sm font-medium
-          border transition-all
-          ${
-            isActive
-              ? 'bg-primary text-primary-foreground border-primary shadow-md'
-              : 'bg-muted/40 border-border hover:bg-accent/10 hover:border-accent/40'
-          }
-        `}
-                key={p.key}
-                type={isActive ? 'primary' : 'default'}
-                onClick={() => applyPreset(p.key)}
-              >
-                {p.label}
-              </Button>
-            )
-          })}
-        </div>
-
-        {/* Arrows + Picker */}
-        <div className="flex items-center gap-2">
-          <Button
-            icon={<LeftOutlined />}
-            onClick={() => shiftRange(-1)}
-          />
-
-          <RangePicker
-            allowClear={false}
-            className="w-[220px] cursor-pointer"
-            format="DD.MM.YYYY"
-            placement="bottomRight"
-            value={[fromD, toD]}
-            onChange={dates => {
-              if (!dates) return
-              const [from, to] = dates
-              if (!from || !to) return
-              onChange({
-                from: from.startOf('day').toDate(),
-                to: to.endOf('day').toDate()
-              })
-            }}
-          />
-
-          <Button
-            icon={<RightOutlined />}
-            onClick={() => shiftRange(1)}
-          />
-        </div>
+          return (
+            <Button
+              className={cn(
+                'h-9 px-4 rounded-lg text-sm font-medium',
+                'border transition-all',
+                isActive
+                  ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                  : 'bg-muted/40 border-border hover:bg-accent/10 hover:border-accent/40'
+              )}
+              key={p.key}
+              onClick={() => applyPreset(p.key)}
+            >
+              {p.label}
+            </Button>
+          )
+        })}
       </div>
-    </ConfigProvider>
+
+      {/* Arrows + Picker */}
+      <div className="flex w-full items-center justify-center gap-1 sm:gap-2">
+        <Button
+          aria-label="Предыдущий период"
+          className="shrink-0"
+          size="icon"
+          variant="outline"
+          onClick={() => shiftRange(-1)}
+        >
+          <ChevronLeft className="size-4" />
+        </Button>
+
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              className="min-w-0 flex-1 cursor-pointer justify-between font-normal tabular-nums sm:w-[240px] sm:flex-none"
+              variant="outline"
+            >
+              <span>{format(value.from, displayFormat, { locale: ru })}</span>
+              <span className="text-muted-foreground">—</span>
+              <span>{format(value.to, displayFormat, { locale: ru })}</span>
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent
+            align="end"
+            className="w-auto rounded-2xl border border-border bg-card p-0 shadow-2xl"
+          >
+            <Calendar
+              className="p-3"
+              locale={ru as unknown as DayPickerLocale}
+              mode="range"
+              numberOfMonths={2}
+              selected={{ from: value.from, to: value.to }}
+              onSelect={range => {
+                if (!range?.from || !range?.to) return
+                onChange({
+                  from: dayjs(range.from).startOf('day').toDate(),
+                  to: dayjs(range.to).endOf('day').toDate()
+                })
+                setOpen(false)
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+
+        <Button
+          aria-label="Следующий период"
+          className="shrink-0"
+          size="icon"
+          variant="outline"
+          onClick={() => shiftRange(1)}
+        >
+          <ChevronRight className="size-4" />
+        </Button>
+      </div>
+    </div>
   )
 }

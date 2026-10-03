@@ -1,8 +1,6 @@
 import { Metadata } from 'next'
 
 import { noIndexPage } from '@/constants/seo.constants'
-import { dashboardPages } from '@/config/pages-url.config'
-import { DesktopRedirect } from '@/components/desktop-redirect'
 
 import { Auth } from './auth-form'
 
@@ -13,11 +11,6 @@ export const metadata: Metadata = {
 }
 
 export default function AuthPage() {
-  return (
-    <>
-      {/* No registration in the desktop build — bounce to the dashboard */}
-      <DesktopRedirect to={dashboardPages.HOME} />
-      <Auth />
-    </>
-  )
+  // The desktop build strips this route entirely, so it is web-only
+  return <Auth />
 }

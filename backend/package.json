@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "author": "",
   "private": true,
@@ -13,6 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -22,8 +23,8 @@
     "prisma:migrate": "prisma-next migrate",
     "prisma:migrate:dev": "prisma-next migration plan",
     "prisma:verify": "prisma-next db verify",
-    "docker:start": "./docker-entrypoint.sh npm run start:prod",
-    "docker:start:dev": "./docker-entrypoint.sh npm run start:dev"
+    "docker:start": "sh ./docker-entrypoint.sh npm run start:prod",
+    "docker:start:dev": "sh ./docker-entrypoint.sh npm run start:dev"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",

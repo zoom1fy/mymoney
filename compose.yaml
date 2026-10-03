@@ -1,0 +1,7 @@
+# Main entry from root for plain `docker compose up|down|logs`.
+# For env overrides (requires Compose v2.20+), layer them explicitly:
+# docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d
+name: mymoney
+include:
+  - path: deploy/compose.yml
+    project_directory: .

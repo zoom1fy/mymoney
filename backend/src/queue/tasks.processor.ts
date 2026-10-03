@@ -13,7 +13,7 @@ interface SeedUserJobData {
   userId: string;
 }
 
-type TasksJobData = SendEmailJobData | SeedUserJobData;
+export type TasksJobData = SendEmailJobData | SeedUserJobData;
 
 @Processor('tasks')
 export class TasksProcessor extends WorkerHost {

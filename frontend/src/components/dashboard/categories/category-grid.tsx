@@ -40,7 +40,7 @@ export function CategoryGrid({
 
   return (
     <>
-      <div className="h-[560px] overflow-y-auto pr-2 pt-1">
+      <div className="h-[560px] grow overflow-y-auto pr-2 pt-1">
         <div className="grid grid-cols-3 gap-6">
           {isLoading
             ? // Loading state: show skeleton placeholders

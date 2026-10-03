@@ -1,0 +1,29 @@
+# CI-only layer cache backends, referenced solely from
+# .github/workflows/docker.yml so local and deploy builds stay unaffected.
+#
+# Scopes are per-service: a shared scope would make the three builds overwrite
+# each other's cache entries.
+services:
+  db:
+    build:
+      context: ./db
+      cache_from:
+        - type=gha,scope=db
+      cache_to:
+        - type=gha,mode=max,scope=db
+
+  backend:
+    build:
+      context: ./backend
+      cache_from:
+        - type=gha,scope=backend
+      cache_to:
+        - type=gha,mode=max,scope=backend
+
+  frontend:
+    build:
+      context: ./frontend
+      cache_from:
+        - type=gha,scope=frontend
+      cache_to:
+        - type=gha,mode=max,scope=frontend

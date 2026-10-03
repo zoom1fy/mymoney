@@ -37,24 +37,9 @@ function mapTx(row: TxRow): ITransaction {
   }
 }
 
-// Applies a signed delta to an account balance, mirroring the web backend.
-// Statements run sequentially without a wrapping SQL transaction because
-// tauri-plugin-sql exposes no cross-statement transaction API; the database is
-// embedded and single-user, so the failure window only affects crash recovery.
-async function adjustBalance(accountId: number, delta: number): Promise<void> {
-  const db = await getDb()
-  const rows = await db.select<TxRow[]>(
-    'SELECT currentBalance FROM "Account" WHERE id = $1 AND userId = $2',
-    [accountId, LOCAL_USER_ID]
-  )
-  if (!rows[0]) throw new Error('Аккаунт не найден')
-
-  await db.execute('UPDATE "Account" SET currentBalance = $1 WHERE id = $2', [
-    money(Number(rows[0].currentBalance) + delta),
-    accountId
-  ])
-}
-
+// Account balances are kept in sync by SQL triggers (migration 0004), so the
+// statements below only touch the "Transaction" table. This keeps the balance
+// update atomic with the row mutation without needing a client-side transaction.
 async function getOwnedAccount(id: number): Promise<TxRow> {
   const db = await getDb()
   const rows = await db.select<TxRow[]>(
@@ -87,26 +72,6 @@ async function findOwnedById(id: number): Promise<ITransaction | null> {
   return rows[0] ? mapTx(rows[0]) : null
 }
 
-// Reverts or applies a transaction's balance effect; shared by update and delete
-async function applyEffect(
-  type: TransactionType,
-  accountId: number,
-  targetAccountId: number | null | undefined,
-  amount: number,
-  direction: 1 | -1
-): Promise<void> {
-  if (type === TransactionType.INCOME) {
-    await adjustBalance(accountId, direction * amount)
-  } else if (type === TransactionType.EXPENSE) {
-    await adjustBalance(accountId, -direction * amount)
-  } else if (type === TransactionType.TRANSFER) {
-    await adjustBalance(accountId, -direction * amount)
-    if (targetAccountId) {
-      await adjustBalance(targetAccountId, direction * amount)
-    }
-  }
-}
-
 export const transactionLocalService = {
   async create(data: ICreateTransaction): Promise<ITransaction> {
     const account = await getOwnedAccount(data.accountId)
@@ -133,15 +98,6 @@ export const transactionLocalService = {
 
       const target = await getOwnedAccount(data.targetAccountId)
       if (!target) throw new Error('Целевой аккаунт не найден')
-    }
-
-    if (data.type === TransactionType.INCOME) {
-      await adjustBalance(data.accountId, value)
-    } else if (data.type === TransactionType.EXPENSE) {
-      await adjustBalance(data.accountId, -value)
-    } else if (data.type === TransactionType.TRANSFER) {
-      await adjustBalance(data.accountId, -value)
-      await adjustBalance(data.targetAccountId as number, value)
     }
 
     const db = await getDb()
@@ -193,9 +149,9 @@ export const transactionLocalService = {
       params.push(cursor)
       const cursorParam = `$${params.length}`
       where += ` AND (
-        t.transactionDate < (SELECT transactionDate FROM "Transaction" WHERE id = ${cursorParam})
+        t.transactionDate < (SELECT transactionDate FROM "Transaction" WHERE id = ${cursorParam} AND userId = $1)
         OR (
-          t.transactionDate = (SELECT transactionDate FROM "Transaction" WHERE id = ${cursorParam})
+          t.transactionDate = (SELECT transactionDate FROM "Transaction" WHERE id = ${cursorParam} AND userId = $1)
           AND t.id < ${cursorParam}
         )
       )`
@@ -311,7 +267,7 @@ export const transactionLocalService = {
 
     const newAccountId = data.accountId !== undefined ? data.accountId : tx.accountId
     const newTargetAccountId =
-      data.targetAccountId !== undefined ? data.targetAccountId : tx.targetAccountId
+      data.targetAccountId !== undefined ? data.targetAccountId : tx.targetAccountId ?? null
 
     for (const accountId of [newAccountId, newTargetAccountId]) {
       if (accountId === null || accountId === undefined) continue
@@ -322,18 +278,10 @@ export const transactionLocalService = {
       }
     }
 
-    const oldAmount = Number(tx.amount)
-    const newAmount = data.amount !== undefined ? Number(data.amount) : oldAmount
+    const newAmount = data.amount !== undefined ? Number(data.amount) : Number(tx.amount)
     const newType = data.type ?? tx.type
-
-    await applyEffect(
-      tx.type,
-      tx.accountId,
-      tx.targetAccountId,
-      oldAmount,
-      -1
-    )
-    await applyEffect(newType, newAccountId, newTargetAccountId, newAmount, 1)
+    // `undefined` means "leave unchanged"; `null` explicitly clears the link
+    const newCategoryId = data.categoryId !== undefined ? data.categoryId : tx.categoryId ?? null
 
     const db = await getDb()
     await db.execute(
@@ -343,8 +291,8 @@ export const transactionLocalService = {
        WHERE id = $9`,
       [
         newAccountId,
-        newTargetAccountId ?? null,
-        data.categoryId ?? tx.categoryId ?? null,
+        newTargetAccountId,
+        newCategoryId,
         money(newAmount),
         data.currencyCode ?? tx.currencyCode,
         data.description !== undefined ? data.description ?? null : tx.description ?? null,
@@ -360,8 +308,6 @@ export const transactionLocalService = {
   async delete(id: number): Promise<void> {
     const tx = await findOwnedById(id)
     if (!tx) throw new Error('Транзакция не найдена')
-
-    await applyEffect(tx.type, tx.accountId, tx.targetAccountId, Number(tx.amount), -1)
 
     const db = await getDb()
     await db.execute('DELETE FROM "Transaction" WHERE id = $1', [id])

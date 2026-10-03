@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [main, develop]
+    # Tags must run the same checks before release.yml is allowed to publish.
+    tags: ["v*"]
   pull_request:
     branches: [main, develop]
 
@@ -11,6 +13,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  version-check:
+    name: Version Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Node 20 has been end-of-life since 2026-04-30.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Verify all version files are in sync
+        run: node scripts/app-version.mjs --check
+      # A tag is the release contract: its number must match the version Tauri
+      # will actually bake into the installer and expose via getVersion().
+      - name: Verify tag matches app version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          app_version="$(node -p "require('./desktop/src-tauri/tauri.conf.json').version")"
+          if [ "$tag_version" != "$app_version" ]; then
+            echo "::error::Tag version ($tag_version) does not match tauri.conf.json ($app_version)."
+            exit 1
+          fi
+          echo "Tag $GITHUB_REF_NAME matches app version $app_version."
+
   backend-ci:
     name: Backend CI
     runs-on: ubuntu-latest
@@ -18,10 +44,12 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      # Pinned to match `node:24-alpine` in Dockerfile.prod so CI exercises the
+      # runtime the container actually ships.
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
@@ -34,7 +62,7 @@ jobs:
         run: npx tsc --noEmit
       - name: Unit tests
         run: npm test -- --coverage
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: backend-coverage
@@ -49,8 +77,16 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
+      # setup-bun caches the bun binary only, leaving the package store to be
+      # re-downloaded on every run.
+      - name: Cache bun package store
+        uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Create env file
@@ -67,22 +103,143 @@ jobs:
       - name: Build
         run: bun run build
 
-  notify:
-    name: Notify
-    needs: [backend-ci, frontend-ci]
-    if: always()
+  desktop-build:
+    name: Desktop Build (${{ matrix.label }})
+    # release.yml rebuilds its own installers from the same commit, so these
+    # artifacts are never consumed. Gate the bundles to main and release tags;
+    # on PRs and develop pushes the frontend/backend jobs cover the same code.
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: windows
+            bundles: msi
+          - os: macos-latest
+            label: macos
+            bundles: dmg
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Cache bun package store
+        uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      # Keyed on a content hash of the inputs so the entry survives pushes that do
+      # not touch the frontend. No restore-keys on purpose: a partial match would
+      # hand back an export built from a different source tree.
+      - name: Restore cached static export
+        id: export-cache
+        uses: actions/cache@v5
+        with:
+          path: frontend/out
+          key: desktop-export-${{ runner.os }}-${{ hashFiles('frontend/src/**', 'frontend/public/**', 'frontend/scripts/**', 'frontend/package.json', 'frontend/bun.lock', 'frontend/next.config.ts', 'frontend/postcss.config.cjs', 'frontend/tsconfig.json') }}
+
+      - name: Set Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ./desktop/src-tauri -> target
+
+      # Required even on an export-cache hit: tauri.mjs resolves the CLI from
+      # frontend/node_modules.
+      - name: Install frontend dependencies
+        run: bun install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Build static export
+        if: steps.export-cache.outputs.cache-hit != 'true'
+        run: bun run build:desktop
+        working-directory: frontend
+
+      # tauri.ci.json blanks beforeBuildCommand so the export prepared above is
+      # reused. It has to be a file, not an inline JSON string: tauri.mjs spawns
+      # with shell:true, which strips the quotes out of `{"build":{...}}`.
+      - name: Build desktop app
+        run: bun run build --bundles ${{ matrix.bundles }} --config "${{ github.workspace }}/desktop/src-tauri/tauri.ci.json"
+
+      - name: Package portable Windows build
+        if: matrix.label == 'windows'
+        shell: pwsh
+        run: |
+          $version = (Get-Content src-tauri/tauri.conf.json | ConvertFrom-Json).version
+          $portableDir = "src-tauri/portable"
+          New-Item -ItemType Directory -Force -Path $portableDir | Out-Null
+          Copy-Item "src-tauri/target/release/mymoney.exe" "$portableDir/MyMoney.exe"
+          Compress-Archive -Path "$portableDir/MyMoney.exe" `
+            -DestinationPath "$portableDir/MyMoney_${version}_x64_portable.zip" -Force
+          Get-ChildItem $portableDir | Select-Object Name, Length
+
+      - name: Upload Windows portable
+        if: matrix.label == 'windows'
+        uses: actions/upload-artifact@v6
+        with:
+          name: mymoney-windows-portable
+          path: desktop/src-tauri/portable/*.zip
+          if-no-files-found: error
+
+      - name: Upload Windows MSI
+        if: matrix.label == 'windows'
+        uses: actions/upload-artifact@v6
+        with:
+          name: mymoney-windows-msi
+          path: desktop/src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error
+
+      - name: Upload macOS DMG
+        if: matrix.label == 'macos'
+        uses: actions/upload-artifact@v6
+        with:
+          name: mymoney-macos-dmg
+          path: desktop/src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+
+  notify-failure:
+    name: Notify on failure
+    needs: [version-check, backend-ci, frontend-ci, desktop-build]
+    # `failure` (not `always`) is what keeps successful runs silent: the job is
+    # skipped unless one of the needed jobs actually broke. Jobs turned off by an
+    # `if` report `skipped`, which does not count as failure.
+    if: failure()
     runs-on: ubuntu-latest
     steps:
-      - name: Determine overall status
+      - name: Collect failed jobs
         id: status
+        # Results are passed through env instead of inlined as `${{ }}` so the
+        # script body stays free of expression interpolation.
+        env:
+          VERSION_RESULT: ${{ needs.version-check.result }}
+          BACKEND_RESULT: ${{ needs.backend-ci.result }}
+          FRONTEND_RESULT: ${{ needs.frontend-ci.result }}
+          DESKTOP_RESULT: ${{ needs.desktop-build.result }}
         run: |
-          if [ "${{ needs.backend-ci.result }}" = "success" ] && [ "${{ needs.frontend-ci.result }}" = "success" ]; then
-            echo "STATUS=✅ CI passed" >> $GITHUB_OUTPUT
-          else
-            echo "STATUS=❌ CI failed" >> $GITHUB_OUTPUT
-          fi
+          failed=""
+          [ "$VERSION_RESULT" = "failure" ] && failed="${failed}Version Check, "
+          [ "$BACKEND_RESULT" = "failure" ] && failed="${failed}Backend CI, "
+          [ "$FRONTEND_RESULT" = "failure" ] && failed="${failed}Frontend CI, "
+          [ "$DESKTOP_RESULT" = "failure" ] && failed="${failed}Desktop Build, "
+          {
+            echo "### ❌ CI failed"
+            echo ""
+            echo "Failed: ${failed%, }"
+          } >> "$GITHUB_OUTPUT"
       - name: Send Telegram notification
         uses: appleboy/telegram-action@master
+        # A broken notifier must never turn a red build into a confusing double
+        # failure, so this step is allowed to fail on its own.
+        continue-on-error: true
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}

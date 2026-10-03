@@ -37,6 +37,13 @@ fn migrations() -> Vec<SqlxMigration> {
             MigrationType::ReversibleUp,
             include_str!("../migrations/0003_exchange_rates.sql").into(),
             false,
+        ),
+        SqlxMigration::new(
+            4,
+            "transaction_balance_triggers".into(),
+            MigrationType::ReversibleUp,
+            include_str!("../migrations/0004_transaction_balance_triggers.sql").into(),
+            false,
         )
     ]
 }
@@ -44,6 +51,14 @@ fn migrations() -> Vec<SqlxMigration> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Registered first so a second launch focuses the existing window
+        // instead of opening a competing pool on the same SQLite file.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_sql::Builder::default().build())
         .setup(|app| {
@@ -64,6 +79,18 @@ pub fn run() {
                 migrator.run(&pool).await?;
                 pool.close().await;
                 Ok::<(), Box<dyn std::error::Error>>(())
+            })
+            .map_err(|e| {
+                eprintln!("[mymoney] failed to run database migrations: {e}");
+                // A GUI build has no console, so persist the reason where it can
+                // be found instead of only printing to the swallowed stderr.
+                if let Ok(dir) = app.path().app_local_data_dir() {
+                    let _ = std::fs::write(
+                        dir.join("mymoney-startup-error.log"),
+                        format!("failed to run database migrations: {e}\n"),
+                    );
+                }
+                e
             })?;
 
             Ok(())

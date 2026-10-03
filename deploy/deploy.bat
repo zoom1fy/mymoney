@@ -1,6 +1,10 @@
 @echo off
 title Docker Compose Runner
 
+rem The Compose files are addressed relative to the repository root, so the
+rem script has to run from there regardless of the current directory.
+pushd "%~dp0.."
+
 echo ==========================================
 echo   Stopping existing containers...
 echo ==========================================
@@ -28,7 +32,7 @@ echo.
 echo ==========================================
 echo   Starting DEV environment
 echo ==========================================
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d
 goto exit
 
 :prod
@@ -36,10 +40,11 @@ echo.
 echo ==========================================
 echo   Starting PROD environment
 echo ==========================================
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+docker compose -f compose.yaml -f deploy/compose.prod.yml up --build -d
 goto exit
 
 :exit
 echo.
 echo Done!
+popd
 pause
