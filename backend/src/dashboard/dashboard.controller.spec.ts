@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DashboardController } from './dashboard.controller';
+import type { User } from '../prisma/db';
 import { UserService } from '../user/user.service';
 import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';
@@ -13,7 +14,15 @@ describe('DashboardController', () => {
   let mockCategoryService: any;
   let mockTransactionService: any;
 
-  const mockUser = { id: 'user-uuid-1' } as any;
+  // Built as a full User rather than `as any` so a new required field on the model
+  // breaks compilation here instead of turning into an unchecked value at runtime.
+  const mockUser: User = {
+    id: 'user-uuid-1',
+    email: 'test@test.com',
+    passwordHash: 'test-password-hash',
+    createdAt: new Date('2024-01-01T00:00:00.000Z'),
+    lastLogin: null,
+  };
 
   beforeEach(async () => {
     mockUserService = {
