@@ -97,6 +97,7 @@ mymoney/
 │   └── Dockerfile(.dev/.prod)
 ├── nginx/
 │   └── nginx.conf               # Reverse proxy (frontend + API)
+├── package.json                 # Root task runner: bun run dev:backend / dev:frontend / dev:desktop
 ├── compose.yaml                 # Compose entry point (includes deploy/compose.yml)
 ├── deploy/
 │   ├── compose.yml              # Full stack (PostgreSQL, backend, frontend, nginx, Adminer)
@@ -113,6 +114,7 @@ mymoney/
 ### Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine (Linux)
+- [Bun](https://bun.sh/) — to run the root scripts
 - Git
 - Free ports: `3001`, `5432`, `8080`
 
@@ -160,7 +162,7 @@ deploy\deploy.bat
 Or manually:
 
 ```bash
-docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d
+bun run docker:up
 ```
 
 
@@ -230,27 +232,42 @@ Response: `{ user: {id, email}, accessToken }` + `refresh_token` httpOnly cookie
 **Filters:** `take`, `cursor`, `accountId`, `type`, `from`, `to`
 ## Development
 
-### Backend
-```bash
-cd backend
-npm install
-npm run prisma:generate
-npm run prisma:migrate:dev
-npm run start:dev
+All commands run from the repository root through the root `package.json`.
+Run `bun run setup` once to install dependencies and generate the Prisma client.
 
-# Tests (66+ unit tests)
-npm run test          # Unit
-npm run test:cov      # With coverage
-npm run test:e2e      # E2E
-npm run lint
+### Run
+
+```bash
+bun run dev:backend    # NestJS API on :3000
+bun run dev:frontend   # Next.js on :3000
+bun run dev:desktop    # Tauri window with the embedded frontend
 ```
 
-### Frontend
+The API and the desktop app need PostgreSQL and Redis. Either start them with
+`bun run docker:up` (full stack in containers) or bring up just the services:
+
 ```bash
-cd frontend
-npm install
-npm run dev
-npm run lint
+docker compose -f compose.yaml -f deploy/compose.dev.yml up -d db redis
+```
+
+### Checks
+
+```bash
+bun run lint          # backend + frontend
+bun run typecheck     # backend + frontend
+bun run test          # backend + frontend
+bun run build         # backend + frontend + desktop
+```
+
+Per-package variants are available too: `bun run test:backend`,
+`bun run test:cov:backend`, `bun run test:e2e:backend`, `bun run lint:frontend`,
+`bun run build:desktop`.
+
+To run a script that only exists in one package, delegate to it directly:
+
+```bash
+bun run --cwd backend prisma:migrate:dev
+bun run --cwd frontend test:watch
 ```
 
 ### Docker
@@ -259,15 +276,15 @@ npm run lint
 overrides live in `deploy/`.
 
 ```bash
-COMPOSE="docker compose -f compose.yaml -f deploy/compose.dev.yml"
+bun run docker:up     # dev stack, built and detached
+bun run docker:logs   # follow logs
+bun run docker:down   # stop
 
-$COMPOSE up -d --build
-$COMPOSE logs -f backend
-$COMPOSE down
-$COMPOSE down -v   # Reset DB
+docker compose -f compose.yaml -f deploy/compose.dev.yml down -v   # Reset DB
 ```
 
 Swap `compose.dev.yml` for `compose.prod.yml` to run the production stack.
+`deploy/deploy.sh` (or `deploy\deploy.bat`) does the same interactively.
 
 ## Database
 

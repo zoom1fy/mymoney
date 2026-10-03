@@ -97,6 +97,7 @@ mymoney/
 │   └── Dockerfile(.dev/.prod)
 ├── nginx/
 │   └── nginx.conf               # Обратный прокси (frontend + API)
+├── package.json                 # Корневой раннер задач: bun run dev:backend / dev:frontend / dev:desktop
 ├── compose.yaml                 # Точка входа Compose (подключает deploy/compose.yml)
 ├── deploy/
 │   ├── compose.yml              # Весь стек (PostgreSQL, backend, frontend, nginx, Adminer)
@@ -113,6 +114,7 @@ mymoney/
 ### Требования
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) или Docker Engine (Linux)
+- [Bun](https://bun.sh/) — для запуска корневых скриптов
 - Git
 - Свободные порты: `3001`, `5432`, `8080`
 
@@ -160,7 +162,7 @@ deploy\deploy.bat
 Или вручную:
 
 ```bash
-docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d
+bun run docker:up
 ```
 
 
@@ -230,27 +232,43 @@ docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d
 **Фильтры:** `take`, `cursor`, `accountId`, `type`, `from`, `to`
 ## Разработка
 
-### Бэкенд
-```bash
-cd backend
-npm install
-npm run prisma:generate
-npm run prisma:migrate:dev
-npm run start:dev
+Все команды запускаются из корня репозитория через корневой `package.json`.
+Один раз выполни `bun run setup`, чтобы поставить зависимости и сгенерировать
+Prisma-клиент.
 
-# Тесты (66+ unit-тестов)
-npm run test          # Unit
-npm run test:cov      # С покрытием
-npm run test:e2e      # E2E
-npm run lint
+### Запуск
+
+```bash
+bun run dev:backend    # NestJS API на :3000
+bun run dev:frontend   # Next.js на :3000
+bun run dev:desktop    # окно Tauri со встроенным фронтендом
 ```
 
-### Фронтенд
+API и десктопному приложению нужны PostgreSQL и Redis. Либо подними всё
+в контейнерах через `bun run docker:up`, либо только сервисы:
+
 ```bash
-cd frontend
-npm install
-npm run dev
-npm run lint
+docker compose -f compose.yaml -f deploy/compose.dev.yml up -d db redis
+```
+
+### Проверки
+
+```bash
+bun run lint          # backend + frontend
+bun run typecheck     # backend + frontend
+bun run test          # backend + frontend
+bun run build         # backend + frontend + desktop
+```
+
+Доступны и варианты для отдельных пакетов: `bun run test:backend`,
+`bun run test:cov:backend`, `bun run test:e2e:backend`, `bun run lint:frontend`,
+`bun run build:desktop`.
+
+Скрипт, который есть только в одном пакете, запускается напрямую:
+
+```bash
+bun run --cwd backend prisma:migrate:dev
+bun run --cwd frontend test:watch
 ```
 
 ### Docker
@@ -258,15 +276,15 @@ npm run lint
 Точка входа — `compose.yaml` в корне репозитория; оверрайды окружений лежат в `deploy/`.
 
 ```bash
-COMPOSE="docker compose -f compose.yaml -f deploy/compose.dev.yml"
+bun run docker:up     # dev-стек, собранный и запущенный в фоне
+bun run docker:logs   # следить за логами
+bun run docker:down   # остановить
 
-$COMPOSE up -d --build
-$COMPOSE logs -f backend
-$COMPOSE down
-$COMPOSE down -v   # Сброс БД
+docker compose -f compose.yaml -f deploy/compose.dev.yml down -v   # Сброс БД
 ```
 
 Чтобы запустить прод-стек, замените `compose.dev.yml` на `compose.prod.yml`.
+`deploy/deploy.sh` (или `deploy\deploy.bat`) делает то же самое интерактивно.
 
 ## База данных
 
