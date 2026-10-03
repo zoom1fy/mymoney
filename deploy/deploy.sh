@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# The Compose files are addressed relative to the repository root, so the script
+# has to run from there regardless of the directory it was invoked from.
+cd "$(dirname "$0")/.." || exit 1
+
 echo "=========================================="
 echo "  Stopping existing containers..."
 echo "=========================================="
@@ -21,14 +25,14 @@ case "$mode" in
     echo "=========================================="
     echo "  Starting DEV environment"
     echo "=========================================="
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+    docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d
     ;;
   2)
     echo
     echo "=========================================="
     echo "  Starting PROD environment"
     echo "=========================================="
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+    docker compose -f compose.yaml -f deploy/compose.prod.yml up --build -d
     ;;
   3)
     echo "Done!"
