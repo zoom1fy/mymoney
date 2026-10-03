@@ -1,3 +1,12 @@
+# Full stack definition. Always loaded through the root compose.yaml, which pins
+# the project directory to the repository root — the build contexts and bind
+# mounts below are relative to it.
+#
+# The explicit project name keeps container and volume identifiers stable
+# (mymoney_db_data). Without it Compose would derive the name from this file's
+# directory and start a fresh, empty database volume.
+name: mymoney
+
 services:
   db:
     build:
