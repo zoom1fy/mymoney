@@ -10,6 +10,9 @@ concurrency:
 
 env:
   DOCKER_DEFAULT_PLATFORM: linux/amd64
+  # Explicit because the layer caches in docker-compose.ci.yml are only consulted
+  # when the build runs through BuildKit.
+  DOCKER_BUILDKIT: "1"
 
 jobs:
   docker-integration:
@@ -38,7 +41,8 @@ jobs:
           EOF
 
       - name: Set compose alias
-        run: echo "COMPOSE=docker compose -f docker-compose.yml -f docker-compose.prod.yml" >> "$GITHUB_ENV"
+        # docker-compose.ci.yml only adds the type=gha layer cache backends.
+        run: echo "COMPOSE=docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.ci.yml" >> "$GITHUB_ENV"
 
       - name: Build and start production stack
         # One invocation instead of a separate `build` followed by `up`, so the

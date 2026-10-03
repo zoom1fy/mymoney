@@ -20,8 +20,12 @@ tauri-plugin-http = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 
+# Fat LTO with a single codegen unit serialized the release build behind one
+# codegen pass, which dominated CI wall-clock. Thin LTO retains most of the
+# cross-crate inlining and lets rustc use every core; the webview does the heavy
+# lifting here, so the missed optimization is not worth the build time.
 [profile.release]
-codegen-units = 1
-lto = true
+codegen-units = 16
+lto = "thin"
 opt-level = "s"
 strip = true

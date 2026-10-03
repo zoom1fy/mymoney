@@ -8,7 +8,10 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_COOKIE_DOMAIN=$NEXT_PUBLIC_COOKIE_DOMAIN
 
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+# Shared with the runner stage below: its `--omit=dev` install then resolves
+# from these tarballs instead of downloading the whole tree a second time.
+RUN --mount=type=cache,id=bun-frontend,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
@@ -23,7 +26,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 
 # Production-only dependencies (no dev tooling)
-RUN bun install --frozen-lockfile --omit=dev
+RUN --mount=type=cache,id=bun-frontend,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile --omit=dev
 
 EXPOSE 3000
 CMD ["bun", "run", "start"]
