@@ -62,7 +62,7 @@ jobs:
         run: npx tsc --noEmit
       - name: Unit tests
         run: npm test -- --coverage
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: backend-coverage
@@ -82,7 +82,7 @@ jobs:
       # setup-bun caches the bun binary only, leaving the package store to be
       # re-downloaded on every run.
       - name: Cache bun package store
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: bun-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
@@ -129,7 +129,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
 
       - name: Cache bun package store
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: bun-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
@@ -140,7 +140,7 @@ jobs:
       # hand back an export built from a different source tree.
       - name: Restore cached static export
         id: export-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: frontend/out
           key: desktop-export-${{ runner.os }}-${{ hashFiles('frontend/src/**', 'frontend/public/**', 'frontend/scripts/**', 'frontend/package.json', 'frontend/bun.lock', 'frontend/next.config.ts', 'frontend/postcss.config.cjs', 'frontend/tsconfig.json') }}
@@ -184,7 +184,7 @@ jobs:
 
       - name: Upload Windows portable
         if: matrix.label == 'windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: mymoney-windows-portable
           path: desktop/src-tauri/portable/*.zip
@@ -192,7 +192,7 @@ jobs:
 
       - name: Upload Windows MSI
         if: matrix.label == 'windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: mymoney-windows-msi
           path: desktop/src-tauri/target/release/bundle/msi/*.msi
@@ -200,7 +200,7 @@ jobs:
 
       - name: Upload macOS DMG
         if: matrix.label == 'macos'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: mymoney-macos-dmg
           path: desktop/src-tauri/target/release/bundle/dmg/*.dmg
