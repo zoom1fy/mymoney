@@ -5,6 +5,38 @@
   "scripts": {
     "version": "node scripts/app-version.mjs",
     "version:set": "node scripts/app-version.mjs --set",
-    "version:check": "node scripts/app-version.mjs --check"
+    "version:check": "node scripts/app-version.mjs --check",
+
+    "install:backend": "npm --prefix backend ci",
+    "install:frontend": "bun install --cwd frontend --frozen-lockfile",
+    "install:all": "bun run install:backend && bun run install:frontend",
+    "setup": "bun run install:all && bun run --cwd backend prisma:generate",
+
+    "dev:backend": "bun run --cwd backend start:dev",
+    "dev:frontend": "bun run --cwd frontend dev",
+    "dev:desktop": "bun run --cwd desktop dev",
+
+    "build:backend": "bun run --cwd backend build",
+    "build:frontend": "bun run --cwd frontend build",
+    "build:desktop": "bun run --cwd desktop build",
+    "build": "bun run build:backend && bun run build:frontend && bun run build:desktop",
+
+    "lint:backend": "bun run --cwd backend lint",
+    "lint:frontend": "bun run --cwd frontend lint",
+    "lint": "bun run lint:backend && bun run lint:frontend",
+
+    "typecheck:backend": "bun run --cwd backend typecheck",
+    "typecheck:frontend": "bun run --cwd frontend typecheck",
+    "typecheck": "bun run typecheck:backend && bun run typecheck:frontend",
+
+    "test:backend": "bun run --cwd backend test",
+    "test:frontend": "bun run --cwd frontend test",
+    "test:cov:backend": "bun run --cwd backend test:cov",
+    "test:e2e:backend": "bun run --cwd backend test:e2e",
+    "test": "bun run test:backend && bun run test:frontend",
+
+    "docker:up": "docker compose -f compose.yaml -f deploy/compose.dev.yml up --build -d",
+    "docker:down": "docker compose -f compose.yaml -f deploy/compose.dev.yml down",
+    "docker:logs": "docker compose -f compose.yaml -f deploy/compose.dev.yml logs -f"
   }
 }
