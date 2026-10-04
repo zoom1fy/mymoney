@@ -117,7 +117,7 @@ export function DateRangePicker({ value, onChange }: Props) {
                 'border transition-all',
                 isActive
                   ? 'bg-primary text-primary-foreground border-primary shadow-md'
-                  : 'bg-muted/40 border-border hover:bg-accent/10 hover:border-accent/40'
+                  : 'bg-muted/40 text-foreground border-border hover:bg-accent/10 hover:text-accent-foreground hover:border-accent/40'
               )}
               key={p.key}
               onClick={() => applyPreset(p.key)}
@@ -140,7 +140,10 @@ export function DateRangePicker({ value, onChange }: Props) {
           <ChevronLeft className="size-4" />
         </Button>
 
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover
+          open={open}
+          onOpenChange={setOpen}
+        >
           <PopoverTrigger asChild>
             <Button
               className="min-w-0 flex-1 cursor-pointer justify-between font-normal tabular-nums sm:w-[240px] sm:flex-none"
