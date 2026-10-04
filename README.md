@@ -3,19 +3,25 @@
 - [English](README.md)
 - [Русский](README.ru.md)
 
-MyMoney is a full-stack personal finance application. Track income, expenses, and transfers across multiple accounts and currencies, analyze spending with interactive charts.
+MyMoney is a full-stack personal finance application. Track income, expenses, and transfers across multiple accounts and currencies, analyze spending with interactive charts. Ships as a web app and as an offline-first desktop app.
 
 ## Features
 
-- **Multi-currency accounts** — bank, cash, savings, crypto, and custom account types with icons
-- **Income / expense / transfer tracking** — transactions with hierarchical categories, dates, descriptions
-- **Spending analytics** — donut charts (Recharts) with period filtering
+- **Multi-currency accounts** — 6 types (cash, bank, deposit, brokerage, credit card, crypto wallet) grouped into 4 sidebar sections, each with an icon
+- **Income / expense / transfer tracking** — transactions with hierarchical categories, colors, icons, dates and descriptions
+- **Spending analytics** — donut charts (Recharts) with a date-range filter, aggregated on the server
+- **One-request dashboard** — `GET /api/dashboard` returns the profile, accounts, categories and both summaries at once
 
 - **JWT authentication** — access tokens (Bearer) + refresh tokens (httpOnly cookies)
 - **Email verification** — 6-digit code via SMTP (Yandex), 60s resend cooldown, 15min expiry
-- **Password recovery** — forgot/reset password with email code
+- **Password recovery** — forgot/reset password with a single-use email code
+- **Background jobs** — BullMQ on Redis for outgoing email and first-login data seeding
 - **Rate limiting** — nginx (30r/s general, 5r/m auth) + NestJS ThrottlerModule (behind proxy)
 - **Optimistic UI** — instant updates with TanStack Query optimistic mutations
+
+- **Desktop app** — Tauri 2 with a local SQLite database, fully usable without the backend
+- **Nightly backups** — compressed `pg_dump` inside the database container, with rotation
+- **Light and dark themes** — responsive down to mobile, with loading skeletons
 
 ## Tech Stack
 
@@ -25,13 +31,17 @@ MyMoney is a full-stack personal finance application. Track income, expenses, an
 | [Next.js 15](https://nextjs.org/) (App Router) | React framework |
 | React 19 | UI library |
 | Tailwind CSS 4 + shadcn/ui (New York) | Styling & primitives |
-| Ant Design 6 | Date picker, additional components |
 | Recharts 3 | Donut charts |
 | TanStack Query 5 | Server state & optimistic updates |
-
 | Framer Motion 12 | Animations |
 | React Hook Form 7 | Form handling |
 | Sonner | Toast notifications |
+| next-themes | Light / dark theme |
+| lucide-react | Icons |
+| react-day-picker + date-fns | Calendar & date handling |
+| react-number-format | Amount inputs |
+| react-colorful | Category color picker |
+| @tauri-apps/api + plugin-sql / plugin-http | Desktop bridge |
 
 ### Backend
 | Technology | Purpose |
@@ -39,14 +49,21 @@ MyMoney is a full-stack personal finance application. Track income, expenses, an
 | [NestJS 11](https://nestjs.com/) | Node.js framework |
 | Prisma Next (v8) | ORM & migrations |
 | PostgreSQL 17 | Database |
+| Redis 7 + BullMQ | Background jobs |
 | JWT + Passport | Authentication |
 | Argon2 | Password hashing |
-
 | Nodemailer | SMTP email sending |
 | @nestjs/throttler | Rate limiting (behind nginx proxy) |
+| @nestjs/axios | Outbound HTTP for exchange rates |
 
-| Decimal.js | Precise financial math |
-| Cache Manager | Response caching |
+### Desktop
+| Technology | Purpose |
+|---|---|
+| [Tauri 2](https://tauri.app/) | Desktop shell |
+| Rust + SQLx | SQLite access and migrations |
+| tauri-plugin-sql | SQLite from the webview |
+| tauri-plugin-http | HTTP from the webview |
+| tauri-plugin-single-instance | One window per installation |
 
 ### Infrastructure
 | Service | Internal : External |
@@ -55,6 +72,7 @@ MyMoney is a full-stack personal finance application. Track income, expenses, an
 | Backend (NestJS) | `3000` (internal) |
 | nginx | `80` → `3001` |
 | PostgreSQL 17 | `5432` |
+| Redis 7 | `6379` |
 | Adminer | `80` → `8080` |
 
 
@@ -62,61 +80,72 @@ MyMoney is a full-stack personal finance application. Track income, expenses, an
 
 ```
 mymoney/
+├── .github/workflows/           # ci.yml, docker.yml, release.yml
 ├── backend/                     # NestJS API server
 │   ├── src/
-│   │   ├── auth/                # JWT login, register, refresh, guards
+│   │   ├── auth/                # register, login, refresh, email verification, reset
 │   │   ├── user/                # Profile CRUD
-│   │   ├── account/             # Account CRUD (bank, cash, etc.)
-│   │   ├── category/            # Hierarchical income/expense categories
-│   │   ├── transaction/         # Income / expense / transfer CRUD
-
-│   │   ├── currency/            # Exchange rates via CBR API
-│   │   ├── prisma/              # Prisma client service
+│   │   ├── account/             # Account CRUD, account types & groups
+│   │   ├── category/            # Hierarchical income/expense categories, archive
+│   │   ├── transaction/         # Income / expense / transfer CRUD and summaries
+│   │   ├── dashboard/           # Single aggregated dashboard endpoint
+│   │   ├── currency/            # Currency list and exchange rates with fallbacks
+│   │   ├── queue/               # BullMQ tasks: emails, new-user seeding
+│   │   ├── mail/                # SMTP sending via Nodemailer
+│   │   ├── seed/                # Starter data for new accounts
+│   │   ├── prisma/              # Prisma client + contract.prisma data contract
 │   │   ├── config/              # JWT config, token config
-│   │   └── common/enums/        # Shared enums (CurrencyCode)
-│   ├── prisma/
-│   │   ├── schema.prisma        # Database schema
-│   │   ├── seed.ts              # Currencies, account types
-│   │   └── migrations/          # Prisma migrations
-│   ├── test/                    # E2E tests
-│   └── Dockerfile(.dev/.prod)
+│   │   └── common/              # Shared enums, proxy-aware throttler guard
+│   ├── migrations/              # prisma-next migrations
+│   ├── test/                    # E2E tests and ORM mocks
+│   ├── prisma-next.config.ts
+│   └── Dockerfile.dev / Dockerfile.prod
 ├── frontend/                    # Next.js web application
 │   ├── src/
 │   │   ├── app/                 # App Router: auth, dashboard (me/)
-│   │   ├── components/          # UI primitives + dashboard components
-│   │   │   ├── ui/              # shadcn/ui, buttons, cards, modals
-│   │   │   ├── dashboard/       # Sidebar, accounts, categories, transactions
-│   │   │   └── dashboard/.../skeletons/  # Loading skeletons
-│   │   ├── hooks/               # useProfile, useAccounts, useTransactions, etc.
-│   │   ├── services/            # API clients (auth, account, category, transaction)
-│   │   ├── types/               # TypeScript interfaces (IAccount, ICategory, etc.)
-│   │   ├── config/              # Route constants
-│   │   ├── constants/           # SEO metadata
-│   │   ├── lib/                 # Utils, formatters, chart helpers
-│   │   └── api/                 # Axios interceptors, error helpers
-│   └── Dockerfile(.dev/.prod)
-├── nginx/
-│   └── nginx.conf               # Reverse proxy (frontend + API)
-├── package.json                 # Root task runner: bun run dev:backend / dev:frontend / dev:desktop
-├── compose.yaml                 # Compose entry point (includes deploy/compose.yml)
-├── deploy/
-│   ├── compose.yml              # Full stack (PostgreSQL, backend, frontend, nginx, Adminer)
-│   ├── compose.dev.yml          # Dev overrides (ports, volumes)
+│   │   ├── components/
+│   │   │   ├── ui/              # shadcn/ui primitives, buttons, modals, pickers
+│   │   │   └── dashboard/       # Sidebar, accounts, categories, transactions, profile
+│   │   ├── hooks/               # use-accounts, use-categories, use-transactions, ...
+│   │   ├── services/            # HTTP clients + local/* adapters for the desktop build
+│   │   ├── types/               # TypeScript interfaces
+│   │   ├── lib/                 # Formatters, chart helpers, platform detection
+│   │   ├── api/                 # Axios interceptors, error helpers
+│   │   └── middleware.ts
+│   ├── scripts/                 # Desktop dev/build helpers
+│   └── Dockerfile.dev / Dockerfile.prod
+├── desktop/                     # Tauri 2 application
+│   ├── src-tauri/
+│   │   ├── src/                 # Rust: plugins, SQLite migrations on startup
+│   │   ├── migrations/          # SQLite schema, seed, rates, balance triggers
+│   │   ├── capabilities/        # Tauri permissions
+│   │   ├── tauri.conf.json      # Single source of truth for the version
+│   │   └── Cargo.toml
+│   └── scripts/                 # tauri.mjs / fe.mjs wrappers
+├── db/                          # PostgreSQL image with the nightly backup cron
+├── deploy/                      # Compose overrides and deploy scripts
+│   ├── compose.yml              # Full stack (PostgreSQL, Redis, backend, frontend, nginx, Adminer)
+│   ├── compose.dev.yml          # Dev overrides (Dockerfiles, ports, volumes)
 │   ├── compose.prod.yml         # Prod overrides
 │   ├── compose.ci.yml           # CI-only BuildKit layer caches
 │   ├── deploy.sh                # Deploy script (macOS/Linux)
 │   └── deploy.bat               # Deploy script (Windows)
-└── Insomnia_mymoney.yaml        # API collection for Insomnia
+├── nginx/
+│   └── nginx.conf               # Reverse proxy, rate limits (frontend + API)
+├── scripts/app-version.mjs      # Propagates the version to every manifest
+├── backups/                     # Local mount for pg_dump files (git-ignored)
+├── compose.yaml                 # Compose entry point (includes deploy/compose.yml)
+└── package.json                 # Root task runner: bun run dev:backend / dev:frontend / dev:desktop
 ```
 
 ## Quick Start
 
 ### Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine (Linux)
+- [Docker Desktop](https://www.docker.com/desktop/) (Windows/macOS) or Docker Engine (Linux)
 - [Bun](https://bun.sh/) — to run the root scripts
 - Git
-- Free ports: `3001`, `5432`, `8080`
+- Free ports: `3001`, `5432`, `6379`, `8080`
 
 ### 1. Clone and configure
 
@@ -147,6 +176,11 @@ SMTP_USER=your-email@yandex.ru
 SMTP_PASS=your-app-password
 SMTP_FROM=your-email@yandex.ru
 SMTP_TLS=true
+
+# Optional — the defaults below are what Compose and the backend already use
+REDIS_HOST=redis
+REDIS_PORT=6379
+BACKUP_KEEP=14
 ```
 
 ### 2. Start
@@ -230,10 +264,29 @@ Response: `{ user: {id, email}, accessToken }` + `refresh_token` httpOnly cookie
 | DELETE `/:id` | JWT | Delete (reverse balance) |
 
 **Filters:** `take`, `cursor`, `accountId`, `type`, `from`, `to`
+
+### Dashboard (`/api/dashboard`)
+| Method | Auth | Description |
+|---|---|---|
+| GET | JWT | Profile, accounts, categories and income/expense summaries in one response |
+
+**Query:** `from`, `to` — applied to both summaries. Accounts are returned in their
+own currency; summaries are converted to RUB.
+
+### Currency (`/api/currency`)
+| Method | Auth | Description |
+|---|---|---|
+| GET | — | List all currencies |
+| GET `/rate` | — | Rate for `?from=USD&to=RUB` |
+
+Rates are tried against six providers in order (CBR, Frankfurter, ExchangeRate.host,
+CoinGecko, Binance, Fawaz Ahmed CDN) and cached in the database, so a single
+provider outage does not break conversions.
+
 ## Development
 
 All commands run from the repository root through the root `package.json`.
-Run `bun run setup` once to install dependencies and generate the Prisma client.
+Run `bun run setup` once to install dependencies and emit the Prisma contract.
 
 ### Run
 
@@ -249,6 +302,21 @@ The API and the desktop app need PostgreSQL and Redis. Either start them with
 ```bash
 docker compose -f compose.yaml -f deploy/compose.dev.yml up -d db redis
 ```
+
+### Desktop app
+
+The desktop build needs a Rust toolchain plus the [Tauri prerequisites](https://tauri.app/start/prerequisites/)
+for your platform — on Linux that means `libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev`,
+`librsvg2-dev` and `libxdo-dev`.
+
+```bash
+bun run dev:desktop      # Tauri window against the dev server
+bun run build:desktop    # Installers into desktop/src-tauri/target/release/bundle
+```
+
+The desktop app stores everything in a local SQLite file and never talks to the
+backend. Account balances there are maintained by SQLite triggers, so a crash
+mid-write cannot leave a balance out of sync with its transactions.
 
 ### Checks
 
@@ -270,6 +338,19 @@ bun run --cwd backend prisma:migrate:dev
 bun run --cwd frontend test:watch
 ```
 
+### Versioning
+
+`desktop/src-tauri/tauri.conf.json` is the single source of truth.
+
+```bash
+bun run version              # propagate the current version to every manifest
+bun run version:set -- 0.2.0 # set a new version everywhere
+bun run version:check        # fail if the manifests have drifted
+```
+
+Tag the commit `v<version>` to trigger the release pipeline. CI rejects a tag
+whose number does not match the app version.
+
 ### Docker
 
 `compose.yaml` in the repository root is the entry point; environment-specific
@@ -289,17 +370,20 @@ Swap `compose.dev.yml` for `compose.prod.yml` to run the production stack.
 ## Database
 
 | Entity | Description |
-|---|---|---|
-| **User** | UUID, email, Argon2 hash |
+|---|---|
+| **User** | UUID, email, Argon2 hash, last login |
 | **PendingUser** | Unverified registration (removed after email confirmation) |
-| **PasswordResetToken** | 6-digit code with expiry for password recovery |
-| **Account** | Linked to user, type, category, currency; DECIMAL(15,2) balance |
-| **Category** | Hierarchical (self-referencing), scoped to user, income/expense flag |
+| **PasswordResetToken** | 6-digit code with expiry, single-use for password recovery |
+| **AccountCategory** | Sidebar group: main accounts, savings, investments, loans and debts |
+| **AccountType** | Cash, bank, deposit, brokerage, credit card, crypto wallet |
+| **Account** | Linked to user, type, group, currency; balance + `isDeleted` |
+| **Category** | Hierarchical (self-referencing), scoped to user, income/expense flag, color, icon, `isArchived` |
 | **Transaction** | INCOME / EXPENSE / TRANSFER, updates balances atomically |
-| **Currency** | RUB, USD, EUR, BTC |
+| **Currency** | 16 currencies: 6 fiat (RUB, USD, EUR, GBP, JPY, CNY) and 10 crypto |
+| **ExchangeRate** | Cached rate per pair, resynced every 3 hours |
 
-
-All values use `DECIMAL(15,2)`. Collation: `utf8mb4_unicode_ci`.
+Amounts are stored in fixed-precision decimal columns rather than floats, and
+inputs are validated to at most two decimal places.
 
 ## Security
 
@@ -307,13 +391,21 @@ All values use `DECIMAL(15,2)`. Collation: `utf8mb4_unicode_ci`.
 - **JWT** access (15m) + refresh (7d) token pair
 - **Refresh token** in httpOnly, SameSite=Lax cookie (XSS-resistant)
 - **Soft-delete** for accounts (`isDeleted`) and categories (`isArchived`)
-- **CORS** restricted to frontend origin
+- **CORS** restricted to the configured origins
 - **Rate limiting** double layer (nginx + NestJS) against brute-force and DDoS
 - **Email verification** required before account activation
 - **60-second cooldown** between code resends
+- **Single-use reset tokens**, consumed in the same transaction as the password update
+- **Scoped CSP** and a trimmed permission set in the desktop webview
+
+## Backups
+
+The `db` image runs cron next to PostgreSQL and dumps a compressed `pg_dump`
+every night at 03:00 into `./backups`, keeping the newest `BACKUP_KEEP` files
+(14 by default) and pruning the rest.
 
 ## Notes
 
 - UI is in Russian
-- Currency exchange rates fetched from the Central Bank of Russia (CBR) API
-- All financial math uses `Decimal.js` — no floating-point precision issues
+- Currency exchange rates are fetched from six providers with automatic failover
+- Licensed under AGPL-3.0
