@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { Manrope } from 'next/font/google'
-import { Toaster } from 'sonner'
 
 import { SITE_NAME } from '@/constants/seo.constants'
 import { AuthGuard } from '@/components/auth-guard'
+import { ThemeToaster } from '@/components/ui/feedback/theme-toaster'
 
 import './globals.css'
 import { Providers } from './providers'
@@ -40,11 +40,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Providers>
           <AuthGuard>{children}</AuthGuard>
-          <Toaster
-            duration={1500}
-            position="bottom-right"
-            theme="dark"
-          />
+          <ThemeToaster />
         </Providers>
       </body>
     </html>
