@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation'
 import { accountIcons } from '@/types/account.type'
 import type { IAccount } from '@/types/account.type'
 
-import { formatCurrency } from '@/lib/format'
 import { cn } from '@/lib/cn'
+import { formatCurrency } from '@/lib/format'
 
 import { AccountModal } from './account-modal'
 
@@ -29,7 +29,7 @@ export function AccountCard({ account }: Props) {
       trigger={
         <div
           className={cn(
-            'group relative overflow-hidden rounded-2xl',
+            'group/account relative overflow-hidden rounded-2xl',
             'border border-border/40 bg-card/40 backdrop-blur-xl',
             'transition-all duration-500 ease-out cursor-pointer select-none',
             'hover:scale-[1.015] hover:-translate-y-0.5 active:scale-[0.99]',
@@ -62,21 +62,21 @@ export function AccountCard({ account }: Props) {
               className={cn(
                 'shrink-0 size-11 rounded-xl bg-accent/10 border border-accent/10',
                 'flex items-center justify-center transition-all duration-500',
-                'group-hover:bg-accent/15 group-hover:border-accent/25 group-hover:scale-110 group-hover:rotate-1'
+                'group-hover/account:bg-accent/15 group-hover/account:border-accent/25 group-hover/account:scale-110'
               )}
             >
-              <Icon className="size-5.5 text-accent transition-transform duration-700 group-hover:rotate-6" />
+              <Icon className="size-5.5 text-accent transition-transform duration-700" />
             </div>
 
             <div className="flex-1 min-w-0">
               <p
                 className={cn(
                   'font-medium transition-colors duration-300',
-                  'text-sm sm:text-base', // ← мобильные — поменьше
+                  'text-sm sm:text-base',
                   'line-clamp-2',
                   isActive
                     ? 'text-accent'
-                    : 'text-foreground/90 group-hover:text-foreground'
+                    : 'text-foreground/90 group-hover/account:text-foreground'
                 )}
               >
                 {account.name}
