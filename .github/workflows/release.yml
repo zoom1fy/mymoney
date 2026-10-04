@@ -147,14 +147,6 @@ jobs:
           key: bun-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
           restore-keys: bun-${{ runner.os }}-
 
-      # setup-bun caches the bun binary only, leaving the package store to be
-      # re-downloaded on every run.
-      - name: Cache bun package store
-        uses: actions/cache@v5
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
       - name: Install frontend dependencies
         run: bun install --frozen-lockfile
         working-directory: frontend
