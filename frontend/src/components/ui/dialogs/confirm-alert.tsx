@@ -52,9 +52,8 @@ export function ConfirmAlert({
           'bg-background/70 backdrop-blur-xs',
           'border border-border/50 shadow-2xl',
           // Entrance / exit animations
-          'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-          'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
-          'duration-200'
+          'data-[state=open]:animate-dialog-content-in',
+          'data-[state=closed]:animate-dialog-content-out'
         )}
       >
         <AlertDialogHeader className="space-y-4">

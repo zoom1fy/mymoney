@@ -241,7 +241,10 @@ export function TransactionModal({
         className="w-[95vw] max-w-6xl sm:max-w-6xl p-0 max-h-[90vh] overflow-y-auto"
         showCloseButton={false}
       >
-        <GlassCard className="rounded-2xl p-8 md:p-10 shadow-xl transition-all duration-700">
+        <GlassCard
+          className="rounded-2xl p-8 md:p-10 shadow-xl"
+          variant="solid"
+        >
           <DialogHeader className="mb-4">
             <ModalHeader
               icon={<Wallet className="size-6 text-white" />}

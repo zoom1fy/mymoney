@@ -106,7 +106,10 @@ export function ArchiveModal({ isExpense }: ArchiveModalProps) {
           className="w-[95vw] max-w-4xl p-0 max-h-[90vh] flex flex-col"
           showCloseButton={false}
         >
-          <GlassCard className="rounded-3xl p-6 md:p-8 flex flex-col h-full">
+          <GlassCard
+            className="rounded-3xl p-6 md:p-8 flex flex-col h-full"
+            variant="solid"
+          >
             <ModalHeader
               icon={<Archive className="size-6 text-white" />}
               isDeleteVisible={false}

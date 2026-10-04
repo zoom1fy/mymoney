@@ -64,7 +64,7 @@ export function ModalHeader({
           {/* Archive / Delete action button */}
           {isDeleteVisible && onDelete && (
             <Button
-              className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 h-12 w-12 rounded-full hover:scale-110 transition-all duration-300"
+              className="text-destructive hover:bg-destructive/10 cursor-pointer shrink-0 h-12 w-12 rounded-full hover:scale-110 transition-[background-color,transform] duration-200"
               disabled={isDeleteLoading}
               size="icon"
               type="button"
@@ -77,7 +77,7 @@ export function ModalHeader({
 
           {/* Close button */}
           <Button
-            className="rounded-full hover:bg-muted/50 transition-all duration-300 hover:scale-110 cursor-pointer h-12 w-12"
+            className="rounded-full hover:bg-muted/50 transition-[background-color,transform] duration-200 hover:scale-110 cursor-pointer h-12 w-12"
             size="icon"
             type="button"
             variant="ghost"

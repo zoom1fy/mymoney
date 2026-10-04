@@ -140,7 +140,10 @@ export function TransactionsListModal({
       onOpenChange={onClose}
     >
       <DialogContent className="w-[95vw] max-w-5xl sm:max-w-5xl xl:max-w-6xl p-0 max-h-[90vh] overflow-y-auto border-none bg-transparent shadow-none" showCloseButton={false}>
-        <GlassCard className="rounded-3xl p-4 sm:p-6 md:p-10 lg:p-14 shadow-2xl transition-all duration-500">
+        <GlassCard
+          className="rounded-3xl p-4 sm:p-6 md:p-10 lg:p-14 shadow-2xl"
+          variant="solid"
+        >
           <DialogHeader className="mb-6">
             <ModalHeader
               icon={<ReceiptText className="size-6 text-white" />}

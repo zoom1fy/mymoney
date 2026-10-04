@@ -57,14 +57,9 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Overlay
       className={cn(
-        'fixed inset-0 z-50',
-        'bg-black/30 backdrop-blur-md',
-        'data-[state=open]:animate-in',
-        'data-[state=closed]:animate-out',
-        'data-[state=open]:fade-in-0',
-        'data-[state=closed]:fade-out-0',
-        'data-[state=open]:backdrop-blur-md',
-        'data-[state=closed]:backdrop-blur-md',
+        'fixed inset-0 z-50 bg-black/40 backdrop-blur-md will-change-[opacity]',
+        'data-[state=open]:animate-dialog-overlay-in',
+        'data-[state=closed]:animate-dialog-overlay-out',
         className
       )}
       data-slot="dialog-overlay"
@@ -86,7 +81,9 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border-0 bg-transparent p-6 shadow-lg duration-200 outline-none sm:max-w-lg',
+          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border-0 bg-transparent p-6 shadow-lg outline-none sm:max-w-lg',
+          'data-[state=open]:animate-dialog-content-in',
+          'data-[state=closed]:animate-dialog-content-out',
           className
         )}
         data-slot="dialog-content"
@@ -101,7 +98,7 @@ function DialogContent({
 
         {showCloseButton && (
           <DialogPrimitive.Close
-            className="rounded-full hover:bg-muted/50 transition-all duration-300 hover:scale-110 cursor-pointer absolute top-4 right-4 p-2"
+            className="rounded-full hover:bg-muted/50 transition-[background-color,transform] duration-200 hover:scale-110 cursor-pointer absolute top-4 right-4 p-2"
             data-slot="dialog-close"
           >
             <XIcon className="size-5" />

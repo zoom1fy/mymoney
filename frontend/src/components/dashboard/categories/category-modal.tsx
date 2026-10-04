@@ -168,7 +168,10 @@ export function CategoryModal({
         className="w-[95vw] max-w-3xl p-0 border-none bg-transparent"
         showCloseButton={false}
       >
-        <GlassCard className="rounded-2xl p-8 md:p-10 shadow-xl transition-all duration-700">
+        <GlassCard
+          className="rounded-2xl p-8 md:p-10 shadow-xl"
+          variant="solid"
+        >
           <DialogHeader className="mb-4">
             <ModalHeader
               actionType="archive"

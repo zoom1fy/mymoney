@@ -120,7 +120,10 @@ export function ProfileModal({ isOpen, onOpenChange }: Props) {
         className="w-[95vw] max-w-3xl p-0"
         showCloseButton={false}
       >
-        <GlassCard className="rounded-3xl p-10">
+        <GlassCard
+          className="rounded-3xl p-10"
+          variant="solid"
+        >
           <DialogHeader className="mb-8">
             <ModalHeader
               icon={<User className="size-6 text-white" />}

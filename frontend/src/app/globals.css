@@ -256,6 +256,93 @@
   50% { transform: translateY(35px); }
 }
 
+@keyframes dialog-overlay-in {
+  from { opacity: 0; }
+}
+
+@keyframes dialog-overlay-out {
+  to { opacity: 0; }
+}
+
+@keyframes dialog-content-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+}
+
+@keyframes dialog-content-out {
+  to { opacity: 0; transform: translateY(6px) scale(0.98); }
+}
+
+@utility animate-dialog-overlay-in {
+  animation: dialog-overlay-in 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@utility animate-dialog-overlay-out {
+  animation: dialog-overlay-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@utility animate-dialog-content-in {
+  animation: dialog-content-in 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@utility animate-dialog-content-out {
+  animation: dialog-content-out 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  [data-slot='dialog-overlay'],
+  [data-slot='alert-dialog-overlay'],
+  [data-slot='sheet-overlay'] {
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='dialog-overlay'],
+  [data-slot='dialog-content'],
+  [data-slot='alert-dialog-overlay'],
+  [data-slot='alert-dialog-content'],
+  [data-slot='sheet-overlay'],
+  [data-slot='sheet-content'] {
+    animation: none;
+  }
+}
+
+@keyframes sheet-slide-in {
+  from { opacity: 0; translate: var(--sheet-offset-x, 0) var(--sheet-offset-y, 0); }
+}
+
+@keyframes sheet-slide-out {
+  to { opacity: 0; translate: var(--sheet-offset-x, 0) var(--sheet-offset-y, 0); }
+}
+
+@utility animate-sheet-in {
+  animation: sheet-slide-in 0.36s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@utility animate-sheet-out {
+  animation: sheet-slide-out 0.26s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@utility sheet-from-right {
+  --sheet-offset-x: 100%;
+  --sheet-offset-y: 0;
+}
+
+@utility sheet-from-left {
+  --sheet-offset-x: -100%;
+  --sheet-offset-y: 0;
+}
+
+@utility sheet-from-top {
+  --sheet-offset-x: 0;
+  --sheet-offset-y: -100%;
+}
+
+@utility sheet-from-bottom {
+  --sheet-offset-x: 0;
+  --sheet-offset-y: 100%;
+}
+
 @keyframes ios-wiggle {
   0% {
     transform: rotate(-2deg) translateY(0);
