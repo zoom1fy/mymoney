@@ -7,7 +7,7 @@
     "version:set": "node scripts/app-version.mjs --set",
     "version:check": "node scripts/app-version.mjs --check",
 
-    "install:backend": "npm --prefix backend ci",
+    "install:backend": "bun install --cwd backend --frozen-lockfile",
     "install:frontend": "bun install --cwd frontend --frozen-lockfile",
     "install:all": "bun run install:backend && bun run install:frontend",
     "setup": "bun run install:all && bun run --cwd backend prisma:generate",

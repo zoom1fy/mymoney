@@ -23,6 +23,7 @@ frontend/.next/
 frontend/out/
 frontend/package-lock.json
 frontend/*.tsbuildinfo
+backend/package-lock.json
 desktop/src-tauri/target/
 desktop/src-tauri/gen/
 

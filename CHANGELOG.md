@@ -11,7 +11,11 @@ Use `npm run version:set -- <version>` to bump every manifest at once, then tag
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- Backend dependencies are installed with bun instead of npm (`bun.lock` replaces
+  `package-lock.json`), both locally, in Docker and in CI. The runtime stays on
+  node, so only the install step changed.
 
 ## [0.1.0] - Unreleased
 

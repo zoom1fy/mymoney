@@ -50,25 +50,37 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          cache: "npm"
-          cache-dependency-path: backend/package-lock.json
+      # Pinned to the bun version that generated backend/bun.lock and that
+      # Dockerfile.prod builds with, so all three never drift apart.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.18
+      # The key is prefixed because the frontend job caches the same package store
+      # path and restore-keys are matched by prefix, which would otherwise hand a
+      # backend job a frontend tree.
+      - name: Cache bun package store
+        uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-backend-${{ runner.os }}-${{ hashFiles('backend/bun.lock') }}
+          restore-keys: bun-backend-${{ runner.os }}-
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
       - name: Generate Prisma client
-        run: npm run prisma:generate
+        run: bun run prisma:generate
       - name: Lint
-        run: npm run lint
+        run: bun run lint
       - name: TypeScript check
-        run: npx tsc --noEmit
+        run: bunx tsc --noEmit
       - name: Unit tests
-        run: npm test -- --coverage
+        run: bun run test --coverage
       - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: backend-coverage
           path: backend/coverage/
       - name: Build
-        run: npm run build
+        run: bun run build
 
   frontend-ci:
     name: Frontend CI

@@ -27,8 +27,11 @@
 
 ## Project setup
 
+Run from the repository root; it installs the backend and frontend dependencies
+and then generates the Prisma client.
+
 ```bash
-$ npm install
+$ bun run setup
 ```
 
 ## Compile and run the project
@@ -56,6 +59,10 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+The repository root exposes the same scripts as `bun run dev:backend`,
+`bun run build:backend`, `bun run test:backend`, `bun run test:e2e:backend` and
+`bun run test:cov:backend`.
 
 ## Deployment
 
