@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
-import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import { CategoriesPanel } from '@/components/dashboard/categories/categories-panel'
-
+import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import { TransactionsDonutChart } from '@/components/dashboard/transactions/transactions-donut-chart'
 import { TransactionsListModal } from '@/components/dashboard/transactions/transactions-list-modal'
+
 import { useTransactionsForPeriod } from '@/hooks/use-transactions'
 
 export default function DashboardPage() {
@@ -42,13 +42,16 @@ export default function DashboardPage() {
     [allCategories, isExpense]
   )
 
-  const { data: modalTransactions = [] } =
-    useTransactionsForPeriod(modalRange.from, modalRange.to, isTransactionListOpen)
+  const { data: modalTransactions = [] } = useTransactionsForPeriod(
+    modalRange.from,
+    modalRange.to,
+    isTransactionListOpen
+  )
 
-return (
+  return (
     <div className="flex grow flex-col">
       <div className="flex grow flex-col gap-8 xl:flex-row xl:gap-8">
-        <div className="flex grow min-w-0 flex-col rounded-2xl border bg-card/50 backdrop-blur-sm p-6 lg:p-10">
+        <div className="flex grow min-w-0 flex-col rounded-2xl border bg-card/50 p-6 lg:p-10">
           <TransactionsDonutChart
             donutData={donutData}
             isExpense={isExpense}
@@ -59,7 +62,7 @@ return (
           />
         </div>
 
-        <div className="flex w-full shrink-0 flex-col xl:w-[460px]">
+        <div className="flex w-full shrink-0 flex-col xl:w-115">
           <CategoriesPanel
             categories={categories}
             donutData={donutData}
@@ -78,7 +81,6 @@ return (
         onClose={() => setIsTransactionListOpen(false)}
         onRangeChange={setModalRange}
       />
-
     </div>
   )
 }
