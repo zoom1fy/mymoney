@@ -7,22 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-25
+
 ### Added
 
-- Settings dialog behind a gear in the header. It now holds the theme switcher
-  and, on desktop, backup action.
-- Per-category account totals in the sidebar, converted into the base currency
-  (RUB). The web backend sums them with stored exchange rates; the desktop app
-  runs the same aggregation over local SQLite.
+- Settings dialog behind a gear in the header. It holds the theme switcher and, on desktop, the backup action.
+
+- Per-category account totals in the sidebar, converted into the base currency (RUB).
+
 
 ### Changed
 
-- Sidebar is 18rem wide (20rem on mobile), its title is centered, and its header
-  is as tall as the main header.
-
-### Removed
-
-- The wallet icon and the "Personal account" subtitle from the sidebar header.
+- Sidebar header.
 
 ## [0.1.0] - 2026-10-04
 
@@ -161,5 +157,6 @@ pipeline that builds and publishes both.
 - Licensed under AGPL-3.0.
 - The user interface is in Russian; the API and the README are in English.
 
-[Unreleased]: https://github.com/zoom1fy/mymoney/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/zoom1fy/mymoney/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/zoom1fy/mymoney/releases/tag/v0.1.1
 [0.1.0]: https://github.com/zoom1fy/mymoney/releases/tag/v0.1.0
