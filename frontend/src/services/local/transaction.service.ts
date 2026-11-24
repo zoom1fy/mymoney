@@ -9,6 +9,7 @@ import {
 } from '../../types/transaction.type'
 import { getDb, LOCAL_USER_ID } from './db'
 import { money } from './helpers'
+import { getRatesToBaseCurrency } from './rates.service'
 
 type TxRow = Record<string, unknown>
 
@@ -187,8 +188,8 @@ export const transactionLocalService = {
     return rows.map(mapTx)
   },
 
-  // Aggregated totals per category in RUB; consumed by both the donut service
-  // wrapper and the dashboard adapter
+  // Aggregated totals per category in the base currency; consumed by both the
+  // donut service wrapper and the dashboard adapter
   async getSummaryRaw(fromIso: string, toIso: string, type: TransactionType): Promise<ISummaryItem[]> {
     const db = await getDb()
 
@@ -203,11 +204,7 @@ export const transactionLocalService = {
     )
     if (rows.length === 0) return []
 
-    const rateRows = await db.select<{ from: string; rate: number }[]>(
-      'SELECT "from", CAST(rate AS REAL) AS rate FROM "ExchangeRate" WHERE "to" = \'RUB\''
-    )
-    const rateMap = new Map<string, number>(rateRows.map(r => [r.from, Number(r.rate)]))
-    rateMap.set('RUB', 1)
+    const rateMap = await getRatesToBaseCurrency()
 
     const rubTotals = new Map<number, { name: string; color: string | null; total: number }>()
 

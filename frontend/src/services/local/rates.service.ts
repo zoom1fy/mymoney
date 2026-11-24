@@ -1,11 +1,13 @@
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http'
 
+import { BASE_CURRENCY_CODE } from '@/constants/currency.constants'
 import { isTauri } from '@/lib/platform'
 import { getDb } from './db'
 
 // Mirrors backend CurrencyService source order (cbr → coingecko → binance →
 // fawaz-ahmed) but batched: one CBR request covers all fiat, one CoinGecko
-// request covers all crypto. Rates are stored per currency towards RUB.
+// request covers all crypto. Stored rates are per currency against the base
+// currency; the current sources quote RUB, so switching the base needs new ones.
 
 const STALE_MS = 24 * 60 * 60 * 1000
 const ATTEMPT_GUARD_MS = 60 * 60 * 1000
@@ -113,14 +115,14 @@ async function fawazRateToRub(code: string, fetcher: Fetcher): Promise<number | 
   return inverse ? 1 / inverse : null
 }
 
-// Resolves every currency code towards RUB using the same source priority as
-// the web backend; unresolved codes are simply absent from the result
+// Resolves every currency code against the base currency using the same source
+// priority as the web backend; unresolved codes are simply absent from the result
 export async function fetchAllRates(
   codes: { code: string; type: string }[],
   fetcher: Fetcher
 ): Promise<Map<string, number>> {
   const pending = new Set(codes.map(c => c.code))
-  const rates = new Map<string, number>([['RUB', 1]])
+  const rates = new Map<string, number>([[BASE_CURRENCY_CODE, 1]])
 
   // 1. CBR: all fiat in one request
   try {
@@ -176,6 +178,20 @@ export async function fetchAllRates(
   return rates
 }
 
+// Stored rates against the base currency for local aggregates; currencies
+// without a stored rate stay absent, so callers decide how to fall back
+export async function getRatesToBaseCurrency(): Promise<Map<string, number>> {
+  const db = await getDb()
+  const rows = await db.select<{ from: string; rate: number }[]>(
+    'SELECT "from", CAST(rate AS REAL) AS rate FROM "ExchangeRate" WHERE "to" = $1',
+    [BASE_CURRENCY_CODE]
+  )
+  const rates = new Map<string, number>(rows.map(row => [row.from, Number(row.rate)]))
+  rates.set(BASE_CURRENCY_CODE, 1)
+
+  return rates
+}
+
 export async function syncRatesIfNeeded(force = false): Promise<number> {
   if (!isTauri()) return 0
 
@@ -203,7 +219,8 @@ export async function syncRatesIfNeeded(force = false): Promise<number> {
   }
 
   const currencies = await db.select<{ code: string; type: string }[]>(
-    "SELECT code, type FROM \"Currency\" WHERE code != 'RUB'"
+    'SELECT code, type FROM "Currency" WHERE code != $1',
+    [BASE_CURRENCY_CODE]
   )
   // Requests must bypass webview CORS, so they go through the Rust http
   // plugin; plain fetch is only used by out-of-app tests
@@ -217,9 +234,9 @@ export async function syncRatesIfNeeded(force = false): Promise<number> {
     const safeRate = Number.isFinite(rate) && rate > 0 ? rate : 1
     await db.execute(
       `INSERT INTO "ExchangeRate" ("from", "to", rate, updatedAt)
-       VALUES ($1, 'RUB', $2, $3)
-       ON CONFLICT("from", "to") DO UPDATE SET rate = $2, updatedAt = $3`,
-      [code, String(safeRate), nowIso]
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT("from", "to") DO UPDATE SET rate = $3, updatedAt = $4`,
+      [code, BASE_CURRENCY_CODE, String(safeRate), nowIso]
     )
     updated += 1
   }
