@@ -1,7 +1,5 @@
 'use client'
 
-import { Wallet } from 'lucide-react'
-
 import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import {
   Sidebar,
@@ -22,13 +20,24 @@ import {
   accountCategoryNameMap
 } from '@/types/account.type'
 
+import { useCurrencies } from '@/hooks/use-currencies'
+
+import { formatCurrency } from '@/lib/format'
+
 import { ScrollArea } from '../../ui/shadui/scroll-area'
 import { AccountCard } from './account-card'
 import { AccountCardSkeleton } from './account-card-skeleton'
 import { AccountModal } from './account-modal'
 
 export function DashboardSidebar() {
-  const { accounts, isLoading } = useDashboard()
+  const { accounts, categoryTotals, baseCurrencyCode, isLoading } = useDashboard()
+  const { currencySymbolMap } = useCurrencies()
+
+  // Totals come already converted to the base currency by the backend
+  const totalsByCategory = new Map(
+    categoryTotals.map(item => [item.categoryId, item.totalAmount])
+  )
+  const currencySymbol = currencySymbolMap[baseCurrencyCode]
 
   const groupedAccounts = accounts.reduce<
     Record<AccountCategoryEnum, IAccount[]>
@@ -54,16 +63,8 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-border/50 bg-background/70 backdrop-blur-sm">
-        <div className="flex items-center gap-3 px-4 py-5">
-          <div className="rounded-full bg-accent/20 p-3">
-            <Wallet className="size-6 text-accent" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">MyMoney</h2>
-            <p className="text-sm text-muted-foreground">Личный кабинет</p>
-          </div>
-        </div>
+      <SidebarHeader className="h-16 shrink-0 items-center justify-center border-b border-border/50 bg-background/70 px-4 backdrop-blur-sm">
+        <h2 className="truncate text-xl font-bold tracking-tight">MyMoney</h2>
       </SidebarHeader>
 
       <SidebarContent>
@@ -74,8 +75,9 @@ export function DashboardSidebar() {
                 className="py-2"
                 key={`skeleton-${category}`}
               >
-                <SidebarGroupLabel className="px-3 text-base font-semibold text-foreground/80">
+                <SidebarGroupLabel className="h-auto justify-between gap-2 px-3 py-1 text-base font-semibold text-foreground/80">
                   <div className="h-4 w-20 bg-muted/40 rounded-full animate-pulse" />
+                  <div className="h-4 w-14 bg-muted/30 rounded-full animate-pulse" />
                 </SidebarGroupLabel>
                 <SidebarGroupContent className="grid gap-3 mt-2">
                   <AccountCardSkeleton />
@@ -92,14 +94,25 @@ export function DashboardSidebar() {
                 return null
 
               const categoryName = accountCategoryNameMap[category]
+              const categoryTotal = totalsByCategory.get(category)
 
               return (
                 <SidebarGroup
                   className="py-2"
                   key={category}
                 >
-                  <SidebarGroupLabel className="px-3 text-base font-semibold text-foreground/80">
-                    {categoryName}
+                  <SidebarGroupLabel className="h-auto justify-between gap-2 px-3 py-1 text-base font-semibold text-foreground/80">
+                    <span className="truncate">{categoryName}</span>
+                    {categoryTotal !== undefined && (
+                      <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-muted-foreground">
+                        {formatCurrency(categoryTotal)}
+                        {currencySymbol && (
+                          <span className="ml-1 text-xs font-medium text-muted-foreground/70">
+                            {currencySymbol}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </SidebarGroupLabel>
 
                   <SidebarGroupContent className="grid gap-3 mt-2">
