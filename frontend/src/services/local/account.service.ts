@@ -1,6 +1,8 @@
 import { IAccount, ICreateAccount, IUpdateAccount } from '../../types/account.type'
+import type { ICategoryTotal } from '../../types/dashboard.type'
 import { getDb, LOCAL_USER_ID } from './db'
 import { money, toBool, toNumber } from './helpers'
+import { getRatesToBaseCurrency } from './rates.service'
 
 type AccountRow = Record<string, unknown>
 
@@ -81,6 +83,39 @@ export const accountLocalService = {
     )
 
     return rows.map(mapAccount)
+  },
+
+  // Mirrors the web backend: balances are grouped per category and converted
+  // into the base currency with the locally cached rates, so mixed-currency
+  // accounts add up
+  async getCategoryTotals(): Promise<ICategoryTotal[]> {
+    const db = await getDb()
+
+    const rows = await db.select<{ categoryId: number; currencyCode: string; total: number }[]>(
+      `SELECT categoryId, currencyCode, SUM(CAST(currentBalance AS REAL)) AS total
+       FROM "Account"
+       WHERE userId = $1 AND isDeleted = 0
+       GROUP BY categoryId, currencyCode`,
+      [LOCAL_USER_ID]
+    )
+    if (rows.length === 0) return []
+
+    const rateMap = await getRatesToBaseCurrency()
+
+    const totals = new Map<number, number>()
+    for (const row of rows) {
+      // Unknown currencies fall back to 1 so the total stays visible
+      const rate = rateMap.get(row.currencyCode) ?? 1
+      const categoryId = Number(row.categoryId)
+      totals.set(categoryId, (totals.get(categoryId) ?? 0) + Number(row.total) * rate)
+    }
+
+    return [...totals.entries()]
+      .map(([categoryId, total]) => ({
+        categoryId,
+        totalAmount: Math.round(total * 100) / 100
+      }))
+      .sort((a, b) => a.categoryId - b.categoryId)
   },
 
   async getById(id: number): Promise<IAccount> {

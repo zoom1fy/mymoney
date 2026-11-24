@@ -14,14 +14,19 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardService } from '@/services/dashboard.service'
 import { syncRatesIfNeeded } from '@/services/local/rates.service'
 import { DonutItem } from '@/lib/transactions-donut'
+import { BASE_CURRENCY_CODE } from '@/constants/currency.constants'
 import { IAccount } from '@/types/account.type'
 import { ICategory } from '@/types/category.type'
 import { IUser } from '@/types/auth.type'
+import { ICategoryTotal } from '@/types/dashboard.type'
 import { TransactionType } from '@/types/transaction.type'
 
 interface DashboardContextValue {
   profile: IUser | undefined
   accounts: IAccount[]
+  /** Per-category account totals converted to baseCurrencyCode */
+  categoryTotals: ICategoryTotal[]
+  baseCurrencyCode: string
   categories: ICategory[]
   archivedCategories: ICategory[]
   donutData: DonutItem[]
@@ -89,6 +94,8 @@ export function DashboardProvider({ children }: PropsWithChildren) {
   const value: DashboardContextValue = {
     profile: data?.profile,
     accounts: data?.accounts ?? [],
+    categoryTotals: data?.categoryTotals ?? [],
+    baseCurrencyCode: data?.baseCurrencyCode ?? BASE_CURRENCY_CODE,
     categories: data?.categories ?? [],
     archivedCategories: data?.archivedCategories ?? [],
     donutData,

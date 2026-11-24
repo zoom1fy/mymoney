@@ -1,6 +1,7 @@
 import { IAccount } from '@/types/account.type'
 import { ICategory } from '@/types/category.type'
 import { IUser } from '@/types/auth.type'
+import { ICategoryTotal } from '@/types/dashboard.type'
 
 import { isTauri } from '../lib/platform'
 import { dashboardLocalService } from './local/dashboard.service'
@@ -9,6 +10,9 @@ import { axiosWithAuth } from '../api/interceptor'
 export interface IDashboardResponse {
   profile: IUser
   accounts: IAccount[]
+  /** Per-category account totals converted to baseCurrencyCode */
+  categoryTotals: ICategoryTotal[]
+  baseCurrencyCode: string
   categories: ICategory[]
   archivedCategories: ICategory[]
   expenseSummary: { categoryId: number | null; categoryName: string | null; categoryColor: string | null; totalAmount: number }[]
