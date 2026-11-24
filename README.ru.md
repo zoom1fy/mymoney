@@ -1,189 +1,91 @@
-# MyMoney
+<div align="center">
 
-- [English](README.md)
-- [Русский](README.ru.md)
+<img src="frontend/public/icon.png" width="104" alt="MyMoney" />
 
-MyMoney — полнофункциональное приложение для управления личными финансами. Отслеживайте доходы, расходы и переводы между счетами в разных валютах, анализируйте траты с помощью интерактивных графиков. Поставляется как веб-приложение и как десктопное приложение, работающее офлайн.
+<h1>MyMoney</h1>
+
+**Личные финансы — онлайн и офлайн.**
+
+Учитывайте доходы, расходы и переводы между мультивалютными счетами, смотрите, куда уходят деньги, и пользуйтесь приложением даже без подключения к сети.
+
+[![Последний релиз](https://img.shields.io/github/v/release/zoom1fy/mymoney?style=flat-square&color=8b5cf6&label=release)](https://github.com/zoom1fy/mymoney/releases)
+[![Лицензия: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-8b5cf6?style=flat-square)](LICENSE)
+[![Платформы](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-8b5cf6?style=flat-square)](https://github.com/zoom1fy/mymoney/releases)
+
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![NestJS 11](https://img.shields.io/badge/NestJS-11-e0234e?style=flat-square&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![Tauri 2](https://img.shields.io/badge/Tauri-2-24c8db?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
+
+[English](README.md) · [Русский](README.ru.md) · [История изменений](CHANGELOG.md)
+
+</div>
+
+---
+
+## О проекте
+
+MyMoney — приложение для управления личными финансами, которое можно разместить на своём сервере: полноценное веб-приложение и десктопная версия, работающая офлайн.
+Все счета, категории и транзакции хранятся в одном месте, мультивалютные балансы приводятся к одной базовой валюте, а история операций превращается в понятные графики.
+
+Веб-версия работает на Next.js и NestJS с PostgreSQL, Redis и nginx. Десктопная версия оборачивает тот же интерфейс в Tauri и хранит данные в локальной базе SQLite — ей не нужны ни бэкенд, ни сеть.
+
+Интерфейс приложения на русском языке; API и документация — на английском.
 
 ## Возможности
 
-- **Мультивалютные счета** — 6 типов (наличные, банковский счет, депозит, брокерский, кредитная карта, криптокошелек) в 4 группах сайдбара, у каждого своя иконка
-- **Учёт доходов / расходов / переводов** — транзакции с иерархическими категориями, цветами, иконками, датами и описаниями
-- **Аналитика трат** — круговые диаграммы (Recharts) с фильтрацией по периоду, агрегация на сервере
-- **Дашборд за один запрос** — `GET /api/dashboard` отдаёт профиль, счета, категории и обе сводки сразу
-
-- **JWT-аутентификация** — access-токены (Bearer) + refresh-токены (httpOnly cookies)
-- **Email-верификация** — 6-значный код через SMTP (Яндекс), повтор через 60с, срок 15 мин
-- **Восстановление пароля** — забыли пароль? Код на почту, сброс; код одноразовый
-- **Фоновые задачи** — BullMQ + Redis на отправку писем и подготовку данных нового аккаунта
-- **Ограничение запросов** — nginx (30 запр/с общее, 5 запр/мин auth) + NestJS ThrottlerModule
-- **Оптимистичный UI** — мгновенные обновления через TanStack Query
-
-- **Десктопное приложение** — Tauri 2 с локальной базой SQLite, полностью работоспособно без бэкенда
-- **Ежедневные бэкапы** — сжатый `pg_dump` внутри контейнера с БД с ротацией файлов
-- **Светлая и тёмная темы** — вёрстка работает и на мобильном, есть скелетоны загрузки
-
-## Технологический стек
-
-### Фронтенд
-| Технология | Назначение |
+| Возможность | Что это даёт |
 |---|---|
-| [Next.js 15](https://nextjs.org/) (App Router) | React-фреймворк |
-| React 19 | UI-библиотека |
-| Tailwind CSS 4 + shadcn/ui (New York) | Стилизация и примитивы |
-| Recharts 3 | Круговые диаграммы |
-| TanStack Query 5 | Серверное состояние и оптимистичные обновления |
-| Framer Motion 12 | Анимации |
-| React Hook Form 7 | Формы |
-| Sonner | Toast-уведомления |
-| next-themes | Светлая / тёмная тема |
-| lucide-react | Иконки |
-| react-day-picker + date-fns | Календарь и работа с датами |
-| react-number-format | Поля ввода сумм |
-| react-colorful | Палитра для цвета категории |
-| @tauri-apps/api + plugin-sql / plugin-http | Мост к десктопному приложению |
-
-### Бэкенд
-| Технология | Назначение |
-|---|---|
-| [NestJS 11](https://nestjs.com/) | Node.js-фреймворк |
-| Prisma Next (v8) | ORM и миграции |
-| PostgreSQL 17 | База данных |
-| Redis 7 + BullMQ | Фоновые задачи |
-| JWT + Passport | Аутентификация |
-| Argon2 | Хеширование паролей |
-| Nodemailer | SMTP-отправка писем |
-| @nestjs/throttler | Ограничение запросов (за nginx) |
-| @nestjs/axios | Исходящие HTTP-запросы за курсами валют |
-
-### Десктоп
-| Технология | Назначение |
-|---|---|
-| [Tauri 2](https://tauri.app/) | Оболочка десктопного приложения |
-| Rust + SQLx | Доступ к SQLite и миграции |
-| tauri-plugin-sql | SQLite из webview |
-| tauri-plugin-http | HTTP-запросы из webview |
-| tauri-plugin-single-instance | Одно окно на одну установку |
-
-### Инфраструктура
-| Сервис | Внутренний : Внешний порт |
-|---|---|
-| Frontend (Next.js) | `3000` → `3001` (через nginx) |
-| Backend (NestJS) | `3000` (внутренний) |
-| nginx | `80` → `3001` |
-| PostgreSQL 17 | `5432` |
-| Redis 7 | `6379` |
-| Adminer | `80` → `8080` |
-
-
-## Структура проекта
-
-```
-mymoney/
-├── .github/workflows/           # ci.yml, docker.yml, release.yml
-├── backend/                     # NestJS API-сервер
-│   ├── src/
-│   │   ├── auth/                # регистрация, вход, refresh, верификация email, сброс пароля
-│   │   ├── user/                # CRUD профиля
-│   │   ├── account/             # CRUD счетов, типы и группы счетов
-│   │   ├── category/            # Иерархические категории доходов/расходов, архивация
-│   │   ├── transaction/         # Доходы / расходы / переводы и сводки
-│   │   ├── dashboard/           # Единая агрегированная ручка дашборда
-│   │   ├── currency/            # Список валют и курсы с fallback-источниками
-│   │   ├── queue/               # Задачи BullMQ: письма, сидинг нового пользователя
-│   │   ├── mail/                # Отправка SMTP через Nodemailer
-│   │   ├── seed/                # Стартовые данные для новых аккаунтов
-│   │   ├── prisma/              # Prisma-клиент и контракт схемы contract.prisma
-│   │   ├── config/              # JWT-конфиг, токен-конфиг
-│   │   └── common/              # Общие перечисления, guard с учётом прокси
-│   ├── migrations/              # Миграции prisma-next
-│   ├── test/                    # E2E-тесты и моки ORM
-│   ├── prisma-next.config.ts
-│   └── Dockerfile.dev / Dockerfile.prod
-├── frontend/                    # Next.js веб-приложение
-│   ├── src/
-│   │   ├── app/                 # App Router: auth, дашборд (me/)
-│   │   ├── components/
-│   │   │   ├── ui/              # Примитивы shadcn/ui, кнопки, модалки, пикеры
-│   │   │   └── dashboard/       # Сайдбар, счета, категории, транзакции, профиль
-│   │   ├── hooks/               # use-accounts, use-categories, use-transactions, ...
-│   │   ├── services/            # HTTP-клиенты + адаптеры local/* для десктопа
-│   │   ├── types/               # TypeScript-интерфейсы
-│   │   ├── lib/                 # Форматтеры, helpers для графиков, определение платформы
-│   │   ├── api/                 # Интерсепторы axios, обработка ошибок
-│   │   └── middleware.ts
-│   ├── scripts/                 # Хелперы для dev/build десктопа
-│   └── Dockerfile.dev / Dockerfile.prod
-├── desktop/                     # Приложение на Tauri 2
-│   ├── src-tauri/
-│   │   ├── src/                 # Rust: плагины, миграции SQLite при старте
-│   │   ├── migrations/          # Схема SQLite, сидинг, курсы, триггеры балансов
-│   │   ├── capabilities/        # Права Tauri
-│   │   ├── tauri.conf.json      # Единственный источник версии
-│   │   └── Cargo.toml
-│   └── scripts/                 # Обёртки tauri.mjs / fe.mjs
-├── db/                          # Образ PostgreSQL с cron для ночных бэкапов
-├── deploy/                      # Compose-оверрайды и скрипты деплоя
-│   ├── compose.yml              # Весь стек (PostgreSQL, Redis, backend, frontend, nginx, Adminer)
-│   ├── compose.dev.yml          # Dev-расширения (Dockerfile, порты, volumes)
-│   ├── compose.prod.yml         # Prod-расширения
-│   ├── compose.ci.yml           # BuildKit-кэш слоёв только для CI
-│   ├── deploy.sh                # Скрипт деплоя (macOS/Linux)
-│   └── deploy.bat               # Скрипт деплоя (Windows)
-├── nginx/
-│   └── nginx.conf               # Обратный прокси и лимиты запросов (frontend + API)
-├── scripts/app-version.mjs      # Расставляет версию по всем манифестам
-├── backups/                     # Локальный каталог для pg_dump (в git не попадает)
-├── compose.yaml                 # Точка входа Compose (подключает deploy/compose.yml)
-└── package.json                 # Корневой раннер задач: bun run dev:backend / dev:frontend / dev:desktop
-```
+| 💸 **Мультивалютные счета** | Шесть типов счетов в четырёх группах сайдбара, у каждого своя иконка и валюта. Балансы остаются в исходной валюте, итоги по группам переводятся в RUB. |
+| 📊 **Аналитика трат** | Круговые диаграммы доходов и расходов с фильтром по периоду. Агрегация выполняется на сервере, браузер только отрисовывает результат. |
+| ⚡ **Дашборд за один запрос** | `GET /api/dashboard` возвращает профиль, счета, итоги по категориям, категории и обе сводки за один запрос. |
+| 🔁 **Доходы, расходы, переводы** | Иерархические категории с цветами и иконками, описания, даты и история с cursor-пагинацией. Перевод обновляет оба счёта в одной транзакции БД. |
+| 🔐 **Безопасность по умолчанию** | JWT access/refresh-токены, хеширование паролей Argon2, подтверждение email, одноразовые коды восстановления и два уровня ограничения запросов. |
+| 💻 **Веб и десктоп** | Один и тот же React-интерфейс поставляется как сайт и как приложение Tauri с локальной SQLite, балансами на триггерах и ручными бэкапами. |
+| 🎨 **Комфортный интерфейс** | Светлая и тёмная темы, оптимистичные обновления через TanStack Query, скелетоны загрузки, анимации и адаптивная вёрстка. |
+| 🛠 **Готово к запуску** | Docker Compose, ночные бэкапы PostgreSQL, CI на GitHub Actions и сборки под несколько платформ. |
 
 ## Быстрый старт
 
 ### Требования
 
-- [Docker Desktop](https://www.docker.com/desktop/) (Windows/macOS) или Docker Engine (Linux)
-- [Bun](https://bun.sh/) — для запуска корневых скриптов
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) или Docker Engine
+- [Bun](https://bun.sh/) 1.2 или новее (нужен только для локальных скриптов и сборок)
 - Git
-- Свободные порты: `3001`, `5432`, `6379`, `8080`
+- Свободные порты: `3001`, `4200`, `5432`, `6379`, `8080`
 
 ### 1. Клонируйте и настройте
 
 ```bash
-git clone <url_репозитория>
+git clone https://github.com/zoom1fy/mymoney.git
 cd mymoney
 cp .example.env .env
 ```
 
-Отредактируйте `.env`:
+В Windows PowerShell вместо `cp` используйте `Copy-Item .example.env .env`.
+
+Откройте `.env` и задайте как минимум эти значения:
 
 ```env
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=ваш_пароль
+POSTGRES_PASSWORD=change-me
 POSTGRES_DB=mymoneydb
-DATABASE_URL=postgresql://postgres:ваш_пароль@db:5432/mymoneydb
-JWT_SECRET=ваш-секретный-ключ
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
-CORS_ORIGINS=http://localhost:3001
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-NEXT_PUBLIC_COOKIE_DOMAIN=localhost
+DATABASE_URL=postgresql://postgres:change-me@db:5432/mymoneydb
+JWT_SECRET=replace-with-a-long-random-string
 
-# SMTP (для верификации email и восстановления пароля)
+# Нужны для подтверждения регистрации и восстановления пароля
 SMTP_HOST=smtp.yandex.ru
 SMTP_PORT=587
-SMTP_USER=your-email@yandex.ru
+SMTP_USER=you@yandex.ru
 SMTP_PASS=your-app-password
-SMTP_FROM=your-email@yandex.ru
+SMTP_FROM=you@yandex.ru
 SMTP_TLS=true
-
-# Необязательно — ниже те значения, которые Compose и бэкенд уже подставляют по умолчанию
-REDIS_HOST=redis
-REDIS_PORT=6379
-BACKUP_KEEP=14
 ```
 
-### 2. Запустите
+У остальных переменных в `.example.env` уже есть рабочие значения по умолчанию.
+Подтверждение email обязательно, поэтому SMTP-данные должны быть рабочими — иначе регистрацию не завершить.
+Для Яндекс Почты используйте пароль приложения, а не пароль от аккаунта.
+
+### 2. Запустите стек
 
 ```bash
 # macOS / Linux
@@ -193,219 +95,101 @@ BACKUP_KEEP=14
 deploy\deploy.bat
 ```
 
-Или вручную:
+Скрипт спросит, какой режим запустить — development или production.
+Чтобы пропустить вопрос и сразу поднять dev-стек:
 
 ```bash
 bun run docker:up
 ```
 
+Первая сборка занимает несколько минут. Миграции базы данных применяются
+автоматически при старте контейнера бэкенда.
 
-
-### 3. Откройте в браузере
+### 3. Откройте приложение
 
 | Сервис | URL |
 |---|---|
-| Фронтенд | http://localhost:3001 |
-| Adminer | http://localhost:8080 |
+| MyMoney | <http://localhost:3001> |
+| Adminer | <http://localhost:8080> |
 
+Зарегистрируйтесь, подтвердите 6-значный код из письма — и дашборд будет
+заполнен стартовыми категориями, двумя счетами и примерами транзакций.
 
-## API-справочник
+## Десктопное приложение
 
-### Аутентификация (`/api/auth`)
-| Метод | Путь | Auth | Описание |
-|---|---|---|---|
-| POST | `/api/auth/register` | — | Регистрация `{email, password}` → `{email}` |
-| POST | `/api/auth/verify-email` | — | Подтвердить код `{email, code}` → токены |
-| POST | `/api/auth/resend-code` | — | Отправить код заново `{email}` (60с кулдаун) |
-| POST | `/api/auth/forgot-password` | — | Запросить сброс пароля `{email}` |
-| POST | `/api/auth/reset-password` | — | Сбросить пароль `{email, code, password}` |
-| POST | `/api/auth/login` | — | Вход `{email, password}` |
-| POST | `/api/auth/login/access-token` | Cookie | Обновление access-токена |
-| POST | `/api/auth/logout` | — | Удаление refresh-куки |
+Десктопная сборка полностью офлайн: вместо API она использует локальную базу
+SQLite, поэтому не требует PostgreSQL, Redis и сервера.
 
-Все auth-эндпоинты ограничены — **5 запросов в минуту на IP** (nginx + NestJS).
+- **Скачайте** последний MSI, DMG, AppImage, deb или rpm на странице
+  [Releases](https://github.com/zoom1fy/mymoney/releases).
+- **Сделайте бэкап** базы в разделе Настройки → Данные → Сохранить копию. Файл
+  создаётся через SQLite `VACUUM INTO`, поэтому копия остаётся целостной даже
+  во время работы приложения.
 
-Ответ: `{ user: {id, email}, accessToken }` + `refresh_token` httpOnly cookie.
-
-### Пользователь (`/api/user/profile`)
-| Метод | Auth | Описание |
-|---|---|---|
-| GET | JWT | Получить профиль |
-| PATCH | JWT | Обновить email / пароль |
-| DELETE | JWT | Удалить аккаунт |
-
-### Счета (`/api/accounts`)
-| Метод | Auth | Описание |
-|---|---|---|
-| POST | JWT | Создать счёт |
-| GET | JWT | Список активных |
-| GET `/:id` | JWT | Получить по ID |
-| PATCH `/:id` | JWT | Обновить |
-| DELETE `/:id` | JWT | Мягкое удаление |
-
-### Категории (`/api/category`)
-| Метод | Auth | Описание |
-|---|---|---|
-| POST | JWT | Создать категорию |
-| GET | JWT | Активные категории |
-| GET `/:id` | JWT | По ID |
-| PATCH `/:id` | JWT | Обновить |
-| DELETE `/:id` | JWT | Архивация (с подкатегориями) |
-| GET `/archived` | JWT | Архивные категории |
-| PATCH `/:id/unarchive` | JWT | Восстановить |
-
-### Транзакции (`/api/transactions`)
-| Метод | Auth | Описание |
-|---|---|---|
-| POST | JWT | Создать (INCOME / EXPENSE / TRANSFER) |
-| GET | JWT | Список с пагинацией и фильтрами |
-| GET `/:id` | JWT | По ID |
-| PATCH `/:id` | JWT | Обновить (rollback + apply) |
-| DELETE `/:id` | JWT | Удалить (обратный баланс) |
-
-**Фильтры:** `take`, `cursor`, `accountId`, `type`, `from`, `to`
-
-### Дашборд (`/api/dashboard`)
-| Метод | Auth | Описание |
-|---|---|---|
-| GET | JWT | Профиль, счета, категории и сводки по доходам и расходам одним ответом |
-
-**Параметры:** `from`, `to` — применяются к обеим сводкам. Счета возвращаются в
-своей валюте, сводки переводятся в RUB.
-
-### Валюты (`/api/currency`)
-| Метод | Auth | Описание |
-|---|---|---|
-| GET | — | Список всех валют |
-| GET `/rate` | — | Курс для `?from=USD&to=RUB` |
-
-Курсы запрашиваются у шести провайдеров по очереди (ЦБ РФ, Frankfurter,
-ExchangeRate.host, CoinGecko, Binance, CDN Fawaz Ahmed) и кешируются в базе,
-так что отказ одного провайдера не ломает конвертацию.
-
-## Разработка
-
-Все команды запускаются из корня репозитория через корневой `package.json`.
-Один раз выполни `bun run setup`, чтобы поставить зависимости и сгенерировать
-контракт Prisma.
-
-### Запуск
+Для самостоятельной сборки нужны [зависимости Tauri](https://tauri.app/start/prerequisites/)
+под вашу платформу, Rust toolchain и Bun:
 
 ```bash
-bun run dev:backend    # NestJS API на :3000
-bun run dev:frontend   # Next.js на :3000
-bun run dev:desktop    # окно Tauri со встроенным фронтендом
+bun run setup
+bun run dev:desktop      # окно для разработки
+bun run build:desktop    # инсталляторы в desktop/src-tauri/target/release/bundle
 ```
 
-API и десктопному приложению нужны PostgreSQL и Redis. Либо подними всё
-в контейнерах через `bun run docker:up`, либо только сервисы:
+## Архитектура
 
-```bash
-docker compose -f compose.yaml -f deploy/compose.dev.yml up -d db redis
+```mermaid
+flowchart LR
+    Browser([Браузер]) --> Nginx["nginx :3001"]
+
+    subgraph Server["Docker Compose"]
+        Nginx --> Web["Next.js"]
+        Nginx -->|/api| Api["NestJS API"]
+        Api --> Pg[("PostgreSQL 17")]
+        Api --> Redis[("Redis 7")]
+    end
+
+    Api -.-> Rates["Провайдеры курсов валют"]
+
+    subgraph Desktop["Десктопное приложение"]
+        Tauri["Tauri 2 + React"] --> Sqlite[("Локальная SQLite")]
+    end
 ```
 
-### Десктопное приложение
+Nginx публикует единый origin: всё под `/api` уходит в NestJS, остальное — в Next.js. Десктопное приложение вообще не обращается к серверу и запускает тот же фронтенд поверх SQLite.
 
-Для сборки нужен Rust toolchain и [зависимости Tauri](https://tauri.app/start/prerequisites/)
-под вашу платформу — на Linux это `libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev`,
-`librsvg2-dev` и `libxdo-dev`.
+## Технологии
 
-```bash
-bun run dev:desktop      # окно Tauri поверх dev-сервера
-bun run build:desktop    # Инсталляторы в desktop/src-tauri/target/release/bundle
-```
-
-Десктопное приложение хранит всё в локальном файле SQLite и не обращается к
-бэкенду. Балансы счетов там поддерживают триггеры SQLite, поэтому падение
-посреди записи не разведёт баланс с его транзакциями.
-
-### Проверки
-
-```bash
-bun run lint          # backend + frontend
-bun run typecheck     # backend + frontend
-bun run test          # backend + frontend
-bun run build         # backend + frontend + desktop
-```
-
-Доступны и варианты для отдельных пакетов: `bun run test:backend`,
-`bun run test:cov:backend`, `bun run test:e2e:backend`, `bun run lint:frontend`,
-`bun run build:desktop`.
-
-Скрипт, который есть только в одном пакете, запускается напрямую:
-
-```bash
-bun run --cwd backend prisma:migrate:dev
-bun run --cwd frontend test:watch
-```
-
-### Версионирование
-
-Единственный источник версии — `desktop/src-tauri/tauri.conf.json`.
-
-```bash
-bun run version              # раскладывает текущую версию по всем манифестам
-bun run version:set -- 0.2.0 # задаёт новую версию везде
-bun run version:check        # падает, если манифесты разошлись
-```
-
-Тег `v<version>` запускает релизный пайплайн. CI отклоняет тег, номер которого
-не совпадает с версией приложения.
-
-### Docker
-
-Точка входа — `compose.yaml` в корне репозитория; оверрайды окружений лежат в `deploy/`.
-
-```bash
-bun run docker:up     # dev-стек, собранный и запущенный в фоне
-bun run docker:logs   # следить за логами
-bun run docker:down   # остановить
-
-docker compose -f compose.yaml -f deploy/compose.dev.yml down -v   # Сброс БД
-```
-
-Чтобы запустить прод-стек, замените `compose.dev.yml` на `compose.prod.yml`.
-`deploy/deploy.sh` (или `deploy\deploy.bat`) делает то же самое интерактивно.
-
-## База данных
-
-| Сущность | Описание |
+| Слой | Стек |
 |---|---|
-| **User** | UUID, email, хеш Argon2, время последнего входа |
-| **PendingUser** | Неподтверждённая регистрация (удаляется после верификации email) |
-| **PasswordResetToken** | 6-значный код с expiry, одноразовый для восстановления пароля |
-| **AccountCategory** | Группа сайдбара: основные счета, накопления, инвестиции, кредиты и долги |
-| **AccountType** | Наличные, банковский счет, депозит, брокерский, кредитная карта, криптокошелек |
-| **Account** | Привязан к пользователю, типу, группе, валюте; баланс + `isDeleted` |
-| **Category** | Иерархическая (самоссылающаяся), в рамках пользователя, флаг дохода/расхода, цвет, иконка, `isArchived` |
-| **Transaction** | INCOME / EXPENSE / TRANSFER, атомарное обновление баланса |
-| **Currency** | 16 валют: 6 фиатных (RUB, USD, EUR, GBP, JPY, CNY) и 10 криптовалют |
-| **ExchangeRate** | Кешированный курс по паре, обновляется раз в 3 часа |
+| **Фронтенд** | Next.js 15 (App Router), React 19, Tailwind CSS 4, shadcn/ui, Recharts 3, TanStack Query 5, Framer Motion, React Hook Form |
+| **Бэкенд** | NestJS 11, Prisma Next 8, PostgreSQL 17, Redis 7 + BullMQ, JWT + Passport, Argon2, Nodemailer |
+| **Десктоп** | Tauri 2, Rust, SQLx, SQLite |
+| **Инфраструктура** | Docker Compose, nginx, GitHub Actions, ночные бэкапы `pg_dump` |
 
-Суммы хранятся в колонках с фиксированной точностью, а не во float, и перед
-записью округляются; на входе проверяется не более двух знаков после запятой.
+## Структура репозитория
 
-## Безопасность
+```
+.
+├── backend/     NestJS API, контракт Prisma и миграции
+├── frontend/    Next.js-приложение для веба и десктопа
+├── desktop/     Оболочка Tauri 2, Rust-код и миграции SQLite
+├── deploy/      Compose-оверрайды и скрипты деплоя
+├── db/          Образ PostgreSQL с cron для ночных бэкапов
+└── nginx/       Обратный прокси и лимиты запросов
+```
 
-- **Argon2** для хеширования паролей (не bcrypt)
-- **JWT** пара: access (15 мин) + refresh (7 дней)
-- **Refresh-токен** в httpOnly, SameSite=Lax cookie (защита от XSS)
-- **Мягкое удаление** для счетов (`isDeleted`) и категорий (`isArchived`)
-- **CORS** ограничен списком origins из конфигурации
-- **Ограничение запросов** двойной слой (nginx + NestJS) против brute-force и DDoS
-- **Email-верификация** обязательна перед активацией аккаунта
-- **60-секундный кулдаун** между повторными отправками кода
-- **Одноразовый код сброса**, который тратится в одной транзакции с обновлением пароля
-- **Ограниченный CSP** и урезанный набор прав в webview десктопного приложения
+## Участие в разработке
 
-## Бэкапы
+Issues и pull requests приветствуются. Перед созданием pull request запустите те же проверки, что и CI:
 
-Образ `db` запускает рядом с PostgreSQL cron и каждую ночь в 03:00 складывает
-сжатый `pg_dump` в `./backups`, оставляя `BACKUP_KEEP` последних файлов
-(по умолчанию 14) и удаляя остальные.
+```bash
+bun run lint
+bun run typecheck
+bun run test
+```
 
-## Примечания
+## Лицензия
 
-- Интерфейс на русском языке
-- Курсы валют запрашиваются у шести провайдеров с автоматическим переключением при сбое
-- Лицензия AGPL-3.0
+MyMoney распространяется по лицензии [GNU Affero General Public License v3.0](LICENSE).
+Если вы запускаете изменённую версию как сетевой сервис, вы обязаны предоставить
+его пользователям исходный код.
