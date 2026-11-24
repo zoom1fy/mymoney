@@ -22,8 +22,6 @@ import {
   accountCategoryNameMap
 } from '@/types/account.type'
 
-import { useAppVersion } from '@/hooks/use-app-version'
-
 import { ScrollArea } from '../../ui/shadui/scroll-area'
 import { AccountCard } from './account-card'
 import { AccountCardSkeleton } from './account-card-skeleton'
@@ -31,7 +29,6 @@ import { AccountModal } from './account-modal'
 
 export function DashboardSidebar() {
   const { accounts, isLoading } = useDashboard()
-  const appVersion = useAppVersion()
 
   const groupedAccounts = accounts.reduce<
     Record<AccountCategoryEnum, IAccount[]>
@@ -131,12 +128,6 @@ export function DashboardSidebar() {
             <AccountModal />
           </SidebarMenuItem>
         </SidebarMenu>
-
-        {appVersion && (
-          <p className="px-4 pb-1 text-center text-xs text-muted-foreground">
-            Версия {appVersion}
-          </p>
-        )}
       </SidebarFooter>
     </Sidebar>
   )
