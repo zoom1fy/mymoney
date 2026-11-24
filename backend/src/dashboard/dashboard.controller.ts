@@ -7,6 +7,7 @@ import { AccountService } from '../account/account.service';
 import { CategoryService } from '../category/category.service';
 import { TransactionService } from '../transaction/transaction.service';
 import { TransactionType } from '../transaction/enums/transaction-type.enum';
+import { BASE_CURRENCY } from '../common/constants/base-currency.constant';
 
 @Auth()
 @Controller('dashboard')
@@ -24,28 +25,38 @@ export class DashboardController {
     @Query('from') from?: string,
     @Query('to') to?: string
   ) {
-    const [profile, accounts, categories, archivedCategories, expenseSummary, incomeSummary] =
-      await Promise.all([
-        this.userService.getProfile(user.id),
-        this.accountService.findAll(user.id),
-        this.categoryService.findAll(user.id),
-        this.categoryService.getArchived(user.id),
-        this.transactionService.getSummary(user.id, {
-          type: TransactionType.EXPENSE,
-          from,
-          to,
-        }),
-        this.transactionService.getSummary(user.id, {
-          type: TransactionType.INCOME,
-          from,
-          to,
-        }),
-      ]);
+    const [
+      profile,
+      accounts,
+      categoryTotals,
+      categories,
+      archivedCategories,
+      expenseSummary,
+      incomeSummary,
+    ] = await Promise.all([
+      this.userService.getProfile(user.id),
+      this.accountService.findAll(user.id),
+      this.accountService.getCategoryTotals(user.id),
+      this.categoryService.findAll(user.id),
+      this.categoryService.getArchived(user.id),
+      this.transactionService.getSummary(user.id, {
+        type: TransactionType.EXPENSE,
+        from,
+        to,
+      }),
+      this.transactionService.getSummary(user.id, {
+        type: TransactionType.INCOME,
+        from,
+        to,
+      }),
+    ]);
 
-    // accounts remain in their original currency; only summary/conversion uses RUB
+    // Accounts keep their original currency; only aggregates are converted
     return {
       profile,
       accounts,
+      categoryTotals,
+      baseCurrencyCode: BASE_CURRENCY,
       categories,
       archivedCategories,
       expenseSummary,

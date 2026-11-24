@@ -3,11 +3,13 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 import { AccountService } from './account.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ExchangeRateService } from '../currency/exchange-rate.service';
 import { createPrismaDbMock } from '../prisma/fluent-mock';
 
 describe('AccountService', () => {
   let service: AccountService;
   let dbMock: ReturnType<typeof createPrismaDbMock>;
+  let mockExchangeRateService: { getRatesToBaseCurrency: jest.Mock };
 
   const userId = 'user-uuid-1';
 
@@ -26,9 +28,16 @@ describe('AccountService', () => {
 
   beforeEach(async () => {
     dbMock = createPrismaDbMock();
+    mockExchangeRateService = {
+      getRatesToBaseCurrency: jest.fn().mockResolvedValue(new Map([['RUB', 1]])),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AccountService, { provide: PrismaService, useValue: { db: dbMock.db } }],
+      providers: [
+        AccountService,
+        { provide: PrismaService, useValue: { db: dbMock.db } },
+        { provide: ExchangeRateService, useValue: mockExchangeRateService },
+      ],
     }).compile();
 
     service = module.get<AccountService>(AccountService);
@@ -133,6 +142,50 @@ describe('AccountService', () => {
       expect(typeof result[0].currentBalance).toBe('number');
       expect(result[0].currentBalance).toBe(10);
       expect(dbMock.orm.Account.where).toHaveBeenCalledWith({ userId, isDeleted: false });
+    });
+  });
+
+  describe('getCategoryTotals()', () => {
+    it('should sum balances per category converted to RUB', async () => {
+      dbMock.orm.Account.all.mockResolvedValueOnce([
+        accountRow({ id: 1, categoryId: 1, currencyCode: 'RUB', currentBalance: '1000' }),
+        accountRow({ id: 2, categoryId: 1, currencyCode: 'RUB', currentBalance: '500.55' }),
+        accountRow({ id: 3, categoryId: 2, currencyCode: 'USD', currentBalance: '10' }),
+      ] as never);
+      mockExchangeRateService.getRatesToBaseCurrency.mockResolvedValueOnce(
+        new Map([
+          ['RUB', 1],
+          ['USD', 90],
+        ])
+      );
+
+      const result = await service.getCategoryTotals(userId);
+
+      expect(mockExchangeRateService.getRatesToBaseCurrency).toHaveBeenCalledWith(['RUB', 'USD']);
+      expect(result).toEqual([
+        { categoryId: 1, totalAmount: 1500.55 },
+        { categoryId: 2, totalAmount: 900 },
+      ]);
+    });
+
+    it('should fall back to a 1:1 rate for currencies without a stored rate', async () => {
+      dbMock.orm.Account.all.mockResolvedValueOnce([
+        accountRow({ categoryId: 1, currencyCode: 'XYZ', currentBalance: '42' }),
+      ] as never);
+      mockExchangeRateService.getRatesToBaseCurrency.mockResolvedValueOnce(new Map([['RUB', 1]]));
+
+      const result = await service.getCategoryTotals(userId);
+
+      expect(result).toEqual([{ categoryId: 1, totalAmount: 42 }]);
+    });
+
+    it('should return an empty array without accounts', async () => {
+      dbMock.orm.Account.all.mockResolvedValueOnce([] as never);
+
+      const result = await service.getCategoryTotals(userId);
+
+      expect(result).toEqual([]);
+      expect(mockExchangeRateService.getRatesToBaseCurrency).not.toHaveBeenCalled();
     });
   });
 

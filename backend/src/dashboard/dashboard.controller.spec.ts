@@ -30,6 +30,7 @@ describe('DashboardController', () => {
     };
     mockAccountService = {
       findAll: jest.fn(),
+      getCategoryTotals: jest.fn(),
     };
     mockCategoryService = {
       findAll: jest.fn(),
@@ -65,6 +66,7 @@ describe('DashboardController', () => {
       ];
       const categories = [{ id: 1, name: 'Food', isExpense: true }];
       const archivedCategories = [];
+      const categoryTotals = [{ categoryId: 1, totalAmount: 59000 }];
       const expenseSummary = [
         { categoryId: 1, categoryName: 'Food', categoryColor: '#ff0000', totalAmount: 45000 },
       ];
@@ -72,6 +74,7 @@ describe('DashboardController', () => {
 
       mockUserService.getProfile.mockResolvedValue(profile);
       mockAccountService.findAll.mockResolvedValue(accounts);
+      mockAccountService.getCategoryTotals.mockResolvedValue(categoryTotals);
       mockCategoryService.findAll.mockResolvedValue(categories);
       mockCategoryService.getArchived.mockResolvedValue(archivedCategories);
       // Stub returns different data depending on transaction type.
@@ -86,6 +89,9 @@ describe('DashboardController', () => {
       expect(result.accounts).toEqual(accounts);
       expect(result.accounts[0].currencyCode).toBe('USD');
       expect(result.accounts[0].currentBalance).toBe(100);
+      expect(result.categoryTotals).toEqual(categoryTotals);
+      expect(result.baseCurrencyCode).toBe('RUB');
+      expect(mockAccountService.getCategoryTotals).toHaveBeenCalledWith(mockUser.id);
       expect(result.categories).toEqual(categories);
       expect(result.archivedCategories).toEqual(archivedCategories);
       expect(result.expenseSummary).toEqual(expenseSummary);
@@ -95,6 +101,7 @@ describe('DashboardController', () => {
     it('should pass from/to to transactionService.getSummary', async () => {
       mockUserService.getProfile.mockResolvedValue({});
       mockAccountService.findAll.mockResolvedValue([]);
+      mockAccountService.getCategoryTotals.mockResolvedValue([]);
       mockCategoryService.findAll.mockResolvedValue([]);
       mockCategoryService.getArchived.mockResolvedValue([]);
       mockTransactionService.getSummary.mockResolvedValue([]);

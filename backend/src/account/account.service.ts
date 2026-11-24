@@ -3,10 +3,14 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { money } from '../prisma/money';
+import { ExchangeRateService } from '../currency/exchange-rate.service';
 
 @Injectable()
 export class AccountService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private exchangeRateService: ExchangeRateService
+  ) {}
 
   async create(userId: string, dto: CreateAccountDto) {
     const hasExisting = await this.prisma.db.orm.public.Account.where({
@@ -57,6 +61,34 @@ export class AccountService {
       currencySymbol: currency.symbol,
       currentBalance: Number(account.currentBalance),
     }));
+  }
+
+  async getCategoryTotals(userId: string) {
+    const accounts = await this.prisma.db.orm.public.Account.where({
+      userId,
+      isDeleted: false,
+    }).all();
+
+    if (accounts.length === 0) return [];
+
+    const currencies = [...new Set(accounts.map((account) => account.currencyCode))];
+    const rateMap = await this.exchangeRateService.getRatesToBaseCurrency(currencies);
+
+    const totals = new Map<number, number>();
+
+    for (const account of accounts) {
+      // Unknown currencies fall back to 1 so the total stays visible
+      const rate = rateMap.get(account.currencyCode) ?? 1;
+      const balance = Number(account.currentBalance) * rate;
+      totals.set(account.categoryId, (totals.get(account.categoryId) ?? 0) + balance);
+    }
+
+    return [...totals.entries()]
+      .map(([categoryId, total]) => ({
+        categoryId,
+        totalAmount: Math.round(total * 100) / 100,
+      }))
+      .sort((a, b) => a.categoryId - b.categoryId);
   }
 
   async findOne(userId: string, id: number) {
