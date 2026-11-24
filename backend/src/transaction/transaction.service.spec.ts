@@ -17,8 +17,8 @@ const amount = 100;
 const accountRow = { id: accountId, currentBalance: '1000', userId };
 
 const mockExchangeRateService = {
-  getRatesToRub: jest.fn(),
-  convertToRub: jest.fn(),
+  getRatesToBaseCurrency: jest.fn(),
+  convertToBaseCurrency: jest.fn(),
 };
 
 describe('TransactionService', () => {
@@ -38,10 +38,10 @@ describe('TransactionService', () => {
     }).compile();
 
     service = module.get<TransactionService>(TransactionService);
-    mockExchangeRateService.getRatesToRub.mockReset();
-    mockExchangeRateService.getRatesToRub.mockResolvedValue(new Map([['RUB', 1]]));
-    mockExchangeRateService.convertToRub.mockReset();
-    mockExchangeRateService.convertToRub.mockResolvedValue(100);
+    mockExchangeRateService.getRatesToBaseCurrency.mockReset();
+    mockExchangeRateService.getRatesToBaseCurrency.mockResolvedValue(new Map([['RUB', 1]]));
+    mockExchangeRateService.convertToBaseCurrency.mockReset();
+    mockExchangeRateService.convertToBaseCurrency.mockResolvedValue(100);
   });
 
   describe('create()', () => {
@@ -301,7 +301,7 @@ describe('TransactionService', () => {
           transactionDate: new Date('2024-01-25'),
         },
       ] as never);
-      mockExchangeRateService.getRatesToRub.mockResolvedValueOnce(
+      mockExchangeRateService.getRatesToBaseCurrency.mockResolvedValueOnce(
         new Map([
           ['USD', 90],
           ['RUB', 1],

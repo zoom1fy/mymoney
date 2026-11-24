@@ -1,4 +1,5 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { BASE_CURRENCY } from '../common/constants/base-currency.constant';
 import { CurrencyCode } from '../common/enums/currency.enum';
 import { PrismaService } from '../prisma/prisma.service';
 import { CurrencyService } from './currency.service';
@@ -18,10 +19,10 @@ export class ExchangeRateService implements OnApplicationBootstrap {
   }
 
   async syncRates() {
-    const currencies = Object.values(CurrencyCode).filter((c) => !c.includes('RUB'));
+    const currencies = Object.values(CurrencyCode).filter((c) => c !== BASE_CURRENCY);
     for (const from of currencies) {
       try {
-        const rate = await this.currencyService.getExchangeRate(from, 'RUB');
+        const rate = await this.currencyService.getExchangeRate(from, BASE_CURRENCY);
         await this.upsertRate(from, rate);
       } catch {
         // skip if rate unavailable
@@ -29,13 +30,14 @@ export class ExchangeRateService implements OnApplicationBootstrap {
     }
   }
 
-  /** Convert an amount from any currency to RUB using the latest stored rate. */
-  async convertToRub(amount: number, from: string): Promise<number> {
-    if (from === 'RUB') return amount;
+  /** Convert an amount from any currency into the base currency using the latest stored rate. */
+  async convertToBaseCurrency(amount: number, from: string): Promise<number> {
+    // Currency codes arrive from the database as plain strings
+    if (from === String(BASE_CURRENCY)) return amount;
     let rate: number | null = null;
     const row = await this.prisma.db.orm.public.ExchangeRate.where({
       from,
-      to: 'RUB',
+      to: BASE_CURRENCY,
     }).first();
     if (row) {
       rate = Number(row.rate);
@@ -46,15 +48,16 @@ export class ExchangeRateService implements OnApplicationBootstrap {
     return amount * rate;
   }
 
-  /** Bulk-fetch rates — try DB first, live-fetch any missing currencies. */
-  async getRatesToRub(currencies: string[]): Promise<Map<string, number>> {
-    const cached = await this.prisma.db.orm.public.ExchangeRate.where({ to: 'RUB' })
+  /** Bulk-fetch rates towards the base currency — try DB first, live-fetch any missing currencies. */
+  async getRatesToBaseCurrency(currencies: string[]): Promise<Map<string, number>> {
+    const base = String(BASE_CURRENCY);
+    const cached = await this.prisma.db.orm.public.ExchangeRate.where({ to: BASE_CURRENCY })
       .where((r) => r.from.in(currencies))
       .all();
     const map = new Map<string, number>(cached.map((r) => [r.from, Number(r.rate)]));
-    map.set('RUB', 1);
+    map.set(base, 1);
 
-    const missing = currencies.filter((c) => c !== 'RUB' && !map.has(c));
+    const missing = currencies.filter((c) => c !== base && !map.has(c));
     for (const from of missing) {
       const rate = await this.fetchAndStoreRate(from);
       if (rate !== null) map.set(from, rate);
@@ -65,16 +68,16 @@ export class ExchangeRateService implements OnApplicationBootstrap {
 
   private async upsertRate(from: string, rate: number) {
     await this.prisma.db.orm.public.ExchangeRate.upsert({
-      conflictOn: { from, to: 'RUB' },
+      conflictOn: { from, to: BASE_CURRENCY },
       update: { rate: String(rate) },
-      create: { from, to: 'RUB', rate: String(rate) },
+      create: { from, to: BASE_CURRENCY, rate: String(rate) },
     });
   }
 
   /** Try to fetch a live rate and persist it, return null on failure. */
   private async fetchAndStoreRate(from: string): Promise<number | null> {
     try {
-      const rate = await this.currencyService.getExchangeRate(from, 'RUB');
+      const rate = await this.currencyService.getExchangeRate(from, BASE_CURRENCY);
       await this.upsertRate(from, rate);
       return rate;
     } catch {

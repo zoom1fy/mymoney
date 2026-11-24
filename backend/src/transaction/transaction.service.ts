@@ -153,7 +153,7 @@ export class TransactionService {
     if (transactions.length === 0) return [];
 
     const currencies = [...new Set(transactions.map((t) => t.currencyCode))];
-    const rateMap = await this.exchangeRateService.getRatesToRub(currencies);
+    const rateMap = await this.exchangeRateService.getRatesToBaseCurrency(currencies);
 
     const rubTotals = new Map<number, { name: string; color: string | null; total: number }>();
 
