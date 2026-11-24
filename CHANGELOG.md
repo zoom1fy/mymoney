@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Settings dialog behind a gear in the header. It now holds the theme switcher
   and, on desktop, backup action.
+- Per-category account totals in the sidebar, converted into the base currency
+  (RUB). The web backend sums them with stored exchange rates; the desktop app
+  runs the same aggregation over local SQLite.
+
+### Changed
+
+- Sidebar is 18rem wide (20rem on mobile), its title is centered, and its header
+  is as tall as the main header.
+
+### Removed
+
+- The wallet icon and the "Personal account" subtitle from the sidebar header.
 
 ## [0.1.0] - 2026-10-04
 
