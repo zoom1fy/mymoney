@@ -1,10 +1,11 @@
 'use client'
 
-import { LogOut, User } from 'lucide-react'
+import { LogOut, Settings, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import { ProfileModal } from '@/components/dashboard/profile/profile-modal'
-import { ThemeToggle } from '@/components/ui/buttons/theme-toggle'
+import { SettingsModal } from '@/components/dashboard/settings/settings-modal'
 import { Avatar, AvatarFallback } from '@/components/ui/shadui/avatar'
 import { Button } from '@/components/ui/shadui/button'
 import {
@@ -17,14 +18,15 @@ import {
 } from '@/components/ui/shadui/dropdown-menu'
 import { SidebarTrigger } from '@/components/ui/shadui/sidebar'
 
-import { useDashboard } from '@/components/dashboard/dashboard-provider'
 import { useProfile } from '@/hooks/use-profile'
+
 import { isTauri } from '@/lib/platform'
 
 export function DashboardHeader() {
   const { profile } = useDashboard()
   const { logout, isLoggingOut } = useProfile()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -69,8 +71,16 @@ export function DashboardHeader() {
           <span className="sm:hidden">Транзакции</span>
         </Button>
 
-
-        <ThemeToggle />
+        <Button
+          aria-label="Настройки"
+          className="size-8 cursor-pointer"
+          size="sm"
+          title="Настройки"
+          variant="ghost"
+          onClick={() => setIsSettingsOpen(true)}
+        >
+          <Settings className="size-4" />
+        </Button>
 
         {isDesktop ? (
           <Avatar className="h-8 w-8">
@@ -82,57 +92,62 @@ export function DashboardHeader() {
           <>
             {/* Dropdown меню профиля */}
             <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              className="relative h-8 w-8 rounded-full cursor-pointer"
-              size="sm"
-              variant="ghost"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            forceMount
-            align="end"
-            className="w-56 bg-background"
-          >
-            <DropdownMenuLabel>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">
-                  {profile?.name || 'Пользователь'}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => setIsProfileOpen(true)}
-            >
-              <User className="mr-2 h-4 w-4" />
-              Профиль
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer text-destructive focus:text-destructive"
-              disabled={isLoggingOut}
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              {isLoggingOut ? 'Выход...' : 'Выйти'}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="relative h-8 w-8 rounded-full cursor-pointer"
+                  size="sm"
+                  variant="ghost"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                forceMount
+                align="end"
+                className="w-56 bg-background"
+              >
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {profile?.name || 'Пользователь'}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => setIsProfileOpen(true)}
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Профиль
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  disabled={isLoggingOut}
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {isLoggingOut ? 'Выход...' : 'Выйти'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-        <ProfileModal
-          isOpen={isProfileOpen}
-          onOpenChange={setIsProfileOpen}
-        />
+            <ProfileModal
+              isOpen={isProfileOpen}
+              onOpenChange={setIsProfileOpen}
+            />
           </>
         )}
+
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onOpenChange={setIsSettingsOpen}
+        />
       </div>
     </header>
   )

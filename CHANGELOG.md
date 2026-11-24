@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Settings dialog behind a gear in the header. It now holds the theme switcher
+  and, on desktop, backup action.
+
 ## [0.1.0] - 2026-10-04
 
 First release. Ships the web app, the offline-first desktop app, and the

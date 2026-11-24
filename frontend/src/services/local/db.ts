@@ -1,5 +1,5 @@
-import Database from '@tauri-apps/plugin-sql'
 import { appLocalDataDir, join } from '@tauri-apps/api/path'
+import Database from '@tauri-apps/plugin-sql'
 
 // Fixed single user created by the seed migration; all local data hangs off this id
 export const LOCAL_USER_ID = '00000000-0000-0000-0000-000000000001'

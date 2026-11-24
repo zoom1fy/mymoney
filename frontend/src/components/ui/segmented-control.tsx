@@ -55,7 +55,9 @@ export function SegmentedControl<T extends string>({
                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
               />
             )}
-            <span className="relative z-10">{option.label}</span>
+            <span className="relative z-10 inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+              {option.label}
+            </span>
           </button>
         )
       })}
